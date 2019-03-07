@@ -21,7 +21,7 @@ See the LozUCI class for a complete list of commands that Lozza can handle.
 
 ## Example web user interfaces
 
-A [sister project](https://github.com/op12no2/lozza-ui) has some example user interfaces for playing and analysing with Lozza, which can try out [here](https://op12no2.github.io/lozza-ui/).
+A [sister project](https://github.com/op12no2/lozza-ui) has some more complete example user interfaces for playing and analysing with Lozza, which you can try out [here](https://op12no2.github.io/lozza-ui/).
 
 ## Offline use
 
