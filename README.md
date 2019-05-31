@@ -17,7 +17,7 @@ lozza.postMessage('position startpos');
 lozza.postMessage('go depth 10'); // 10 ply search
 ```
 
-Try this example [here](https://op12no2.github.io/lozza/ex.htm)
+Try this example [here](https://op12no2.github.io/lozza-ui/ex.htm)
 
 See the LozUCI class for a complete list of commands that Lozza can handle.
 
