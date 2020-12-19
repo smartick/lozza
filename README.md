@@ -1,6 +1,6 @@
 # Lozza
 
-A simple Javascript UCI chess engine rated about 2400 on CCRL.  Lozza is a traditional engine with an evaluation function based on Fabien Letouzey's Fruit 2.1. It also uses David Bau's random number generator code https://github.com/davidbau/seedrandom and various tecnniques from conversations in talkchess http://www.talkchess.com/forum3/index.php.
+A simple Javascript UCI chess engine rated about 2400 on CCRL.  Lozza is a traditional engine with an evaluation function based on Fabien Letouzey's Fruit 2.1. It also uses David Bau's random number generator code https://github.com/davidbau/seedrandom, various tecnniques from conversations in talkchess http://www.talkchess.com/forum3/index.php and algorithms from https://www.chessprogramming.org/Main_Page.
 
 ## Example web use
 
