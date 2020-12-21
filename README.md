@@ -21,6 +21,10 @@ Try this example here https://op12no2.github.io/lozza-ui/ex.htm
 
 See the LozUCI class for a complete list of commands that Lozza can handle.
 
+## Tests
+
+Perft -  https://github.com/op12no2/lozza-u/perft.htm 
+
 ## Example web user interfaces
 
 A sister project https://github.com/op12no2/lozza-ui has some more complete example user interfaces for playing and analysing with Lozza, which you can try out here https://op12no2.github.io/lozza-ui
