@@ -23,7 +23,7 @@ See the LozUCI class for a complete list of commands that Lozza can handle.
 
 ## Tests
 
-Perft -  https://op12no2.github.io/lozza-ui/perft.htm 
+Perft -  https://op12no2.github.io/lozza-ui/perft.htm (the final perft takes 25 seconds on my machine)
 
 ## Example web user interfaces
 
