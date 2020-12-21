@@ -23,7 +23,7 @@ See the LozUCI class for a complete list of commands that Lozza can handle.
 
 ## Tests
 
-Perft -  https://github.com/op12no2/lozza-u/perft.htm 
+Perft -  https://github.com/op12no2/lozza-ui/perft.htm 
 
 ## Example web user interfaces
 
