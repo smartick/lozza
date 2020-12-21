@@ -17,13 +17,13 @@ lozza.postMessage('position startpos');
 lozza.postMessage('go depth 10'); // 10 ply search
 ```
 
-Try this example [here](https://op12no2.github.io/lozza-ui/ex.htm)
+Try this example here https://op12no2.github.io/lozza-ui/ex.htm
 
 See the LozUCI class for a complete list of commands that Lozza can handle.
 
 ## Example web user interfaces
 
-A [sister project](https://github.com/op12no2/lozza-ui) has some more complete example user interfaces for playing and analysing with Lozza, which you can try out [here](https://op12no2.github.io/lozza-ui/).
+A sister project https://github.com/op12no2/lozza-ui has some more complete example user interfaces for playing and analysing with Lozza, which you can try out here https://op12no2.github.io/lozza-ui
 
 ## Offline use
 
@@ -31,7 +31,7 @@ Lozza can be used in chess UIs like WinBoard and Arena by using [node](https://n
 
 ## Notes
 
-If you are looking for something stronger using bitboards, have a look at Tamás Kuzmics's [Tomitank](https://github.com/tomitank/tomitankChess) Javascript chess engine.
+If you are looking for something stronger written in Javascript using bitboards, have a look at Tamás Kuzmics's Tomitank https://github.com/tomitank/tomitankChess.
 
 To enter a javascript chess engine into Hans G. Muller's monthly chess tournaments use somehting like:-
 
