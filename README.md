@@ -23,7 +23,8 @@ See the LozUCI class for a complete list of commands that Lozza can handle.
 
 ## Tests
 
-Perft -  https://op12no2.github.io/lozza-ui/perft.htm (the final perft takes 25 seconds on my machine)
+Perft - https://op12no2.github.io/lozza-ui/perft.htm - the final perft takes 25 seconds on my machine
+EPD - https://op12no2.github.io/lozza-ui/bm.htm - various EPD tests including the famous Bratko-Kopec positions
 
 ## Example web user interfaces
 
