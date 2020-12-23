@@ -37,8 +37,6 @@ Lozza can be used in chess UIs like WinBoard and Arena by using [node](https://n
 
 ## Notes
 
-If you are looking for something stronger written in Javascript using bitboards, have a look at Tamás Kuzmics's Tomitank https://github.com/tomitank/tomitankChess.
-
 To enter a javascript chess engine into Hans G. Muller's monthly chess tournaments use somehting like:-
 
 winboard -zp -ics -icshost winboard.nl -icshelper timeseal -fcp "node.exe lozza.js" -fd . -autoKibitz -fUCI -keepAlive 4 -firstXBook
