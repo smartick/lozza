@@ -23,11 +23,11 @@ See the LozUCI class for a complete list of commands that Lozza can handle.  See
 
 ## Playing Lozza online
 
-A sister project https://github.com/op12no2/lozza-ui has some more complete example user interfaces for playing and analysing with Lozza, which you can try out here https://op12no2.github.io/lozza-ui
+A sister project https://github.com/op12no2/lozza-ui has some more complete example user interfaces for playing and analysing with Lozza, which you can try out here https://op12no2.github.io/lozza-ui.
 
 ## Playing Lozza offline
 
-Lozza can be used in chess UIs like WinBoard and Arena by using [node](https://nodejs.org) as the engine executable and lozza.js as a parameter to it. Full paths for both are recommended. They do not need to be in the same folder.
+Lozza can be used in chess UIs like WinBoard and Arena by using [node](https://nodejs.org) as the engine executable and lozza.js as a parameter to it. Full paths for both are recommended. Node and Lozza do not need to be in the same folder.
 
 ## Online testing
 
