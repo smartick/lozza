@@ -17,15 +17,9 @@ lozza.postMessage('position startpos');
 lozza.postMessage('go depth 10'); // 10 ply search
 ```
 
-Try this example here https://op12no2.github.io/lozza-ui/ex.htm
+Try this example here https://op12no2.github.io/lozza-ui/ex.htm.
 
-See the LozUCI class for a complete list of commands that Lozza can handle.
-
-## Tests
-
-Perft - https://op12no2.github.io/lozza-ui/perft.htm - the final perft takes 25 seconds on my machine
-
-EPD - https://op12no2.github.io/lozza-ui/bm.htm - various EPD tests including the famous Bratko-Kopec positions
+See the LozUCI class for a complete list of commands that Lozza can handle.  See also here https://op12no2.github.io/lozza-ui/consolehelp.htm. 
 
 ## Playing Lozza online
 
@@ -33,10 +27,18 @@ A sister project https://github.com/op12no2/lozza-ui has some more complete exam
 
 ## Playing Lozza offline
 
-Lozza can be used in chess UIs like WinBoard and Arena by using [node](https://nodejs.org) as the engine executable and lozza.js as a parameter to it.
+Lozza can be used in chess UIs like WinBoard and Arena by using [node](https://nodejs.org) as the engine executable and lozza.js as a parameter to it. Full paths for both are recommended. They do not need to be in the same folder.
+
+## Online testing
+
+Perft - https://op12no2.github.io/lozza-ui/perft.htm - various Perft tests - the final one takes 25 seconds on my machine doing about 5M nps.
+
+EPD - https://op12no2.github.io/lozza-ui/bm.htm - various EPD tests including the famous Bratko-Kopec positions
 
 ## Notes
 
-To enter a javascript chess engine into Hans G. Muller's monthly chess tournaments use somehting like:-
+lozza.js is folded using {{{ and }}} (emacs convention) and most easily read using an editor with a folding capability.
+
+To enter a javascript chess engine like Lozza into Hans G. Muller's monthly chess tournaments use somehting like:-
 
 winboard -zp -ics -icshost winboard.nl -icshelper timeseal -fcp "node.exe lozza.js" -fd . -autoKibitz -fUCI -keepAlive 4 -firstXBook
