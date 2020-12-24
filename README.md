@@ -1,6 +1,6 @@
 # Lozza
 
-A simple Javascript UCI chess engine rated about 2400 on CCRL.  Lozza is a traditional engine with an evaluation function based on Fabien Letouzey's Fruit 2.1. It also uses David Bau's random number generator code https://github.com/davidbau/seedrandom, various tecnniques from conversations in talkchess http://www.talkchess.com/forum3/index.php and algorithms from https://www.chessprogramming.org/Main_Page.
+A UCI compliant Javascript chess engine rated about 2400 on CCRL.  Lozza is a traditional mailbox engine with PVS search and an evaluation function based on Fabien Letouzey's Fruit 2.1. It also uses David Bau's random number generator code https://github.com/davidbau/seedrandom, various tecnniques from conversations in talkchess http://www.talkchess.com/forum3/index.php and algorithms from https://www.chessprogramming.org/Main_Page. It is easy to embed Lozza in web applications.  See bwlow for a simple example.   
 
 ## Example web use
 
@@ -27,11 +27,11 @@ Perft - https://op12no2.github.io/lozza-ui/perft.htm - the final perft takes 25 
 
 EPD - https://op12no2.github.io/lozza-ui/bm.htm - various EPD tests including the famous Bratko-Kopec positions
 
-## Example web user interfaces
+## Playing Lozza online
 
 A sister project https://github.com/op12no2/lozza-ui has some more complete example user interfaces for playing and analysing with Lozza, which you can try out here https://op12no2.github.io/lozza-ui
 
-## Offline use
+## Playing Lozza offline
 
 Lozza can be used in chess UIs like WinBoard and Arena by using [node](https://nodejs.org) as the engine executable and lozza.js as a parameter to it.
 
