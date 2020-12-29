@@ -1,10 +1,16 @@
 
 // https://github.com/op12no2
 
-var BUILD = "1.18";
+var BUILD = "1.19.test.drawish5";
 
 //{{{  history
 /*
+
+1.19 Add mistake command and code
+1.19 Play UI: add levels etc.
+1.19 In web mode don't send some of the UCI crap.
+1.19 Reduce eval if no pawns and close in material.
+1.19 Feather off eval as we get close to 50 move rule.
 
 1.18 Don't move king adjacent to king.
 1.18 Fix black king endgame PST.
@@ -1325,9 +1331,10 @@ function lozChess () {
     this.nodes[i].root = i == 0;
   }
 
-  this.board = new lozBoard();
-  this.stats = new lozStats();
-  this.uci   = new lozUCI();
+  this.board    = new lozBoard();
+  this.stats    = new lozStats();
+  this.uci      = new lozUCI();
+  this.mistakes = 0;
 
   this.rootNode = this.nodes[0];
 
@@ -1482,8 +1489,9 @@ lozChess.prototype.init = function () {
     this.nodes[i].init();
 
   this.board.init();
-  this.stats.init();
-}
+  this.stats.init()}
+
+  this.mistakes = 0;
 
 //}}}
 //{{{  .newGameInit
@@ -1492,6 +1500,7 @@ lozChess.prototype.newGameInit = function () {
 
   this.board.ttInit();
   this.uci.numMoves = 0;
+  this.mistakes = 0;
 }
 
 //}}}
@@ -1627,9 +1636,7 @@ lozChess.prototype.go = function() {
 
   this.uci.send('bestmove',bestMoveStr);
 
-  //this.uci.debug(board.initNumWhitePieces,board.initNumWhitePawns,board.initNumBlackPieces,board.initNumBlackPawns);
-  this.uci.debug(spec.board + ' ' + spec.turn + ' ' + spec.rights + ' ' + spec.ep);
-  this.uci.debug(BUILD + ' ' + spec.depth+'p','|',this.stats.nodesMega+'Mn','|',this.stats.nodes+'n','|',this.stats.timeSec+'s','|',bestMoveStr,'|',board.formatMove(this.stats.bestMove,SAN_FMT));
+  this.uci.debug(BUILD + ' ' + spec.depth+'ply','|',this.stats.nodesMega+'Mn','|',this.stats.nodes+'n','|',this.stats.timeSec+'s','|',bestMoveStr,'|',board.formatMove(this.stats.bestMove,SAN_FMT));
 }
 
 //}}}
@@ -1747,6 +1754,18 @@ lozChess.prototype.search = function (node, depth, turn, alpha, beta) {
       return;
     }
 
+    //{{{  make mistakes?
+    
+    if (this.mistakes) {
+      if (Math.random() <= 1.0/(this.uci.spec.depth * this.uci.spec.depth)) {
+        var mm = Math.random() + Math.random();
+        this.uci.debug('blunder, changed score of ',board.formatMove(move,SAN_FMT),' from ',score,' to ',score*mm|0);
+        score = score * mm | 0;
+      }
+    }
+    
+    //}}}
+
     if (score > bestScore) {
       if (score > alpha) {
         if (score >= beta) {
@@ -1778,15 +1797,6 @@ lozChess.prototype.search = function (node, depth, turn, alpha, beta) {
         
         this.uci.send('info',this.stats.nodeStr(),'depth',this.stats.ply,'seldepth',this.stats.selDepth,'score',units,uciScore,'pv',pvStr);
         this.stats.update();
-        
-        //if (!board.ttGetMove(node))
-          //this.uci.debug('TT AWOL FOR',mv);
-        
-        //if (!pvStr)
-          //this.uci.debug('NULL PV FOR',mv);
-        
-        //if (pvStr.indexOf(mv) != 0)
-          //this.uci.debug('WRONG PV FOR',mv);
         
         if (this.stats.splits > 5)
           this.uci.send('info hashfull',Math.round(1000*board.hashUsed/TTSIZE));
@@ -2655,6 +2665,11 @@ lozBoard.prototype.position = function () {
   
   this.loHash ^= this.loEP[this.ep];
   this.hiHash ^= this.hiEP[this.ep];
+  
+  //}}}
+  //{{{  board hmc
+  
+  this.repHi = spec.hmc;
   
   //}}}
 
@@ -4144,6 +4159,15 @@ lozBoard.prototype.evaluate = function (turn) {
   var bNumKnights = this.bCounts[KNIGHT];
   var bNumPawns   = this.bCounts[PAWN];
   
+  var wNumMajors  = wNumQueens + wNumRooks;
+  var bNumMajors  = bNumQueens + bNumRooks;
+  
+  var wNumMinors  = wNumBishops + wNumKnights;
+  var bNumMinors  = bNumBishops + bNumKnights;
+  
+  var wNumPieces  = wNumMinors + wNumMajors + wNumPawns
+  var bNumPieces  = bNumMinors + bNumMajors + bNumPawns
+  
   var wKingSq   = this.wList[0];
   var wKingRank = RANK[wKingSq];
   var wKingFile = FILE[wKingSq];
@@ -4170,37 +4194,51 @@ lozBoard.prototype.evaluate = function (turn) {
   //}}}
   //{{{  draw?
   
-  //todo - lots more here and drawish.
+  var isDraw = false;
+  
   
   if (numPieces == 2)                                                                  // K v K.
-    return CONTEMPT;
+    isDraw = true;
   
   if (numPieces == 3 && (wNumKnights || wNumBishops || bNumKnights || bNumBishops))    // K v K+N|B.
-    return CONTEMPT;
+    isDraw = true;
   
   if (numPieces == 4 && (wNumKnights || wNumBishops) && (bNumKnights || bNumBishops))  // K+N|B v K+N|B.
-    return CONTEMPT;
+    isDraw = true;
   
   if (numPieces == 4 && (wNumKnights == 2 || bNumKnights == 2))                        // K v K+NN.
-    return CONTEMPT;
+    isDraw = true;
   
   if (numPieces == 5 && wNumKnights == 2 && (bNumKnights || bNumBishops))              //
-    return CONTEMPT;                                                                   //
+    isDraw = true;
                                                                                        // K+N|B v K+NN
   if (numPieces == 5 && bNumKnights == 2 && (wNumKnights || wNumBishops))              //
-    return CONTEMPT;                                                                   //
+    isDraw = true;
   
   if (numPieces == 5 && wNumBishops == 2 && bNumBishops)                               //
-    return CONTEMPT;                                                                   //
+    isDraw = true;
                                                                                        // K+B v K+BB
   if (numPieces == 5 && bNumBishops == 2 && wNumBishops)                               //
-    return CONTEMPT;                                                                   //
+    isDraw = true;
   
-  if (numPieces == 4 && wNumRooks && bNumRooks)                                        // K+R v K+R.
+  if (isDraw) {
+    //{{{  verbose
+    
+    if (this.verbose) {
+      uci.send('----');
+      uci.send('Draw');
+      uci.send('----');
+    }
+    
+    //}}}
     return CONTEMPT;
+  }
   
-  if (numPieces == 4 && wNumQueens && bNumQueens)                                      // K+Q v K+Q.
-    return CONTEMPT;
+  //if (numPieces == 4 && wNumRooks && bNumRooks)                                        // K+R v K+R.
+    //return CONTEMPT;
+  
+  //if (numPieces == 4 && wNumQueens && bNumQueens)                                      // K+Q v K+Q.
+    //return CONTEMPT;
   
   //}}}
 
@@ -5423,30 +5461,75 @@ lozBoard.prototype.evaluate = function (turn) {
   var e = (evalS * ((256 - this.gPhase) / 256) | 0) + (evalE * ((this.gPhase) / 256) | 0);
   
   //}}}
-  //{{{  verbose
+
+  e *= ((-turn >> 31) | 1);
+
+  //{{{  taper
   
-  if (this.verbose) {
-    uci.send('info string','phased eval',    'PH',this.gPhase,      'VAL',e);
-    uci.send('info string','evaluation',     'MG',evalS,            'EG',evalE);
-    uci.send('info string','trapped',        'MG',trappedS,         'EG',trappedE);
-    uci.send('info string','mobility',       'MG',mobS,             'EG',mobE);
-    uci.send('info string','attacks',        'MG',attS,             'EG',attE);
-    uci.send('info string','material',       'MG',this.runningEvalS,'EG',this.runningEvalE);
-    uci.send('info string','king',           'MG',kingS,            'EG',kingE);
-    uci.send('info string','queens',         'MG',queensS,          'EG',queensE);
-    uci.send('info string','rooks',          'MG',rooksS,           'EG',rooksE);
-    uci.send('info string','bishops',        'MG',bishopsS,         'EG',bishopsE);
-    uci.send('info string','knights',        'MG',knightsS,         'EG',knightsE);
-    uci.send('info string','pawns',          'MG',pawnsS,           'EG',pawnsE);
-    uci.send('info string','home pawn',      'W', wHome != 0,       'B', bHome != 0);
-    uci.send('info string','tempo',          'MG',tempoS,           'EG',tempoE);
+  var m1      = 1.0;
+  var drawish = this.repHi - this.repLo;
+  
+  if ((this.gPhase > EPHASE) && (drawish > 8)) {
+    if (drawish > 100)
+      drawish = 100;
+    m1 = (101.0 - drawish) / 100.0;
+  }
+  
+  //}}}
+  //{{{  no pawns
+  
+  var m2 = 1.0;
+  
+  if (!bNumPawns && !wNumPawns) {
+    var mDelta = Math.abs(this.runningEvalE);
+    if (mDelta < 400)
+      m2 = 0.25;
+    else if (mDelta < 700 && !bNumMajors && !wNumMajors)
+      m2 = 0.50;
+    else
+      m2 = 0.90;
   }
   
   //}}}
 
-  e *= ((-turn >> 31) | 1);
+  var e2 = e * m1 * m2 | 0;
 
-  return e;
+  //{{{  verbose
+  
+  if (this.verbose) {
+    uci.send('info string','final eval =',e2);
+    uci.send('info string','-----');
+    uci.send('info string','no pawns multiplier =',               m2);
+    uci.send('info string','nearing fifty move rule multiplier =',m1);
+    uci.send('info string','-----');
+    uci.send('info string','phased eval =',e);
+    uci.send('info string','game phase (0 to 256) =',this.gPhase);
+    uci.send('info string','turn (0=w,1=b) =',turn);
+    uci.send('info string','-----');
+    uci.send('info string','initial eval:',   'MG =',evalS,            ', EG =',evalE);
+    uci.send('info string','trapped bn:',     'MG =',trappedS,         ', EG =',trappedE);
+    uci.send('info string','mobility:',       'MG =',mobS,             ', EG =',mobE);
+    uci.send('info string','attacks:',        'MG =',attS,             ', EG =',attE);
+    uci.send('info string','king:',           'MG =',kingS,            ', EG =',kingE);
+    uci.send('info string','queens:',         'MG =',queensS,          ', EG =',queensE);
+    uci.send('info string','rooks:',          'MG =',rooksS,           ', EG =',rooksE);
+    uci.send('info string','bishops:',        'MG =',bishopsS,         ', EG =',bishopsE);
+    uci.send('info string','knights:',        'MG =',knightsS,         ', EG =',knightsE);
+    uci.send('info string','pawns:',          'MG =',pawnsS,           ', EG =',pawnsE);
+    uci.send('info string','tempo:',          'MG =',tempoS,           ', EG =',tempoE);
+    uci.send('info string','material:',       'MG =',this.runningEvalS,', EG =',this.runningEvalE);
+    uci.send('info string','-----');
+    uci.send('info string','num pieces (ex. k):','W =', wNumPieces,       ', B =', bNumPieces);
+    uci.send('info string','num majors (q+r):',  'W =', wNumMajors,       ', B =', bNumMajors);
+    uci.send('info string','num minors (b+n):',  'W =', wNumMinors,       ', B =', bNumMinors);
+    uci.send('info string','num pawns:',         'W =', wNumPawns,        ', B =', bNumPawns);
+    uci.send('info string','-----');
+    uci.send('info string','home pawn:','W =', wHome != 0,', B =', bHome != 0);
+  }
+  
+  //}}}
+
+  return e2;
 }
 
 //}}}
@@ -6552,6 +6635,15 @@ onmessage = function(e) {
       
       //}}}
 
+    case 'mistakes':
+      //{{{  mistakes
+      
+      lozza.mistakes = uci.getInt('mistakes',0);
+      
+      break;
+      
+      //}}}
+
     case 'quit':
       //{{{  quit
       
@@ -6579,11 +6671,15 @@ onmessage = function(e) {
     case 'uci':
       //{{{  uci
       
-      uci.send('id name Lozza',BUILD);
-      uci.send('id author Colin Jenkins');
-      uci.send('option');
-      uci.send('uciok');
-      
+      if (lozzaHost != HOST_WEB) {
+        uci.send('id name Lozza',BUILD);
+        uci.send('id author Colin Jenkins');
+        uci.send('option');
+        uci.send('uciok');
+      }
+      else {
+        uci.send('Welcome to Lozza chess!');
+      }
       break;
       
       //}}}
