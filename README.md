@@ -1,6 +1,17 @@
 # Lozza
 
-A UCI compliant Javascript chess engine rated about 2400 on CCRL.  Lozza is a traditional mailbox engine with PVS search and an evaluation function based on Fabien Letouzey's Fruit 2.1. It also uses various techniques from conversations in talkchess http://www.talkchess.com/forum3/index.php and algorithms from https://www.chessprogramming.org/Main_Page. It is easy to embed Lozza in web applications.  See below for a simple example.   
+A UCI compliant Javascript chess engine rated about 2400 on CCRL.
+Lozza is a traditional mailbox engine with PVS search. It's easy to
+embed Lozza in to web projects or use her offline in client user interfaces
+like Arena and Winboard. A sister project also allows Lozza to be played
+online.
+
+## Why Javascript?
+
+Mostly I curious if a Javascript engine could compete with more traditional engines
+in the rating lists like CCRL, as at the time there were none listed. There were
+Javascript engines with there own user interfaces on the internet, but none that
+complied with the UCI protocol.
 
 ## Example web use
 
@@ -19,15 +30,21 @@ lozza.postMessage('go depth 10'); // 10 ply search
 
 Try this example here https://op12no2.github.io/lozza-ui/ex.htm.
 
-See the LozUCI class for a complete list of commands that Lozza can handle.  See also here https://op12no2.github.io/lozza-ui/consolehelp.htm. 
+See the LozUCI class for a complete list of commands that Lozza can handle.
+See also here https://op12no2.github.io/lozza-ui/consolehelp.htm.
 
 ## Playing Lozza online
 
-A sister project https://github.com/op12no2/lozza-ui has some more complete example user interfaces for playing and analysing with Lozza, which you can try out here https://op12no2.github.io/lozza-ui.
+A sister project https://github.com/op12no2/lozza-ui has some more complete
+example user interfaces for playing and analysing with Lozza, which you can
+try out here https://op12no2.github.io/lozza-ui.
 
 ## Playing Lozza offline
 
-Lozza can be used in chess UIs like WinBoard and Arena by using [node](https://nodejs.org) as the engine executable and lozza.js as a parameter to it. Full paths for both are recommended. Node and Lozza do not need to be in the same folder.
+Lozza can be used in chess UIs like WinBoard and Arena by using
+[Node](https://nodejs.org) as the engine executable and lozza.js as a parameter
+to it. Full paths for both are recommended. Node and Lozza do not need to be in
+the same folder.
 
 ## Online testing
 
