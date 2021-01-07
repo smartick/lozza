@@ -189,23 +189,6 @@ var BUILD = "1.18";
 */
 
 //}}}
-//{{{  try
-/*
-
-Increase time if one of top 2 root based moves changes and ply > N.
-
-/*
-//}}}
-//{{{  todo
-/*
-
-My own eval.
-Better endgame knowledge.
-SEE.
-
-*/
-
-//}}}
 //{{{  detect host
 
 var HOST_WEB     = 0;
