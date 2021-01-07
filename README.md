@@ -12,8 +12,9 @@ Mostly I was curious if a Javascript engine could compete with more traditional 
 in the rating lists like CCRL, as at the time there were none listed. There were
 Javascript engines with their own user interfaces on the internet, but none that
 complied with the UCI protocol. Lozza will run in any browser and offline on any 
-platform that supports Node. The develoopment cycle is very quick; you can even make
-changes while it's playing to see what happens.  Javascript is also a lot of fun.
+platform that supports Node. The develoopment cycle is very quick because there is
+no  build process; you can even make changes while it's playing to see what happens.  
+Javascript is a lot of fun.
 
 ## Example web use
 
