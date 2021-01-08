@@ -1540,8 +1540,8 @@ lozChess.prototype.go = function() {
     if (movTime > 0)
       this.stats.moveTime = movTime | 0;
   
-    if (this.stats.moveTime < 10 && (spec.wTime || spec.bTime))
-      this.stats.moveTime = 10;
+    if (this.stats.moveTime < 1 && (spec.wTime || spec.bTime))
+      this.stats.moveTime = 1;
   }
   
   //}}}
@@ -6306,7 +6306,7 @@ function lozUCI () {
   this.tokens    = [];
   this.command   = '';
   this.spec      = {};
-  this.debugging = true;
+  this.debugging = false;
   this.nodefs    = 0;
   this.numMoves  = 0;
 
