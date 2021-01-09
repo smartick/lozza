@@ -1502,8 +1502,8 @@ lozChess.prototype.position = function () {
 
 lozChess.prototype.go = function() {
 
-  this.stats.init();
-  this.stats.update();
+  //this.stats.init();
+  //this.stats.update();
 
   var board = this.board;
   var spec  = this.uci.spec;
@@ -1579,10 +1579,10 @@ lozChess.prototype.go = function() {
       //{{{  research
       
       if (score >= beta) {
-        this.uci.debug('BETA', ply, score, '>=', beta);
+        //this.uci.debug('BETA', ply, score, '>=', beta);
       }
       else {
-        this.uci.debug('ALPHA', ply, score, '<=', alpha);
+        //this.uci.debug('ALPHA', ply, score, '<=', alpha);
         if (totTime > 30000) {
           movTime              = movTime / 2 | 0;
           this.stats.moveTime += movTime;
@@ -1619,7 +1619,8 @@ lozChess.prototype.go = function() {
 
   bestMoveStr = board.formatMove(this.stats.bestMove,UCI_FMT);
 
-  board.makeMove(this.rootNode,this.stats.bestMove);
+  if (lozzaHost == HOST_WEB)
+    board.makeMove(this.rootNode,this.stats.bestMove);
 
   this.uci.send('bestmove',bestMoveStr);
 
@@ -1668,6 +1669,7 @@ lozChess.prototype.search = function (node, depth, turn, alpha, beta) {
   else
     board.genMoves(node, turn);
 
+  this.stats.checkTime();
   if (this.stats.timeOut)
     return;
 
@@ -1787,15 +1789,6 @@ lozChess.prototype.search = function (node, depth, turn, alpha, beta) {
         this.uci.send('info',this.stats.nodeStr(),'depth',this.stats.ply,'seldepth',this.stats.selDepth,'score',units,uciScore,'pv',pvStr);
         this.stats.update();
         
-        //if (!board.ttGetMove(node))
-          //this.uci.debug('TT AWOL FOR',mv);
-        
-        //if (!pvStr)
-          //this.uci.debug('NULL PV FOR',mv);
-        
-        //if (pvStr.indexOf(mv) != 0)
-          //this.uci.debug('WRONG PV FOR',mv);
-        
         if (this.stats.splits > 5)
           this.uci.send('info hashfull',Math.round(1000*board.hashUsed/TTSIZE));
         
@@ -1832,13 +1825,12 @@ lozChess.prototype.alphabeta = function (node, depth, turn, alpha, beta, nullOK,
   if (!node.childNode) {
     this.uci.debug('AB DEPTH');
     this.stats.timeOut = 1;
+    return;
   }
   
-  if (depth > 2 || this.stats.timeOut) {
-    this.stats.lazyUpdate();
-    if (this.stats.timeOut)
-      return;
-  }
+  this.stats.lazyUpdate();
+  if (this.stats.timeOut)
+    return;
   
   if (node.ply > this.stats.selDepth)
     this.stats.selDepth = node.ply;
@@ -2007,6 +1999,7 @@ lozChess.prototype.alphabeta = function (node, depth, turn, alpha, beta, nullOK,
   else
     board.genMoves(node, turn);
 
+  this.stats.checkTime();
   if (this.stats.timeOut)
     return;
 
@@ -2143,6 +2136,14 @@ lozChess.prototype.alphabeta = function (node, depth, turn, alpha, beta, nullOK,
 //{{{  .quiescence
 
 lozChess.prototype.qSearch = function (node, depth, turn, alpha, beta) {
+
+  //{{{  housekeeping
+  
+  this.stats.checkTime();
+  if (this.stats.timeOut)
+    return;
+  
+  //}}}
 
   var board         = this.board;
   var standPat      = board.evaluate(turn);
@@ -6277,17 +6278,25 @@ lozStats.prototype.init = function () {
 
 lozStats.prototype.lazyUpdate = function () {
 
-  if (this.moveTime > 0 && ((Date.now() - this.startTime) > this.moveTime))
-    this.timeOut = 1;
-
-  if (this.maxNodes > 0 && this.nodes >= this.maxNodes)
-    this.timeOut = 1;
+  this.checkTime();
 
   if (Date.now() - this.splitTime > 500) {
     this.splits++;
     this.update();
     this.splitTime = Date.now();
   }
+}
+
+//}}}
+//{{{  .checkTime
+
+lozStats.prototype.checkTime = function () {
+
+  if (this.moveTime > 0 && ((Date.now() - this.startTime) > this.moveTime))
+    this.timeOut = 1;
+
+  if (this.maxNodes > 0 && this.nodes >= this.maxNodes)
+    this.timeOut = 1;
 }
 
 //}}}
@@ -6543,6 +6552,8 @@ onmessage = function(e) {
         return;
       }
       
+      lozza.stats.init();
+      
       uci.spec.depth     = uci.getInt('depth',0);
       uci.spec.moveTime  = uci.getInt('movetime',0);
       uci.spec.maxNodes  = uci.getInt('nodes',0);
@@ -6619,6 +6630,8 @@ onmessage = function(e) {
       //console.log('bs',BS_PST[piece]);
       //console.log('be',BE_PST[piece]);
       
+      break;
+      
       //}}}
 
     case 'ucinewgame':
@@ -6659,7 +6672,7 @@ onmessage = function(e) {
       
       uci.send('id name Lozza',BUILD);
       uci.send('id author Colin Jenkins');
-      uci.send('option');
+      //uci.send('option');
       uci.send('uciok');
       
       break;
@@ -6670,6 +6683,15 @@ onmessage = function(e) {
       //{{{  isready
       
       uci.send('readyok');
+      
+      break;
+      
+      //}}}
+
+    case 'stop':
+      //{{{  stop
+      
+      lozza.stats.timeOut = 1;
       
       break;
       
@@ -6754,10 +6776,6 @@ onmessage = function(e) {
 //}}}
 
 //}}}
-
-//if (lozzaHost == HOST_NODEJS) {
-  //%NeverOptimizeFunction(lozBoard.prototype.ttInit);  // can be uncommented if using google chrome browser
-//}
 
 var lozza         = new lozChess()
 lozza.board.lozza = lozza;

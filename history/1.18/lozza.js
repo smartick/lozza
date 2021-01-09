@@ -1491,8 +1491,8 @@ lozChess.prototype.position = function () {
 
 lozChess.prototype.go = function() {
 
-  this.stats.init();
-  this.stats.update();
+  //this.stats.init();
+  //this.stats.update();
 
   var board = this.board;
   var spec  = this.uci.spec;
@@ -1807,13 +1807,12 @@ lozChess.prototype.alphabeta = function (node, depth, turn, alpha, beta, nullOK,
   if (!node.childNode) {
     this.uci.debug('AB DEPTH');
     this.stats.timeOut = 1;
+    return;
   }
   
-  if (depth > 2 || this.stats.timeOut) {
-    this.stats.lazyUpdate();
-    if (this.stats.timeOut)
-      return;
-  }
+  this.stats.lazyUpdate();
+  if (this.stats.timeOut)
+    return;
   
   if (node.ply > this.stats.selDepth)
     this.stats.selDepth = node.ply;
@@ -2118,6 +2117,14 @@ lozChess.prototype.alphabeta = function (node, depth, turn, alpha, beta, nullOK,
 //{{{  .quiescence
 
 lozChess.prototype.qSearch = function (node, depth, turn, alpha, beta) {
+
+  //{{{  housekeeping
+  
+  this.stats.checkTime();
+  if (this.stats.timeOut)
+    return;
+  
+  //}}}
 
   var board         = this.board;
   var standPat      = board.evaluate(turn);
@@ -6247,17 +6254,25 @@ lozStats.prototype.init = function () {
 
 lozStats.prototype.lazyUpdate = function () {
 
-  if (this.moveTime > 0 && ((Date.now() - this.startTime) > this.moveTime))
-    this.timeOut = 1;
-
-  if (this.maxNodes > 0 && this.nodes >= this.maxNodes)
-    this.timeOut = 1;
+  this.checkTime();
 
   if (Date.now() - this.splitTime > 500) {
     this.splits++;
     this.update();
     this.splitTime = Date.now();
   }
+}
+
+//}}}
+//{{{  .checkTime
+
+lozStats.prototype.checkTime = function () {
+
+  if (this.moveTime > 0 && ((Date.now() - this.startTime) > this.moveTime))
+    this.timeOut = 1;
+
+  if (this.maxNodes > 0 && this.nodes >= this.maxNodes)
+    this.timeOut = 1;
 }
 
 //}}}
@@ -6508,6 +6523,8 @@ onmessage = function(e) {
         uci.send('info string send a position command first and a ucinewgame before that if you need to reset the hash');
         return;
       }
+      
+      lozza.stats.init();
       
       uci.spec.depth     = uci.getInt('depth',0);
       uci.spec.moveTime  = uci.getInt('movetime',0);
