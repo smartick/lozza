@@ -5,7 +5,7 @@ A UCI compliant Javascript chess engine rated about 2400 on CCRL. Lozza is a tra
 ## Why Javascript?
 
 Mostly I was curious if a Javascript engine could compete with more traditional engines in the rating lists like CCRL, as at the time there were none listed. There were
-Javascript engines with their own user interfaces on the internet, but none that complied with the UCI protocol. The Javascript development cycle is very quick because there is no build process; you can even make changes while it's playing to see what happens. Javascript also makes the engine platform-independent - running online in any browser and offline on any OS that supports node.js (pretty much everything). Not least Javascript is a lot of fun!
+Javascript engines with their own user interfaces on the internet, but none that complied with the UCI protocol. The Javascript development cycle is very quick because there is no build process; you can even make changes while it's playing to see what happens. Javascript also makes the engine platform-independent - running online in any browser and offline on any OS that supports node.js (pretty much everything). Not least, Javascript is a lot of fun!
 
 ## Example web use in a project
 
