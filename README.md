@@ -1,6 +1,6 @@
 # Lozza
 
-A UCI compliant Javascript chess engine rated about 2400 on CCRL. Lozza is a traditional mailbox engine with PVS search. It's easy to embed Lozza into your web project or use her offline in client user interfaces like Arena and Winboard. A sister project also allows Lozza to be played online. There is nothing new in Lozza - it was just a fun coding exercise. The PSTs are from Fruit 2.1 and the evaluation function is a subset of Fruit 2.1. The algorithms are from the Chess Programming Wiki. There is probably a lot of scope for improvement because Lozza is not tuned to any great degree.
+A UCI compliant Javascript chess engine rated about 2400 on CCRL. Lozza is a traditional mailbox engine with PVS search. It's easy to embed Lozza into your web project or use her offline in client user interfaces like Arena and Winboard. A sister project also allows Lozza to be played online. There is nothing new in Lozza - it was just a fun coding exercise. The PSTs are from Fruit 2.1 and the evaluation function is largely a subset of Fruit 2.1. The algorithms are from the Chess Programming Wiki. There is probably a lot of scope for improvement because Lozza is not tuned to any great degree.
 
 ## Why Javascript?
 
