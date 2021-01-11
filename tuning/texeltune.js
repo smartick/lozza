@@ -1,6 +1,8 @@
 //
 // https://www.chessprogramming.org/Texel%27s_Tuning_Method
 //
+// run using: node texeltune.js
+//
 
 epds     = [];
 fs       = lozza.uci.nodefs;
@@ -10,7 +12,8 @@ board    = lozza.board;
 //{{{  sigmoid
 //
 // map eval to a (0-1) sigmoid anchored at 400. there is nothing magic about 400 it's just
-// knowledge of being 400 ahead is  a likely win.
+// knowledge of being 400 ahead is a likely win. we could incorporate the full move counter
+// and game length.
 //
 
 function sigmoid (s) {
@@ -24,6 +27,9 @@ function sigmoid (s) {
 
 //}}}
 //{{{  _map
+//
+// get black pst index from white pst index.
+//
 
 function _map (sq) {
   var m = (143-sq)/12|0;
@@ -40,7 +46,7 @@ function _map (sq) {
 
 var counter = 0;
 
-function calcErr (log) {
+function calcErr () {
 
   counter++;
 
@@ -73,8 +79,6 @@ function calcErr (log) {
     err += (p-s)*(p-s);
   }
 
-  //console.log(log,err / num);
-
   return err / num;
 }
 
@@ -85,7 +89,7 @@ var data = fs.readFileSync('epds.epd', 'utf8');
 //{{{  get the epds
 //
 // http://rebel13.nl/download/data.html
-// ccrl-40/2-elo-3400 1M positions from CCRL top engines.
+// ccrl-40/2-elo-3400 - 1M positions from CCRL top engines.
 // 2r5/2P2pk1/3b2pp/Q2pq3/4p3/p3P1Pb/2RN1P1P/4R1K1 w - - 8 41; d2b3 - pgn=0.5 len=173
 // 0                                               1 2 3 4  5  6    7 8   9   10  11
 //
@@ -96,6 +100,8 @@ for (var i=0; i < lines.length; i++) {
 //for (var i=0; i < 1000; i++) {
 
   var line  = lines[i];
+
+  // hack the epd string into a series of space separated elements indexed as above.
 
   line = line.replace(/(\r\n|\n|\r)/gm,'');
   line = line.replace(/;/g,'');
@@ -119,7 +125,7 @@ for (var i=0; i < lines.length; i++) {
              prob:   parseFloat(parts[9])});
 }
 
-lines = [];
+lines = []; // release
 
 console.log(epds.length,'candidates');
 
@@ -163,7 +169,7 @@ for (var i=0; i < epds.length; i++) {
   }
 }
 
-epds = [];
+epds = []; // release
 
 console.log(epds2.length,'usable (e=q)');
 
@@ -209,31 +215,34 @@ var bpsts = [BS_PST,BE_PST];
 
 //{{{  tune
 //
-// algorithm that will converge, probably, but not quickly.
+// an algorithm that will converge, probably, but not quickly.
+// but it will not skip minima/maxima.
 // output the results after each iteration so we can use results so far.
-// also allowing us to resume later.
+// also allowing us to resume later after pasting the result sback into
+// the engine.
 //
 
 var t1 = Date.now();
-var bestErr = calcErr('starting error');
+var bestErr = calcErr();
 var t2 = Date.now();
-console.log('full param test',(t2-t1)/1000/60,'mins');
+console.log('err calc',(t2-t1)/1000/60,'mins');
 
-if (calcErr('test stable') != bestErr) {
-  console.log('unstable');
+if (calcErr() != bestErr) {
+  console.log('eval is unstable');
   process.exit();
 }
 else
-  console.log('eval is stable');
+  console.log('eval is stable'); // probably
 
 console.log(bestErr,'starting error');
+console.log('**************');
 
-var iters   = 1;
+var iters   = 1;      // num full iters (trying all params)
 var thisErr = 0;
 var better  = true;
-var changes = 0;
+var changes = 0;      // num changes made in this iter
 
-counter = 0;
+counter = 0;          // num calls to calcErr() made in this iter
 
 while (better) {
 
@@ -242,55 +251,63 @@ while (better) {
   better = false;
 
   //{{{  pieces
+  //
+  // leave p=100 to ground everything.
+  //
   
-  for (var p = 2; p<=5; p++) {
+  for (var p=KNIGHT; p<=QUEEN; p++) { // n,b,r,q
     VALUE_VECTOR[p] = VALUE_VECTOR[p] + 1;
-    thisErr = calcErr('pieceup');
+    thisErr = calcErr();
     if (thisErr < bestErr) {
       changes++;
       bestErr = thisErr;
       better  = true;
     }
     else {
-      VALUE_VECTOR[p] = VALUE_VECTOR[p] - 2;
-      thisErr = calcErr('piecedn');
+      VALUE_VECTOR[p] = VALUE_VECTOR[p] - 2;  // -1
+      thisErr = calcErr();
       if (thisErr < bestErr) {
         changes++;
         bestErr = thisErr;
         better = true;
       }
       else {
-        VALUE_VECTOR[p] = VALUE_VECTOR[p] + 1;
+        VALUE_VECTOR[p] = VALUE_VECTOR[p] + 1;  // back to 0 - leave this one where it is this time.
       }
     }
   }
   
   //}}}
   //{{{  psts
+  //
+  // i wonder what would happen with independent black and white PSTs?
+  // some of the 64 per pst values could be grouped and done at the
+  // same time i would think in cases of likely symmetry.
+  //
   
-  for (var se = 0; se<=1; se++) {
+  for (var se=0; se<=1; se++) {  // mid/end game
   
-    var wpstse = wpsts[se];
+    var wpstse = wpsts[se];  // list of white mid/end game psts
     var bpstse = bpsts[se];
   
-    for (var p = 1; p<=6; p++) {
+    for (var p=PAWN; p<=KING; p++) {  // p,n,b,r,q,k
   
-      var wpst = wpstse[p];
+      var wpst = wpstse[p];  // actual mid/end game pst
       var bpst = bpstse[p];
   
-      for (var sq = 0; sq<64; sq++) {
+      for (var sq=0; sq<64; sq++) {  // 64 pst values
   
         var wi = B88[sq];
-        var bi = _map(wi);
+        var bi = _map(wi);  // map to black index
   
         if (wpst[wi] != bpst[bi]) {
-          console.log('psts outta sync',se,p,sq,wpst[wi],bpst[bi]);
+          console.log('psts outta sync',se,p,sq,wpst[wi],bpst[bi]);  // jic.
           process.exit();
         }
   
         wpst[wi] = wpst[wi] + 1;
         bpst[bi] = bpst[bi] + 1;
-        thisErr = calcErr('pstup');
+        thisErr = calcErr();
         if (thisErr < bestErr) {
           changes++;
           bestErr = thisErr;
@@ -299,7 +316,7 @@ while (better) {
         else {
           wpst[wi] = wpst[wi] - 2;
           bpst[bi] = bpst[bi] - 2;
-          thisErr = calcErr('pstdn');
+          thisErr = calcErr();
           if (thisErr < bestErr) {
             changes++;
             bestErr = thisErr;
@@ -319,7 +336,8 @@ while (better) {
   //{{{  save to file
   //
   // do this after each full iteration so we can resume after a
-  // power our or accidental close etc.
+  // power out or accidental close etc. include bestErr so we can
+  // check it on restarting.
   //
   
   var out = '';
@@ -350,6 +368,10 @@ while (better) {
   out = out + '\r\n\r\n';
   out = out + 'var WKING_PSTE = [' + WKING_PSTE.toString() + '];';
   out = out + '\r\n\r\n';
+  out = out + 'bestErr='+bestErr;
+  out = out + '\r\n\r\n';
+  out = out + 'end';
+  out = out + '\r\n\r\n';
   
   fs.writeFileSync('texeltune.txt',out);
   
@@ -363,7 +385,6 @@ while (better) {
   changes = 0;
 }
 
-bestErr = calcErr('root end');
 console.log(bestErr,'final error');
 
 //}}}
