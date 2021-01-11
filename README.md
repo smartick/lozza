@@ -58,3 +58,6 @@ Computer Chess Forums - http://www.talkchess.com/forum3/index.php
 
 CCRL - https://ccrl.chessdom.com/ccrl/4040
 
+Rebel data - http://rebel13.nl/download/data.html
+
+
