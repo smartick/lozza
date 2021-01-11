@@ -40,8 +40,6 @@ to it. Full paths for both are recommended. node.js and Lozza do not need to be 
 
 Perft - https://op12no2.github.io/lozza-ui/perft.htm - various Perft tests - the final one takes 25 seconds on my machine doing about 5M nps.
 
-EPD - https://op12no2.github.io/lozza-ui/bm.htm - various EPD tests including the famous Bratko-Kopec positions
-
 ## Notes
 
 lozza.js is folded using {{{ and }}} (emacs convention) and most easily read using an editor with a folding capability.
