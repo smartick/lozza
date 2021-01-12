@@ -1,5 +1,6 @@
-
+//
 // https://github.com/op12no2
+//
 
 var BUILD = "1.18";
 
