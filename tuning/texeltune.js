@@ -871,10 +871,10 @@ var OFFSETS = [0,0,KNIGHT_OFFSETS,BISHOP_OFFSETS,ROOK_OFFSETS,QUEEN_OFFSETS,KING
 var LIMITS  = [0,1,1,8,8,8,1];
 
 var VALUE_PAWN   = 100;
-var VALUE_KNIGHT = 325;
-var VALUE_BISHOP = 325;
+var VALUE_KNIGHT = 300;
+var VALUE_BISHOP = 300;
 var VALUE_ROOK   = 500;
-var VALUE_QUEEN  = 1000;
+var VALUE_QUEEN  = 900;
 var VALUE_KING   = 10000;
 var VALUE_VECTOR = [0,VALUE_PAWN,VALUE_KNIGHT,VALUE_BISHOP,VALUE_ROOK,VALUE_QUEEN,VALUE_KING];
 var RANK_VECTOR  = [0,1,         2,           2,           4,         5,          6];  // for move sorting.
@@ -894,14 +894,14 @@ var NULL_PST =        [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
 
 var WPAWN_PSTS =      [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0, -15,  -5,   0,   5,   5,   0,  -5, -15,   0,   0,
-                       0,   0, -15,  -5,   0,   5,   5,   0,  -5, -15,   0,   0,
-                       0,   0, -15,  -5,   0,   5,   5,   0,  -5, -15,   0,   0,
-                       0,   0, -15,  -5,   0,  15,  15,   0,  -5, -15,   0,   0,
-                       0,   0, -15,  -5,   0,  25,  25,   0,  -5, -15,   0,   0,
-                       0,   0, -15,  -5,   0,  15,  15,   0,  -5, -15,   0,   0,
-                       0,   0, -15,  -5,   0,   5,   5,   0,  -5, -15,   0,   0,
-                       0,   0, -15,  -5,   0,   5,   5,   0,  -5, -15,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0];
 
@@ -920,66 +920,66 @@ var WPAWN_PSTE =      [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
 
 var WKNIGHT_PSTS =    [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,-135, -25, -15, -10, -10, -15, -25,-135,   0,   0,
-                       0,   0, -20, -10,   0,   5,   5,   0, -10, -20,   0,   0,
-                       0,   0,  -5,   5,  15,  20,  20,  15,   5,  -5,   0,   0,
-                       0,   0,  -5,   5,  15,  20,  20,  15,   5,  -5,   0,   0,
-                       0,   0, -10,   0,  10,  15,  15,  10,   0, -10,   0,   0,
-                       0,   0, -20, -10,   0,   5,   5,   0, -10, -20,   0,   0,
-                       0,   0, -35, -25, -15, -10, -10, -15, -25, -35,   0,   0,
-                       0,   0, -50, -40, -30, -25, -25, -30, -40, -50,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0];
 
 var WKNIGHT_PSTE =    [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0, -40, -30, -20, -15, -15, -20, -30, -40,   0,   0,
-                       0,   0, -30, -20, -10,  -5,  -5, -10, -20, -30,   0,   0,
-                       0,   0, -20, -10,   0,   5,   5,   0, -10, -20,   0,   0,
-                       0,   0, -15,  -5,   5,  10,  10,   5,  -5, -15,   0,   0,
-                       0,   0, -15,  -5,   5,  10,  10,   5,  -5, -15,   0,   0,
-                       0,   0, -20, -10,   0,   5,   5,   0, -10, -20,   0,   0,
-                       0,   0, -30, -20, -10,  -5,  -5, -10, -20, -30,   0,   0,
-                       0,   0, -40, -30, -20, -15, -15, -20, -30, -40,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0];
 
 var WBISHOP_PSTS =    [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,  -8,  -8,  -6,  -4,  -4,  -6,  -8,  -8,   0,   0,
-                       0,   0,  -8,   0,  -2,   0,   0,  -2,   0,  -8,   0,   0,
-                       0,   0,  -6,  -2,   4,   2,   2,   4,  -2,  -6,   0,   0,
-                       0,   0,  -4,   0,   2,   8,   8,   2,   0,  -4,   0,   0,
-                       0,   0,  -4,   0,   2,   8,   8,   2,   0,  -4,   0,   0,
-                       0,   0,  -6,  -2,   4,   2,   2,   4,  -2,  -6,   0,   0,
-                       0,   0,  -8,   0,  -2,   0,   0,  -2,   0,  -8,   0,   0,
-                       0,   0, -18, -18, -16, -14, -14, -16, -18, -18,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0];
 
 var WBISHOP_PSTE =    [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0, -18, -12,  -9,  -6,  -6,  -9, -12, -18,   0,   0,
-                       0,   0, -12,  -6,  -3,   0,   0,  -3,  -6, -12,   0,   0,
-                       0,   0,  -9,  -3,   0,   3,   3,   0,  -3,  -9,   0,   0,
-                       0,   0,  -6,   0,   3,   6,   6,   3,   0,  -6,   0,   0,
-                       0,   0,  -6,   0,   3,   6,   6,   3,   0,  -6,   0,   0,
-                       0,   0,  -9,  -3,   0,   3,   3,   0,  -3,  -9,   0,   0,
-                       0,   0, -12,  -6,  -3,   0,   0,  -3,  -6, -12,   0,   0,
-                       0,   0, -18, -12,  -9,  -6,  -6,  -9, -12, -18,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0];
 
 var WROOK_PSTS =      [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,  -6,  -3,   0,   3,   3,   0,  -3,  -6,   0,   0,
-                       0,   0,  -6,  -3,   0,   3,   3,   0,  -3,  -6,   0,   0,
-                       0,   0,  -6,  -3,   0,   3,   3,   0,  -3,  -6,   0,   0,
-                       0,   0,  -5,  -3,   0,   3,   3,   0,  -3,  -6,   0,   0,
-                       0,   0,  -5,  -3,   0,   3,   3,   0,  -3,  -6,   0,   0,
-                       0,   0,  -5,  -3,   0,   3,   3,   0,  -3,  -6,   0,   0,
-                       0,   0,  -5,  -3,   0,   3,   3,   0,  -3,  -6,   0,   0,
-                       0,   0,  -6,  -3,   0,   3,   3,   0,  -3,  -6,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0];
 
@@ -1005,46 +1005,47 @@ var WQUEEN_PSTS =     [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,  -5,  -5,  -5,  -5,  -5,  -5,  -5,  -5,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0];
 
 var WQUEEN_PSTE =     [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0, -24, -16, -12,  -8,  -8, -12, -16, -24,   0,   0,
-                       0,   0, -16,  -8,  -4,   0,   0,  -4,  -8, -16,   0,   0,
-                       0,   0, -12,  -4,   0,   4,   4,   0,  -4, -12,   0,   0,
-                       0,   0,  -8,   0,   4,   8,   8,   4,   0,  -8,   0,   0,
-                       0,   0,  -8,   0,   4,   8,   8,   4,   0,  -8,   0,   0,
-                       0,   0, -12,  -4,   0,   4,   4,   0,  -4, -12,   0,   0,
-                       0,   0, -16,  -8,  -4,   0,   0,  -4,  -8, -16,   0,   0,
-                       0,   0, -24, -16, -12,  -8,  -8, -12, -16, -24,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0];
 
 var WKING_PSTS =      [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0, -40, -30, -50, -70, -70, -50, -30, -40,   0,   0,
-                       0,   0, -30, -20, -40, -60, -60, -40, -20, -30,   0,   0,
-                       0,   0, -20, -10, -30, -50, -50, -30, -10, -20,   0,   0,
-                       0,   0, -10,   0, -20, -40, -40, -20,   0, -10,   0,   0,
-                       0,   0,   0,  10, -10, -30, -30, -10,  10,   0,   0,   0,
-                       0,   0,  10,  20,   0, -20, -20,   0,  20,  10,   0,   0,
-                       0,   0,  30,  40,  20,   0,   0,  20,  40,  30,   0,   0,
-                       0,   0,  40,  50,  30,  10,  10,  30,  50,  40,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0];
 
+
 var WKING_PSTE =      [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0, -72, -48, -36, -24, -24, -36, -48, -72,   0,   0,
-                       0,   0, -48, -24, -12,   0,   0, -12, -24, -48,   0,   0,
-                       0,   0, -36, -12,   0,  12,  12,   0, -12, -36,   0,   0,
-                       0,   0, -24,   0,  12,  24,  24,  12,   0, -24,   0,   0,
-                       0,   0, -24,   0,  12,  24,  24,  12,   0, -24,   0,   0,
-                       0,   0, -36, -12,   0,  12,  12,   0, -12, -36,   0,   0,
-                       0,   0, -48, -24, -12,   0,   0, -12, -24, -48,   0,   0,
-                       0,   0, -72, -48, -36, -24, -24, -36, -48, -72,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0];
 
@@ -4037,57 +4038,6 @@ lozBoard.prototype.formatMove = function (move, fmt) {
 
 //}}}
 //{{{  .evaluate
-//
-//  Currently this is pretty much just a subset of Fruit 2.1 eval.
-//
-
-//{{{  eval constants
-
-var MOB_NS = 4;
-var MOB_NE = 4;
-var MOB_BS = 5;
-var MOB_BE = 5;
-var MOB_RS = 2;
-var MOB_RE = 4;
-var MOB_QS = 1;
-var MOB_QE = 2;
-
-var MOB_NIS = IS_NBRQKE;
-var MOB_BIS = IS_NBRQKE;
-var MOB_RIS = IS_RQKE;
-var MOB_QIS = IS_QKE;
-
-var ATT_N = 1;
-var ATT_B = 1;
-var ATT_R = 3;
-var ATT_Q = 4;
-var ATT_W = [0,0,0.5,0.75,0.88,0.94,0.97,0.99];
-var ATT_L = 7;
-var ATT_M = 20;
-
-var WSHELTER = new Uint32Array([0,  0,  0,  11, 20, 27, 32, 35, 0, 36]);
-var BSHELTER = new Uint32Array([36, 0,  35, 32, 27, 20, 11, 0,  0, 0]);
-var WSTORM   = new Uint32Array([0,  0,  0,  60, 30, 10, 0,  0,  0, 0]);
-var BSTORM   = new Uint32Array([0,  0,  0,  0,  10, 30, 60, 0,  0, 0]);
-
-var PTT_EXACT = 1;
-var PTT_WHOME = 2;
-var PTT_BHOME = 4;
-var PTT_WPASS = 8;
-var PTT_BPASS = 16;
-
-var PAWN_DOUBLED_S  = 10;
-var PAWN_DOUBLED_E  = 20;
-var PAWN_ISOLATED_S = 10;
-var PAWN_ISOLATED_E = 20;
-var PAWN_BACKWARD_S = 8;
-var PAWN_BACKWARD_E = 10;
-var PAWN_PASSED     = [0,0,0,0,0.1,0.3,0.6,1.0,0];  // rank bonus curve.
-
-var W_PROMOTE_SQ = [0,26, 27, 28, 29, 30, 31, 32, 33];
-var B_PROMOTE_SQ = [0,110,111,112,113,114,115,116,117];
-
-//}}}
 
 lozBoard.prototype.evaluate = function (turn) {
 
@@ -4120,33 +4070,8 @@ lozBoard.prototype.evaluate = function (turn) {
   var bNumKnights = this.bCounts[KNIGHT];
   var bNumPawns   = this.bCounts[PAWN];
   
-  var wKingSq   = this.wList[0];
-  var wKingRank = RANK[wKingSq];
-  var wKingFile = FILE[wKingSq];
-  
-  var bKingSq   = this.bList[0];
-  var bKingRank = RANK[bKingSq];
-  var bKingFile = FILE[bKingSq];
-  
-  var wKingBits = (wKingFile-1) << 2;
-  var wKingMask = 0xF << wKingBits;
-  
-  var bKingBits = (bKingFile-1) << 2;
-  var bKingMask = 0xF << bKingBits;
-  
-  var bonus   = 0;  // generic.
-  var penalty = 0;  // generic.
-  
-  var WKZ = WKZONES[wKingSq];
-  var BKZ = BKZONES[bKingSq];
-  
-  var wCanBeAttacked = bNumQueens && (bNumRooks || bNumBishops || bNumKnights);
-  var bCanBeAttacked = wNumQueens && (wNumRooks || wNumBishops || wNumKnights);
-  
   //}}}
   //{{{  draw?
-  
-  //todo - lots more here and drawish.
   
   if (numPieces == 2)                                                                  // K v K.
     return CONTEMPT;
@@ -4154,1213 +4079,18 @@ lozBoard.prototype.evaluate = function (turn) {
   if (numPieces == 3 && (wNumKnights || wNumBishops || bNumKnights || bNumBishops))    // K v K+N|B.
     return CONTEMPT;
   
-  if (numPieces == 4 && (wNumKnights || wNumBishops) && (bNumKnights || bNumBishops))  // K+N|B v K+N|B.
-    return CONTEMPT;
-  
-  if (numPieces == 4 && (wNumKnights == 2 || bNumKnights == 2))                        // K v K+NN.
-    return CONTEMPT;
-  
-  if (numPieces == 5 && wNumKnights == 2 && (bNumKnights || bNumBishops))              //
-    return CONTEMPT;                                                                   //
-                                                                                       // K+N|B v K+NN
-  if (numPieces == 5 && bNumKnights == 2 && (wNumKnights || wNumBishops))              //
-    return CONTEMPT;                                                                   //
-  
-  if (numPieces == 5 && wNumBishops == 2 && bNumBishops)                               //
-    return CONTEMPT;                                                                   //
-                                                                                       // K+B v K+BB
-  if (numPieces == 5 && bNumBishops == 2 && wNumBishops)                               //
-    return CONTEMPT;                                                                   //
-  
-  if (numPieces == 4 && wNumRooks && bNumRooks)                                        // K+R v K+R.
-    return CONTEMPT;
-  
-  if (numPieces == 4 && wNumQueens && bNumQueens)                                      // K+Q v K+Q.
-    return CONTEMPT;
-  
   //}}}
 
-  //{{{  P
-  
-  //{{{  vars valid if hash used or not
-  
-  var pawnsS = 0;            // pawn eval.
-  var pawnsE = 0;
-  
-  var wPassed = 0;
-  var bPassed = 0;
-  
-  var wHome   = 0;           // non zero if >= 1 W pawn on home rank.
-  var bHome   = 0;           // non zero if >= 1 B pawn on home rank.
-  
-  var wLeast  = 0x99999999;  // rank of least advanced pawns per file.
-  var bLeast  = 0x00000000;  // rank of least advanced pawns per file.
-  
-  var wMost   = 0x00000000;  // rank of most advanced pawns per file.
-  var bMost   = 0x99999999;  // rank of most advanced pawns per file.
-  
-  var wLeastL = 0;           // wLeast << 4.
-  var bLeastL = 0;
-  
-  var wMostL  = 0;
-  var bMostL  = 0;
-  
-  var wLeastR = 0;           // wLeast >>> 4.
-  var bLeastR = 0;
-  
-  var wMostR  = 0;
-  var bMostR  = 0;
-  
-  //}}}
-  
-  var idx   = this.ploHash & PTTMASK;
-  var flags = this.pttFlags[idx];
-  
-  //hack
-  if (false && (flags & PTT_EXACT) && this.pttLo[idx] == this.ploHash && this.pttHi[idx] == this.phiHash) {
-    //{{{  get tt
-    
-    pawnsS = this.pttScoreS[idx];
-    pawnsE = this.pttScoreE[idx];
-    
-    wLeast = this.pttwLeast[idx];
-    bLeast = this.pttbLeast[idx];
-    
-    wMost  = this.pttwMost[idx];
-    bMost  = this.pttbMost[idx];
-    
-    wHome  = flags & PTT_WHOME;
-    bHome  = flags & PTT_BHOME;
-    
-    wPassed  = flags & PTT_WPASS;
-    bPassed  = flags & PTT_BPASS;
-    
-    wLeastR = (wLeast >>> 4) | 0x90000000;
-    wLeastL = (wLeast <<  4) | 0x00000009;
-    
-    wMostR = (wMost >>> 4);
-    wMostL = (wMost <<  4);
-    
-    bLeastR = bLeast >>> 4;
-    bLeastL = bLeast <<  4;
-    
-    bMostR = (bMost >>> 4) | 0x90000000;
-    bMostL = (bMost <<  4) | 0x00000009;
-    
-    //}}}
-  }
-  
-  else {
-    //{{{  phase 1
-    
-    //{{{  white
-    
-    var next  = this.firstWP;
-    var count = 0;
-    
-    while (count < wNumPawns) {
-    
-      var sq = this.wList[next];
-    
-      if (!sq || b[sq] != W_PAWN) {
-        next++;
-        continue;
-      }
-    
-      var rank   = RANK[sq];
-      var file   = FILE[sq];
-      var bits   = (file-1) << 2;
-      var mask   = 0xF << bits;
-      var lRank  = (wLeast & mask) >>> bits;
-      var mRank  = (wMost  & mask) >>> bits;
-    
-      if (lRank != 9) {
-        pawnsS -= PAWN_DOUBLED_S;
-        pawnsE -= PAWN_DOUBLED_E;
-      }
-    
-      if (rank < lRank)
-        wLeast = (wLeast & ~mask) | (rank << bits);
-    
-      if (rank > mRank)
-        wMost  = (wMost  & ~mask) | (rank << bits);
-    
-      if (rank == 2)
-        wHome = PTT_WHOME;
-    
-      count++;
-      next++
-    }
-    
-    wLeastR = (wLeast >>> 4) | 0x90000000;
-    wLeastL = (wLeast <<  4) | 0x00000009;
-    
-    wMostR  = (wMost >>> 4);
-    wMostL  = (wMost <<  4);
-    
-    //}}}
-    //{{{  black
-    
-    var next  = this.firstBP;
-    var count = 0;
-    
-    while (count < bNumPawns) {
-    
-      var sq = this.bList[next];
-    
-      if (!sq || b[sq] != B_PAWN) {
-        next++;
-        continue;
-      }
-    
-      var rank   = RANK[sq];
-      var file   = FILE[sq];
-      var bits   = (file-1) << 2;
-      var mask   = 0xF << bits;
-      var lRank  = (bLeast & mask) >>> bits;
-      var mRank  = (bMost  & mask) >>> bits;
-    
-      if (lRank != 0) {
-    
-        pawnsS += PAWN_DOUBLED_S;
-        pawnsE += PAWN_DOUBLED_E;
-      }
-    
-      if (rank > lRank)
-        bLeast = (bLeast & ~mask) | (rank << bits);
-    
-      if (rank < mRank)
-        bMost  = (bMost & ~mask)  | (rank << bits);
-    
-      if (rank == 7)
-        bHome = PTT_BHOME;
-    
-      count++;
-      next++
-    }
-    
-    bLeastR = bLeast >>> 4;
-    bLeastL = bLeast <<  4;
-    
-    bMostR  = (bMost >>> 4) | 0x90000000;
-    bMostL  = (bMost <<  4) | 0x00000009;
-    
-    //}}}
-    
-    //}}}
-    //{{{  phase 2
-    
-    //{{{  white
-    
-    var next  = this.firstWP;
-    var count = 0;
-    
-    while (count < wNumPawns) {
-    
-      var sq = this.wList[next];
-    
-      if (!sq || b[sq] != W_PAWN) {
-        next++;
-        continue;
-      }
-    
-      var file  = FILE[sq];
-      var bits  = (file-1) << 2;
-      var rank  = RANK[sq];
-      var open  = 0;
-    
-      if ((wMost >>> bits & 0xF) == rank && (bLeast >>> bits & 0xF) < rank) {
-        open = 1;
-      }
-    
-      if ((wLeastL >>> bits & 0xF) == 9 && (wLeastR >>> bits & 0xF) == 9) {
-        pawnsS -= PAWN_ISOLATED_S + PAWN_ISOLATED_S * open;
-        pawnsE -= PAWN_ISOLATED_E;
-      }
-    
-      else if ((wLeastL >>> bits & 0xF) > rank && (wLeastR >>> bits & 0xF) > rank) {
-        var backward = true;
-        if ((IS_WP[b[sq-11]] || IS_WP[b[sq-13]]) && !IS_P[b[sq-12]] && !IS_BP[b[sq-11]] && !IS_BP[b[sq-13]] && !IS_BP[b[sq-23]] && !IS_BP[b[sq-25]])
-          backward = false;
-        else if (rank == 2 && (IS_WP[b[sq-23]] || IS_WP[b[sq-25]]) && !IS_P[b[sq-12]] && !IS_P[b[sq-24]] && !IS_BP[b[sq-11]] && !IS_BP[b[sq-13]] && !IS_BP[b[sq-23]] && !IS_BP[b[sq-25]] && !IS_BP[b[sq-37]] && !IS_BP[b[sq-35]])
-          backward = false;
-        if (backward) {
-          pawnsS -= PAWN_BACKWARD_S + PAWN_BACKWARD_S * open;
-          pawnsE -= PAWN_BACKWARD_E;
-        }
-      }
-    
-      if (open) {
-        if ((bLeastL >>> bits & 0xF) <= rank && (bLeastR >>> bits & 0xF) <= rank) {
-          wPassed = PTT_WPASS;
-        }
-        else {
-          var defenders = 0;
-          var sq2       = sq;
-          while (b[sq2] != EDGE) {
-            defenders += IS_WP[b[sq2+1]];
-            defenders += IS_WP[b[sq2-1]];
-            sq2 += 12;
-          }
-          var attackers = 0;
-          var sq2       = sq-12;
-          while (b[sq2] != EDGE) {
-            attackers += IS_BP[b[sq2+1]];
-            attackers += IS_BP[b[sq2-1]];
-            sq2 -= 12;
-          }
-          if (defenders >= attackers) {
-            defenders = IS_WP[b[sq+11]] + IS_WP[b[sq+13]];
-            attackers = IS_BP[b[sq-11]] + IS_BP[b[sq-13]];
-            if (defenders >= attackers) {
-              pawnsS += 5  + 50  * PAWN_PASSED[rank] | 0;
-              pawnsE += 10 + 100 * PAWN_PASSED[rank] | 0;
-            }
-          }
-        }
-      }
-    
-      count++;
-      next++
-    }
-    
-    //}}}
-    //{{{  black
-    
-    var next  = this.firstBP;
-    var count = 0;
-    
-    while (count < bNumPawns) {
-    
-      var sq = this.bList[next];
-    
-      if (!sq || b[sq] != B_PAWN) {
-        next++;
-        continue;
-      }
-    
-      var file  = FILE[sq];
-      var bits  = (file-1) << 2;
-      var rank  = RANK[sq];
-      var open  = 0;
-    
-      if ((bMost >>> bits & 0xF) == rank && (wLeast >>> bits & 0xF) > rank) {
-        open = 1;
-      }
-    
-      if ((bLeastL >>> bits & 0xF) == 0x0 && (bLeastR >>> bits & 0xF) == 0x0) {
-        pawnsS += PAWN_ISOLATED_S + PAWN_ISOLATED_S * open;
-        pawnsE += PAWN_ISOLATED_E;
-      }
-    
-      else if ((bLeastL >>> bits & 0xF) < rank && (bLeastR >>> bits & 0xF) < rank) {
-        var backward = true;
-        if ((IS_BP[b[sq+11]] || IS_BP[b[sq+13]]) && !IS_P[b[sq+12]] && !IS_WP[b[sq+11]] && !IS_WP[b[sq+13]] && !IS_WP[b[sq+23]] && !IS_WP[b[sq+25]])
-          backward = false;
-        else if (rank == 7 && (IS_BP[b[sq+23]] || IS_BP[b[sq+25]]) && !IS_P[b[sq+12]] && !IS_P[b[sq+24]] && !IS_WP[b[sq+11]] && !IS_WP[b[sq+13]] && !IS_WP[b[sq+23]] && !IS_WP[b[sq+25]] && !IS_WP[b[sq+37]] && !IS_WP[b[sq+35]])
-          backward = false;
-        if (backward) {
-          pawnsS += PAWN_BACKWARD_S + PAWN_BACKWARD_S * open;
-          pawnsE += PAWN_BACKWARD_E;
-        }
-      }
-    
-      if (open) {
-        if ((wLeastL >>> bits & 0xF) >= rank && (wLeastR >>> bits & 0xF) >= rank) {
-          bPassed = PTT_BPASS;
-        }
-        else {
-          var defenders = 0;
-          var sq2       = sq;
-          while (b[sq2] != EDGE) {
-            defenders += IS_BP[b[sq2+1]];
-            defenders += IS_BP[b[sq2-1]];
-            sq2 -= 12;
-          }
-          var attackers = 0;
-          var sq2       = sq+12;
-          while (b[sq2] != EDGE) {
-            attackers += IS_WP[b[sq2+1]];
-            attackers += IS_WP[b[sq2-1]];
-            sq2 += 12;
-          }
-          if (defenders >= attackers) {
-            defenders = IS_BP[b[sq-11]] + IS_BP[b[sq-13]];
-            attackers = IS_WP[b[sq+11]] + IS_WP[b[sq+13]];
-            if (defenders >= attackers) {
-              pawnsS -= 5  + 50  * PAWN_PASSED[9-rank] | 0;
-              pawnsE -= 10 + 100 * PAWN_PASSED[9-rank] | 0;
-            }
-          }
-        }
-      }
-    
-      count++;
-      next++
-    }
-    
-    //}}}
-    
-    //}}}
-    //{{{  put tt
-    
-    //this.pttFlags[idx]  = PTT_EXACT | wHome | bHome | wPassed | bPassed;
-    
-    //this.pttLo[idx]     = this.ploHash;
-    //this.pttHi[idx]     = this.phiHash;
-    
-    //this.pttScoreS[idx] = pawnsS;
-    //this.pttScoreE[idx] = pawnsE;
-    
-    //this.pttwLeast[idx] = wLeast;
-    //this.pttbLeast[idx] = bLeast;
-    
-    //this.pttwMost[idx]  = wMost;
-    //this.pttbMost[idx]  = bMost;
-    
-    //}}}
-  }
-  
-  //{{{  phase 3
-  //
-  // Only pawns are included in the hash, so evaluation taht includes other
-  // pieces must be onde here.
-  //
-  
-  //{{{  white
-  
-  if (wPassed) {
-  
-    var next  = this.firstWP;
-    var count = 0;
-  
-    while (count < wNumPawns) {
-  
-      var sq = this.wList[next];
-  
-      if (!sq || b[sq] != W_PAWN) {
-        next++;
-        continue;
-      }
-  
-      var file  = FILE[sq];
-      var bits  = (file-1) << 2;
-      var rank  = RANK[sq];
-      var sq2   = sq-12;
-  
-      if ((wMost >>> bits & 0xF) == rank && (bLeast >>> bits & 0xF) < rank) {  // open.
-        if ((bLeastL >>> bits & 0xF) <= rank && (bLeastR >>> bits & 0xF) <= rank) {  // passed.
-  
-          //{{{  king dist
-          
-          var passKings = 20 * DIST[bKingSq][sq2] - 5 * DIST[wKingSq][sq2];
-          
-          //}}}
-          //{{{  attacked?
-          
-          var passFree = 0;
-          
-          if (!b[sq2])
-            passFree = 60 * (!this.isAttacked(sq2,BLACK)|0);
-          
-          //}}}
-          //{{{  unstoppable
-          
-          var passUnstop    = 0;
-          var oppoOnlyPawns = bNumPawns + 1 == this.bCount;
-          
-          if (oppoOnlyPawns) {
-          
-            var promSq = W_PROMOTE_SQ[file];
-          
-            if (DIST[wKingSq][sq] <= 1 && DIST[wKingSq][promSq] <= 1)
-              passUnstop = 800;
-          
-            else if (DIST[sq][promSq] < DIST[bKingSq][promSq] + ((turn==WHITE)|0) - 1) {  // oppo cannot get there
-          
-              var blocked = 0;
-              while(!b[sq2])
-                sq2 -= 12;
-              if (b[sq2] == EDGE)
-                passUnstop = 800;
-            }
-          }
-          
-          //}}}
-  
-          pawnsS += 10 + (60                                     ) * PAWN_PASSED[rank] | 0;
-          pawnsE += 20 + (120 + passKings + passFree + passUnstop) * PAWN_PASSED[rank] | 0;
-  
-          //console.log('W PASS',COORDS[sq],'Kdist,free,unstop=',passKings,passFree,passUnstop);
-        }
-      }
-      count++;
-      next++
-    }
-  }
-  
-  //}}}
-  //{{{  black
-  
-  if (bPassed) {
-  
-    var next  = this.firstBP;
-    var count = 0;
-  
-    while (count < bNumPawns) {
-  
-      var sq = this.bList[next];
-  
-      if (!sq || b[sq] != B_PAWN) {
-        next++;
-        continue;
-      }
-  
-      var file  = FILE[sq];
-      var bits  = (file-1) << 2;
-      var rank  = RANK[sq];
-      var sq2   = sq+12;
-  
-      if ((bMost >>> bits & 0xF) == rank && (wLeast >>> bits & 0xF) > rank) {  // open.
-        if ((wLeastL >>> bits & 0xF) >= rank && (wLeastR >>> bits & 0xF) >= rank) {  // passed.
-          //{{{  king dist
-          
-          var passKings = 20 * DIST[wKingSq][sq2] - 5 * DIST[bKingSq][sq2];
-          
-          //}}}
-          //{{{  attacked?
-          
-          var passFree = 0;
-          
-          if (!b[sq2])
-            passFree = 60 * (!this.isAttacked(sq2,WHITE)|0);
-          
-          //}}}
-          //{{{  unstoppable
-          
-          var passUnstop    = 0;
-          var oppoOnlyPawns = wNumPawns + 1 == this.wCount;
-          
-          if (oppoOnlyPawns) {
-          
-            var promSq = B_PROMOTE_SQ[file];
-          
-            if (DIST[bKingSq][sq] <= 1 && DIST[bKingSq][promSq] <= 1)
-              passUnstop = 800;
-          
-            else if (DIST[sq][promSq] < DIST[wKingSq][promSq] + ((turn==BLACK)|0) - 1) {  // oppo cannot get there
-          
-              var blocked = 0;
-              while(!b[sq2])
-                sq2 += 12;
-              if (b[sq2] == EDGE)
-                passUnstop = 800;
-            }
-          }
-          
-          //}}}
-  
-          pawnsS -= 10 + (60                                     ) * PAWN_PASSED[9-rank] | 0;
-          pawnsE -= 20 + (120 + passKings + passFree + passUnstop) * PAWN_PASSED[9-rank] | 0;
-  
-          //console.log('B PASS',COORDS[sq],'Kdist,free,unstop=',passKings,passFree,passUnstop);
-        }
-      }
-      count++;
-      next++
-    }
-  }
-  
-  //}}}
-  
-  //if (bPassed || wPassed)
-    //console.log('----------------------------')
-  
-  //}}}
-  
-  //}}}
-  //{{{  K
-  
-  var penalty = 0;
-  
-  var kingS = 0;
-  var kingE = 0;
-  
-  if (wCanBeAttacked) {
-    //{{{  shelter
-    
-    penalty = 0;
-    
-    penalty += WSHELTER[(wLeast & wKingMask) >>> wKingBits] * 2;
-    
-    if (wKingFile != 8)
-      penalty += WSHELTER[(wLeastR & wKingMask) >>> wKingBits];
-    
-    if (wKingFile != 1)
-      penalty += WSHELTER[(wLeastL & wKingMask) >>> wKingBits];
-    
-    if (penalty == 0)
-      penalty = 11;
-    
-    kingS -= penalty;
-    
-    //}}}
-    //{{{  storm
-    
-    penalty = 0;
-    
-    penalty += WSTORM[(bMost & wKingMask) >>> wKingBits];
-    
-    if (wKingFile != 8)
-      penalty += WSTORM[(bMostR & wKingMask) >>> wKingBits];
-    
-    if (wKingFile != 1)
-      penalty += WSTORM[(bMostL & wKingMask) >>> wKingBits];
-    
-    kingS -= penalty;
-    
-    //}}}
-  }
-  
-  if (bCanBeAttacked) {
-    //{{{  shelter
-    
-    penalty = 0;
-    
-    penalty += BSHELTER[(bLeast & bKingMask) >>> bKingBits] * 2;
-    
-    if (bKingFile != 8)
-      penalty += BSHELTER[(bLeastR & bKingMask) >>> bKingBits];
-    
-    if (bKingFile != 1)
-      penalty += BSHELTER[(bLeastL & bKingMask) >>> bKingBits];
-    
-    if (penalty == 0)
-      penalty = 11;
-    
-    kingS += penalty;
-    
-    //}}}
-    //{{{  storm
-    
-    penalty = 0;
-    
-    penalty += BSTORM[(wMost & bKingMask) >>> bKingBits];
-    
-    if (bKingFile != 8)
-      penalty += BSTORM[(wMostR & bKingMask) >>> bKingBits];
-    
-    if (bKingFile != 1)
-      penalty += BSTORM[(wMostL & bKingMask) >>> bKingBits];
-    
-    kingS += penalty;
-    
-    //}}}
-  }
-  
-  //}}}
-  //{{{  NBRQ
-  
-  var mobS = 0;
-  var mobE = 0;
-  
-  var attS = 0;
-  var attE = 0;
-  
-  var knightsS = 0;
-  var knightsE = 0;
-  
-  var bishopsS = 0;
-  var bishopsE = 0;
-  
-  var rooksS = 0;
-  var rooksE = 0;
-  
-  var queensS = 0;
-  var queensE = 0;
-  
-  //{{{  white
-  
-  var mob     = 0;
-  var to      = 0;
-  var fr      = 0;
-  var frObj   = 0;
-  var frRank  = 0;
-  var frFile  = 0;
-  var frBits  = 0;
-  var frMask  = 0;
-  var rDist   = 0;
-  var fDist   = 0;
-  var wBishop = 0;
-  var bBishop = 0;
-  var attackN = 0;
-  var attackV = 0;
-  var att     = 0;
-  
-  var pList  = this.wList;
-  var pCount = this.wCount - 1 - wNumPawns;
-  
-  var next  = 1;  // ignore king.
-  var count = 0;
-  
-  while (count < pCount) {
-  
-    fr = pList[next++];
-    if (!fr)
-      continue;
-  
-    frObj  = b[fr];
-    if (frObj == W_PAWN)
-      continue;
-  
-    frRank = RANK[fr];
-    frFile = FILE[fr];
-    frBits = (frFile-1) << 2;
-    frMask = 0xF << frBits;
-  
-    if (frObj == W_KNIGHT) {
-      //{{{  N
-      
-      mob = 0;
-      att = 0;
-      
-      to = fr+10; mob += MOB_NIS[b[to]]; att += BKZ[to] * MOB_NIS[b[to]];
-      to = fr-10; mob += MOB_NIS[b[to]]; att += BKZ[to] * MOB_NIS[b[to]];
-      to = fr+14; mob += MOB_NIS[b[to]]; att += BKZ[to] * MOB_NIS[b[to]];
-      to = fr-14; mob += MOB_NIS[b[to]]; att += BKZ[to] * MOB_NIS[b[to]];
-      to = fr+23; mob += MOB_NIS[b[to]]; att += BKZ[to] * MOB_NIS[b[to]];
-      to = fr-23; mob += MOB_NIS[b[to]]; att += BKZ[to] * MOB_NIS[b[to]];
-      to = fr+25; mob += MOB_NIS[b[to]]; att += BKZ[to] * MOB_NIS[b[to]];
-      to = fr-25; mob += MOB_NIS[b[to]]; att += BKZ[to] * MOB_NIS[b[to]];
-      
-      mobS += mob * MOB_NS;
-      mobE += mob * MOB_NE;
-      
-      if (att) {
-        attackN++;
-        attackV += ATT_N;
-      }
-      
-      //{{{  outpost
-      
-      var outpost = WOUTPOST[fr];
-      
-      if (outpost) {
-      
-        if (((bLeastR & frMask) >>> frBits) <= frRank && ((bLeastL & frMask) >>> frBits) <= frRank) {
-          knightsS += outpost;
-          knightsS += outpost * IS_WP[b[fr+11]];
-          knightsS += outpost * IS_WP[b[fr+13]];
-        }
-      }
-      
-      //}}}
-      
-      //}}}
-    }
-  
-    else if (frObj == W_BISHOP) {
-      //{{{  B
-      
-      mob = 0;
-      att = 0;
-      
-      to = fr + 11;  while (!b[to]) {att += BKZ[to]; to += 11; mob++;} mob += MOB_BIS[b[to]]; att += BKZ[to] * MOB_BIS[b[to]];
-      to = fr - 11;  while (!b[to]) {att += BKZ[to]; to -= 11; mob++;} mob += MOB_BIS[b[to]]; att += BKZ[to] * MOB_BIS[b[to]];
-      to = fr + 13;  while (!b[to]) {att += BKZ[to]; to += 13; mob++;} mob += MOB_BIS[b[to]]; att += BKZ[to] * MOB_BIS[b[to]];
-      to = fr - 13;  while (!b[to]) {att += BKZ[to]; to -= 13; mob++;} mob += MOB_BIS[b[to]]; att += BKZ[to] * MOB_BIS[b[to]];
-      
-      mobS += mob * MOB_BS;
-      mobE += mob * MOB_BE;
-      
-      if (att) {
-        attackN++;
-        attackV += ATT_B;
-      }
-      
-      wBishop += WSQUARE[fr];
-      bBishop += BSQUARE[fr];
-      
-      //}}}
-    }
-  
-    else if (frObj == W_ROOK) {
-      //{{{  R
-      
-      mob = 0;
-      att = 0;
-      
-      to = fr + 1;   while (!b[to]) {att += BKZ[to]; to += 1;  mob++;} mob += MOB_RIS[b[to]]; att += BKZ[to] * MOB_RIS[b[to]];
-      to = fr - 1;   while (!b[to]) {att += BKZ[to]; to -= 1;  mob++;} mob += MOB_RIS[b[to]]; att += BKZ[to] * MOB_RIS[b[to]];
-      to = fr + 12;  while (!b[to]) {att += BKZ[to]; to += 12; mob++;} mob += MOB_RIS[b[to]]; att += BKZ[to] * MOB_RIS[b[to]];
-      to = fr - 12;  while (!b[to]) {att += BKZ[to]; to -= 12; mob++;} mob += MOB_RIS[b[to]]; att += BKZ[to] * MOB_RIS[b[to]];
-      
-      mobS += mob * MOB_RS;
-      mobE += mob * MOB_RE;
-      
-      if (att) {
-        attackN++;
-        attackV += ATT_R;
-      }
-      
-      //{{{  7th
-      
-      if (frRank == 7 && (bKingRank == 8 || bHome)) {
-        rooksS += 20;
-        rooksE += 40;
-      }
-      
-      //}}}
-      //{{{  semi/open file
-      
-      rooksS -= 10;
-      rooksE -= 10;
-      
-      if (!(wMost & frMask)) {   // no w pawn.
-      
-        rooksS += 10;
-        rooksE += 10;
-      
-        if (!(bLeast & frMask)) {  // no b pawn.
-          rooksS += 10;
-          rooksE += 10;
-        }
-      
-        if (frFile == bKingFile) {
-          rooksS += 10;
-        }
-      
-        if (Math.abs(frFile - bKingFile) <= 1) {
-          rooksS += 10;
-        }
-      }
-      
-      //}}}
-      
-      //}}}
-    }
-  
-    else if (frObj == W_QUEEN) {
-      //{{{  Q
-      
-      mob = 0;
-      att = 0;
-      
-      to = fr + 1;   while (!b[to]) {att += BKZ[to]; to += 1;  mob++;} mob += MOB_QIS[b[to]]; att += BKZ[to] * MOB_QIS[b[to]];
-      to = fr - 1;   while (!b[to]) {att += BKZ[to]; to -= 1;  mob++;} mob += MOB_QIS[b[to]]; att += BKZ[to] * MOB_QIS[b[to]];
-      to = fr + 12;  while (!b[to]) {att += BKZ[to]; to += 12; mob++;} mob += MOB_QIS[b[to]]; att += BKZ[to] * MOB_QIS[b[to]];
-      to = fr - 12;  while (!b[to]) {att += BKZ[to]; to -= 12; mob++;} mob += MOB_QIS[b[to]]; att += BKZ[to] * MOB_QIS[b[to]];
-      
-      to = fr + 11;  while (!b[to]) {att += BKZ[to]; to += 11; mob++;} mob += MOB_QIS[b[to]]; att += BKZ[to] * MOB_QIS[b[to]];
-      to = fr - 11;  while (!b[to]) {att += BKZ[to]; to -= 11; mob++;} mob += MOB_QIS[b[to]]; att += BKZ[to] * MOB_QIS[b[to]];
-      to = fr + 13;  while (!b[to]) {att += BKZ[to]; to += 13; mob++;} mob += MOB_QIS[b[to]]; att += BKZ[to] * MOB_QIS[b[to]];
-      to = fr - 13;  while (!b[to]) {att += BKZ[to]; to -= 13; mob++;} mob += MOB_QIS[b[to]]; att += BKZ[to] * MOB_QIS[b[to]];
-      
-      mobS += mob * MOB_QS;
-      mobE += mob * MOB_QE;
-      
-      if (att) {
-        attackN++;
-        attackV += ATT_Q;
-      }
-      
-      //{{{  7th rank
-      
-      if (frRank == 7 && (bKingRank == 8 || bHome)) {
-        queensS += 10;
-        queensE += 20;
-      }
-      
-      //}}}
-      
-      //}}}
-    }
-  
-    count++;
-  }
-  
-  if (bCanBeAttacked) {
-  
-    if (attackN > ATT_L)
-      attackN = ATT_L;
-  
-    attS += (attackV * ATT_M * ATT_W[attackN]) | 0;
-    attE += 0;
-  }
-  
-  //hack if (wBishop && bBishop) {
-    //bishopsS += 50;
-    //bishopsE += 50;
-  //}
-  
-  //}}}
-  //{{{  black
-  
-  var mob     = 0;
-  var to      = 0;
-  var fr      = 0;
-  var frObj   = 0;
-  var frRank  = 0;
-  var frFile  = 0;
-  var frBits  = 0;
-  var frMask  = 0;
-  var rDist   = 0;
-  var fDist   = 0;
-  var wBishop = 0;
-  var bBishop = 0;
-  var attackN = 0;
-  var attackV = 0;
-  var att     = 0;
-  
-  var pList  = this.bList;
-  var pCount = this.bCount - 1 - bNumPawns;
-  
-  var next  = 1;  // ignore king.
-  var count = 0;
-  
-  while (count < pCount) {
-  
-    fr = pList[next++];
-    if (!fr)
-      continue;
-  
-    frObj = b[fr];
-  
-    if (frObj == B_PAWN)
-      continue;
-  
-    frRank  = RANK[fr];
-    frFile  = FILE[fr];
-    frBits  = (frFile-1) << 2;
-    frMask  = 0xF << frBits;
-  
-    if (frObj == B_KNIGHT) {
-      //{{{  N
-      
-      mob = 0;
-      att = 0;
-      
-      to = fr+10; mob += MOB_NIS[b[to]]; att += WKZ[to] * MOB_NIS[b[to]];
-      to = fr-10; mob += MOB_NIS[b[to]]; att += WKZ[to] * MOB_NIS[b[to]];
-      to = fr+14; mob += MOB_NIS[b[to]]; att += WKZ[to] * MOB_NIS[b[to]];
-      to = fr-14; mob += MOB_NIS[b[to]]; att += WKZ[to] * MOB_NIS[b[to]];
-      to = fr+23; mob += MOB_NIS[b[to]]; att += WKZ[to] * MOB_NIS[b[to]];
-      to = fr-23; mob += MOB_NIS[b[to]]; att += WKZ[to] * MOB_NIS[b[to]];
-      to = fr+25; mob += MOB_NIS[b[to]]; att += WKZ[to] * MOB_NIS[b[to]];
-      to = fr-25; mob += MOB_NIS[b[to]]; att += WKZ[to] * MOB_NIS[b[to]];
-      
-      mobS -= mob * MOB_NS;
-      mobE -= mob * MOB_NE;
-      
-      if (att) {
-        attackN++;
-        attackV += ATT_N;
-      }
-      
-      //{{{  outpost
-      
-      var outpost = BOUTPOST[fr];
-      
-      if (outpost) {
-      
-        if (((wLeastR & frMask) >>> frBits) >= frRank && ((wLeastL & frMask) >>> frBits) >= frRank) {
-          knightsS -= outpost;
-          knightsS -= outpost * IS_BP[b[fr-11]];
-          knightsS -= outpost * IS_BP[b[fr-13]];
-        }
-      }
-      
-      //}}}
-      
-      //}}}
-    }
-  
-    else if (frObj == B_BISHOP) {
-      //{{{  B
-      
-      mob = 0;
-      att = 0;
-      
-      to = fr + 11;  while (!b[to]) {att += WKZ[to]; to += 11; mob++;} mob += MOB_BIS[b[to]]; att += WKZ[to] * MOB_BIS[b[to]];
-      to = fr - 11;  while (!b[to]) {att += WKZ[to]; to -= 11; mob++;} mob += MOB_BIS[b[to]]; att += WKZ[to] * MOB_BIS[b[to]];
-      to = fr + 13;  while (!b[to]) {att += WKZ[to]; to += 13; mob++;} mob += MOB_BIS[b[to]]; att += WKZ[to] * MOB_BIS[b[to]];
-      to = fr - 13;  while (!b[to]) {att += WKZ[to]; to -= 13; mob++;} mob += MOB_BIS[b[to]]; att += WKZ[to] * MOB_BIS[b[to]];
-      
-      mobS -= mob * MOB_BS;
-      mobE -= mob * MOB_BE;
-      
-      if (att) {
-        attackN++;
-        attackV += ATT_B;
-      }
-      
-      wBishop += WSQUARE[fr];
-      bBishop += BSQUARE[fr];
-      
-      //}}}
-    }
-  
-    else if (frObj == B_ROOK) {
-      //{{{  R
-      
-      mob = 0;
-      att = 0;
-      
-      to = fr + 1;   while (!b[to]) {att += WKZ[to]; to += 1;  mob++;} mob += MOB_RIS[b[to]]; att += WKZ[to] * MOB_RIS[b[to]];
-      to = fr - 1;   while (!b[to]) {att += WKZ[to]; to -= 1;  mob++;} mob += MOB_RIS[b[to]]; att += WKZ[to] * MOB_RIS[b[to]];
-      to = fr + 12;  while (!b[to]) {att += WKZ[to]; to += 12; mob++;} mob += MOB_RIS[b[to]]; att += WKZ[to] * MOB_RIS[b[to]];
-      to = fr - 12;  while (!b[to]) {att += WKZ[to]; to -= 12; mob++;} mob += MOB_RIS[b[to]]; att += WKZ[to] * MOB_RIS[b[to]];
-      
-      mobS -= mob * MOB_RS;
-      mobE -= mob * MOB_RE;
-      
-      if (att) {
-        attackN++;
-        attackV += ATT_R;
-      }
-      
-      //{{{  7th rank
-      
-      if (frRank == 2 && (wKingRank == 1 || wHome)) {
-        rooksS -= 20;
-        rooksE -= 40;
-      }
-      
-      //}}}
-      //{{{  semi/open file
-      
-      rooksS += 10;
-      rooksE += 10;
-      
-      if (!(bLeast & frMask)) { // no b pawn.
-      
-        rooksS -= 10;
-        rooksE -= 10;
-      
-        if (!(wMost & frMask)) {  // no w pawn.
-          rooksS -= 10;
-          rooksE -= 10;
-        }
-      
-        if (frFile == wKingFile) {
-          rooksS -= 10;
-        }
-      
-        if (Math.abs(frFile - wKingFile) <= 1) {
-          rooksS -= 10;
-        }
-      }
-      
-      //}}}
-      
-      //}}}
-    }
-  
-    else if (frObj == B_QUEEN) {
-      //{{{  Q
-      
-      mob = 0;
-      att = 0;
-      
-      to = fr + 1;   while (!b[to]) {att += WKZ[to]; to += 1;  mob++;} mob += MOB_QIS[b[to]]; att += WKZ[to] * MOB_QIS[b[to]];
-      to = fr - 1;   while (!b[to]) {att += WKZ[to]; to -= 1;  mob++;} mob += MOB_QIS[b[to]]; att += WKZ[to] * MOB_QIS[b[to]];
-      to = fr + 12;  while (!b[to]) {att += WKZ[to]; to += 12; mob++;} mob += MOB_QIS[b[to]]; att += WKZ[to] * MOB_QIS[b[to]];
-      to = fr - 12;  while (!b[to]) {att += WKZ[to]; to -= 12; mob++;} mob += MOB_QIS[b[to]]; att += WKZ[to] * MOB_QIS[b[to]];
-      
-      to = fr + 11;  while (!b[to]) {att += WKZ[to]; to += 11; mob++;} mob += MOB_QIS[b[to]]; att += WKZ[to] * MOB_QIS[b[to]];
-      to = fr - 11;  while (!b[to]) {att += WKZ[to]; to -= 11; mob++;} mob += MOB_QIS[b[to]]; att += WKZ[to] * MOB_QIS[b[to]];
-      to = fr + 13;  while (!b[to]) {att += WKZ[to]; to += 13; mob++;} mob += MOB_QIS[b[to]]; att += WKZ[to] * MOB_QIS[b[to]];
-      to = fr - 13;  while (!b[to]) {att += WKZ[to]; to -= 13; mob++;} mob += MOB_QIS[b[to]]; att += WKZ[to] * MOB_QIS[b[to]];
-      
-      mobS -= mob * MOB_QS;
-      mobE -= mob * MOB_QE;
-      
-      if (att) {
-        attackN++;
-        attackV += ATT_Q;
-      }
-      
-      //{{{  7th rank
-      
-      if (frRank == 2 && (wKingRank == 1 || wHome)) {
-        queensS -= 10;
-        queensE -= 20;
-      }
-      
-      //}}}
-      
-      //}}}
-    }
-  
-    count++;
-  }
-  
-  if (wCanBeAttacked) {
-  
-    if (attackN > ATT_L)
-      attackN = ATT_L;
-  
-    attS -= (attackV * ATT_M * ATT_W[attackN]) | 0;
-    attE -= 0;
-  }
-  
-  //if (wBishop && bBishop) {
-    //bishopsS -= 50;
-    //bishopsE -= 50;
-  //}
-  
-  //}}}
-  
-  //}}}
-
-  //{{{  trapped
-  
-  var trappedS = 0;
-  var trappedE = 0;
-  
-  //{{{  trapped bishops
-  
-  var trap = 0;
-  
-  if (wNumBishops) {
-  
-    trap = 0;
-  
-    trap += IS_WB[b[SQA7]] & IS_BP[b[SQB6]];
-    trap += IS_WB[b[SQH7]] & IS_BP[b[SQG6]];
-  
-    trap += IS_WB[b[SQB8]] & IS_BP[b[SQC7]];
-    trap += IS_WB[b[SQG7]] & IS_BP[b[SQF7]];
-  
-    trap += IS_WB[b[SQA6]] & IS_BP[b[SQB5]];
-    trap += IS_WB[b[SQH6]] & IS_BP[b[SQG5]];
-  
-    trap += IS_WB[b[SQC1]] & IS_WP[b[SQD2]] & IS_O[b[SQD3]];
-    trap += IS_WB[b[SQF1]] & IS_WP[b[SQE2]] & IS_O[b[SQE3]];
-  
-    trappedS -= trap * 100;
-    trappedE -= trap * 100;
-  }
-  
-  if (bNumBishops) {
-  
-    trap = 0;
-  
-    trap += IS_BB[b[SQA2]] & IS_WP[b[SQB3]];
-    trap += IS_BB[b[SQH2]] & IS_WP[b[SQG3]];
-  
-    trap += IS_BB[b[SQB1]] & IS_WP[b[SQC2]];
-    trap += IS_BB[b[SQG2]] & IS_WP[b[SQF2]];
-  
-    trap += IS_BB[b[SQA3]] & IS_WP[b[SQB4]];
-    trap += IS_BB[b[SQH3]] & IS_WP[b[SQG4]];
-  
-    trap += IS_BB[b[SQC8]] & IS_BP[b[SQD7]] * IS_O[b[SQD6]];
-    trap += IS_BB[b[SQF8]] & IS_BP[b[SQE7]] * IS_O[b[SQE6]];
-  
-    trappedS += trap * 100;
-    trappedE += trap * 100;
-  }
-  
-  //}}}
-  //{{{  trapped knights
-  
-  if (wNumKnights) {
-  
-    trap = 0;
-  
-    trap += IS_WN[b[SQA8]] & (IS_BP[b[SQA7]] | IS_BP[b[SQC7]]);
-    trap += IS_WN[b[SQH8]] & (IS_BP[b[SQH7]] | IS_BP[b[SQF7]]);
-  
-    trap += IS_WN[b[SQA7]] & IS_BP[b[SQA6]] & IS_BP[b[SQB7]];
-    trap += IS_WN[b[SQH7]] & IS_BP[b[SQH6]] & IS_BP[b[SQG7]];
-  
-    trap += IS_WN[b[SQA7]] & IS_BP[b[SQB7]] & IS_BP[b[SQC6]];
-    trap += IS_WN[b[SQH7]] & IS_BP[b[SQG7]] & IS_BP[b[SQF6]];
-  
-    trappedS -= trap * 100;
-    trappedE -= trap * 100;
-  }
-  
-  if (bNumKnights) {
-  
-    trap = 0;
-  
-    trap += IS_BN[b[SQA1]] & (IS_WP[b[SQA2]] | IS_WP[b[SQC2]]);
-    trap += IS_BN[b[SQH1]] & (IS_WP[b[SQH2]] | IS_WP[b[SQF2]]);
-  
-    trap += IS_BN[b[SQA2]] & IS_WP[b[SQA3]] & IS_WP[b[SQB2]];
-    trap += IS_BN[b[SQH2]] & IS_WP[b[SQH3]] & IS_WP[b[SQG2]];
-  
-    trap += IS_BN[b[SQA2]] & IS_WP[b[SQB2]] & IS_WP[b[SQC3]];
-    trap += IS_BN[b[SQH2]] & IS_WP[b[SQG2]] & IS_WP[b[SQF3]];
-  
-    trappedS += trap * 100;
-    trappedE += trap * 100;
-  }
-  
-  //}}}
-  
-  //}}}
-  //{{{  tempo
-  
-  if (turn == WHITE) {
-   var tempoS = 20;
-   var tempoE = 10;
-  }
-  
-  else {
-   var tempoS = -20;
-   var tempoE = -10;
-  }
-  
-  //}}}
-
-  //{{{  combine
-  
   var evalS = this.runningEvalS;
   var evalE = this.runningEvalE;
-  
-  var ahead  = 0;
-  var behind = 0;
-  
-  evalS += mobS;
-  evalE += mobE;
-  
-  evalS += trappedS;
-  evalE += trappedE;
-  
-  evalS += tempoS;
-  evalE += tempoE;
-  
-  evalS += attS;
-  evalE += attE;
-  
-  evalS += pawnsS;
-  evalE += pawnsE;
-  
-  evalS += knightsS;
-  evalE += knightsE;
-  
-  evalS += bishopsS;
-  evalE += bishopsE;
-  
-  evalS += rooksS;
-  evalE += rooksE;
-  
-  evalS += queensS;
-  evalE += queensE;
-  
-  evalS += kingS;
-  evalE += kingE;
-  
+
   var e = (evalS * ((256 - this.gPhase) / 256) | 0) + (evalE * ((this.gPhase) / 256) | 0);
-  
-  //}}}
 
-  e *= ((-turn >> 31) | 1);
+  if (turn == WHITE)
+    return e;
+  else
+    return -e;
 
-  return e;
 }
 
 //}}}
@@ -6632,60 +5362,6 @@ if (lozzaHost == HOST_NODEJS) {
 
 //}}}
 
-//{{{  usage
-//
-// https://www.chessprogramming.org/Texel%27s_Tuning_Method
-//
-// 1. include lozza.js code above.
-// 2. disable history and tt jic although i think qs is safe.
-// 3. run using: node texeltune.js
-//    the counter shown is the param index being tested during this iter.
-// 4. after at least 1 iter paste results from texeltune.txt into lozza.js
-// 5. test results.
-// 6. time passes.
-// 7. go to 1. making sure starting error is less than previous
-//    final error - if not and no changes to eval, something is broken!
-//
-// config.js can contain optional overrides as an object:-
-//
-// module.exports = {
-//   numLines: 1000,      // test the first 1000 lines only
-//   outFile: 'test.txt', // change results filename
-//   iters: 10            // max iters of the main drag
-// };
-//
-
-//}}}
-//{{{  history
-
-var TUNEBUILD = 2;
-
-//
-// 2 Add config.js capability.
-// 1 Born.
-//
-
-console.log('build =',TUNEBUILD);
-
-//}}}
-
-//{{{  config
-
-var config = require('./config.js');
-
-if (config.outFile)
-  var outFile = config.outFile;
-else
-  var outFile = 'texeltune.txt';
-
-console.log('results file =',outFile);
-
-if (config.iters)
-  var maxIters = config.iters;
-else
-  var maxIters = 10000000;  // hell freeze over
-
-//}}}
 //{{{  lozza globals
 
 fs    = lozza.uci.nodefs;
@@ -6696,11 +5372,6 @@ board = lozza.board;
 //{{{  functions
 
 //{{{  sigmoid
-//
-// map qs to a (0-1) sigmoid anchored at 400. there is nothing magic about 400 it's just
-// knowledge of being 400 ahead is a likely win. we could incorporate the full move counter
-// and game length.
-//
 
 function sigmoid (qs) {
  var p = qs / 400.0;
@@ -6709,9 +5380,6 @@ function sigmoid (qs) {
 
 //}}}
 //{{{  _map
-//
-// get black pst index from white pst index.
-//
 
 function _map (sq) {
   var m = (143-sq)/12|0;
@@ -6720,11 +5388,6 @@ function _map (sq) {
 
 //}}}
 //{{{  calcErr
-//
-// get the mean square error for all positions.
-// sequential calls to qs must not affect anything.
-// we explicitly check that later on.
-//
 
 var tries = 0; // num calls to calcErr() in a iter
 
@@ -6735,11 +5398,11 @@ function calcErr () {
   process.stdout.write(tries+'\r');
 
   var err = 0;
-  var num = epds.length;
+  var num = epds2.length;
 
   for (var i=0; i < num; i++) {
 
-    var epd = epds[i];
+    var epd = epds2[i];
 
     uci.spec.board    = epd.board;
     uci.spec.turn     = epd.turn;
@@ -6753,7 +5416,8 @@ function calcErr () {
     lozza.position();
 
     var p = epd.prob;
-    var q = lozza.qSearch(lozza.rootNode,0,board.turn,-INFINITY,INFINITY);
+    var q = board.evaluate(board.turn);
+    //var q = lozza.qSearch(lozza.rootNode,0,board.turn,-INFINITY,INFINITY);
     var s = sigmoid(q);
 
     if (isNaN(p) || isNaN(s) || s > 1.0 || p > 1.0 || s < 0.0 || p < 0.0) {
@@ -6781,23 +5445,11 @@ function calcErr () {
 
 var data  = fs.readFileSync('epds.epd', 'utf8');
 var lines = data.split('\n');
+var epds  = [];
 
-if (config.numLines) {
-  var numLines = config.numLines;
-  console.log('testing with num positions =',numLines);
-}
-else {
-  var numLines = lines.length;
-  console.log('testing with all positions');
-}
+for (var i=0; i < lines.length; i++) {
 
-var epds = [];
-
-for (var i=0; i < numLines; i++) {
-
-  var line  = lines[i];
-
-  // hack the epd string into a series of space separated elements indexed as above.
+  var line = lines[i];
 
   line = line.replace(/(\r\n|\n|\r)/gm,'');
   line = line.replace(/;/g,'');
@@ -6820,23 +5472,59 @@ for (var i=0; i < numLines; i++) {
 }
 
 lines    = []; // release
-numLines = epds.length;  // may have skipped blank lines.
 
-console.log('positions =',numLines);
+console.log('positions =',epds.length);
+
+//}}}
+//{{{  remove positions where e != q
+
+lozza.newGameInit();
+
+var epds2 = [];
+
+for (var i=0; i < epds.length; i++) {
+
+  var epd = epds[i];
+
+  uci.spec.board    = epd.board;
+  uci.spec.turn     = epd.turn;
+  uci.spec.rights   = epd.rights;
+  uci.spec.ep       = epd.ep;
+  uci.spec.fmc      = epd.fmvn;
+  uci.spec.hmc      = epd.hmvc;
+  uci.spec.id       = 'id' + i;
+  uci.spec.moves    = [];
+
+  lozza.position();
+
+  var e = board.evaluate(board.turn);
+  var q = lozza.qSearch(lozza.rootNode,0,board.turn,-INFINITY,INFINITY);
+
+  if (isNaN(e) || isNaN(q)) {
+    console.log('NaN');
+    process.exit();
+  }
+
+  if (e == q) {
+    epd.eval = e;
+    epds2.push(epd);
+  }
+}
+
+epds = []; // release
+
+console.log('usable (e==q) =',epds2.length);
 
 //}}}
 //{{{  count win, lose, draw
-//
-// just for interest.
-//
 
 var wins = 0;
 var loss = 0;
 var draw = 0;
 
-for (var i=0; i < numLines; i++) {
+for (var i=0; i < epds2.length; i++) {
 
-  var epd = epds[i];
+  var epd = epds2[i];
 
   if (epd.prob == 1.0)
     wins++;
@@ -6855,41 +5543,35 @@ for (var i=0; i < numLines; i++) {
 console.log('wins =',wins);
 console.log('losses =',loss);
 console.log('draws =',draw);
-console.log('error check =',numLines - wins - draw - loss,'(should be 0)');
+console.log('error check =',epds2.length - wins - draw - loss,'(should be 0)');
 
 //}}}
 //{{{  do the grunt
-//
-// this algorithm will probably very very slowly converge, but on the up-side
-// it will not chase headless chickens as we experiment in concert and minimally.
-//
-// the results are output after each iteration so we can use results so far.
-// also allows us to resume later after pasting the results back into the engine.
-// it should produce improvement even after a single iteration on untuned data.
-// it's a literal implementation of pseudo-code here:
-// https://www.chessprogramming.org/Texel%27s_Tuning_Method
-// there is lots of scope for optimisation.
-//
 
 lozza.newGameInit();
 
 var wpsts = [WS_PST,WE_PST];
 var bpsts = [BS_PST,BE_PST];
 
+//{{{  check eval/ps
+
 var t1 = Date.now();
+
 var bestErr = calcErr();
+
 var t2 = Date.now();
 var et = (t2-t1)/1000;
 
-console.log('try time =',et,'secs');
-console.log('iter time =',et*1200/60,'mins ish');
+console.log('try time =',et,'secs (one pass of all params)');
 
 if (calcErr() != bestErr) {
-  console.log('qs is unstable');
+  console.log('eval is unstable');
   process.exit();
 }
 else
-  console.log('qs is stable'); // probably
+  console.log('eval is stable'); // probably
+
+//}}}
 
 console.log('starting error =',bestErr);
 console.log('**************');
@@ -6901,17 +5583,13 @@ var changes = 0;      // num changes made in this iter
 
 tries = 0;            // num calls to calcErr() made in this iter
 
-while (better && iter < maxIters+1) {
+while (better) {
 
   var t1 = Date.now();
 
   better = false;
 
   //{{{  pieces
-  //
-  // leave p=100 to ground everything.
-  // k value is fine.
-  //
   
   for (var p=KNIGHT; p<=QUEEN; p++) { // n,b,r,q
     VALUE_VECTOR[p] = VALUE_VECTOR[p] + 1;
@@ -6937,11 +5615,8 @@ while (better && iter < maxIters+1) {
   
   //}}}
   //{{{  psts
-  //
-  // i wonder what would happen with independent black and white PSTs?
-  // some of the 64 per pst values could be grouped and done at the
-  // same time i would think in cases of likely symmetry.
-  //
+  
+  /*
   
   for (var se=0; se<=1; se++) {  // mid/end game
   
@@ -6998,14 +5673,11 @@ while (better && iter < maxIters+1) {
     }
   }
   
+  */
+  
   //}}}
 
   //{{{  save to file
-  //
-  // do this after each full iteration so we can resume after a
-  // power out or accidental close etc. include bestErr so we can
-  // check it on restarting.
-  //
   
   var d   = new Date();
   var out = '';
@@ -7041,7 +5713,7 @@ while (better && iter < maxIters+1) {
   out = out + '// last update '+d;
   out = out + '\r\n\r\n';
   
-  fs.writeFileSync(outFile,out);
+  fs.writeFileSync('texeltune.txt',out);
   
   //}}}
 
@@ -7056,7 +5728,6 @@ while (better && iter < maxIters+1) {
 
 console.log('**************');
 console.log('final error =',bestErr);
-console.log('results are in ',outFile);
 
 //}}}
 
