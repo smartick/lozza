@@ -7,11 +7,11 @@
 // 2. disable history and tt jic although i think q and e are safe.
 // 3. run using: node texeltune.js
 //    the counter shown is the param index being tested during this iter.
-// 4. after at least 1 iter paste results from texeltune.txt into to lozza.js
+// 4. after at least 1 iter paste results from texeltune.txt into lozza.js
 // 5. test results.
 // 6. time passes.
 // 7. go to 1. making sure starting error is less than previous
-//    final error - if not something has gone wrong.
+//    final error - if not and no changes to eval, something is broken!
 //
 // config.js can contain optional overrides as an object:-
 //
@@ -416,6 +416,7 @@ while (better && iter < maxIters+1) {
   // check it on restarting.
   //
   
+  var d   = new Date();
   var out = '';
   
   out = out + 'var VALUE_VECTOR = [' + VALUE_VECTOR.toString() + '];';
@@ -444,9 +445,9 @@ while (better && iter < maxIters+1) {
   out = out + '\r\n\r\n';
   out = out + 'var WKING_PSTE = [' + WKING_PSTE.toString() + '];';
   out = out + '\r\n\r\n';
-  out = out + 'bestErr='+bestErr;
+  out = out + '// bestErr='+bestErr;
   out = out + '\r\n\r\n';
-  out = out + 'end';
+  out = out + '// last update '+d;
   out = out + '\r\n\r\n';
   
   fs.writeFileSync(outFile,out);
