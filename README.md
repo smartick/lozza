@@ -29,7 +29,7 @@ See also here - https://op12no2.github.io/lozza-ui/consolehelp.htm.
 
 ## Playing Lozza online
 
-A sister project - https://github.com/op12no2/lozza-ui - has somenexample user interfaces for playing and analysing with Lozza, which you can try out here - https://op12no2.github.io/lozza-ui.
+A sister project - https://github.com/op12no2/lozza-ui - has some example user interfaces for playing and analysing with Lozza, which you can try out here - https://op12no2.github.io/lozza-ui.
 
 ## Playing Lozza offline
 
