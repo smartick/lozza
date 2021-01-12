@@ -1,7 +1,0 @@
-
-module.exports = {
- numLines: 1000,
- outFile: 'test.txt',
- iters: 3
-};
-
