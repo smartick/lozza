@@ -4,7 +4,7 @@
 // https://www.chessprogramming.org/Texel%27s_Tuning_Method
 //
 // 1. include lozza.js code above.
-// 2. disable history and tt jic although i think q and e are safe.
+// 2. disable history and tt jic although i think qs is safe.
 // 3. run using: node texeltune.js
 //    the counter shown is the param index being tested during this iter.
 // 4. after at least 1 iter paste results from texeltune.txt into lozza.js
@@ -64,13 +64,13 @@ board = lozza.board;
 
 //{{{  sigmoid
 //
-// map eval to a (0-1) sigmoid anchored at 400. there is nothing magic about 400 it's just
+// map qs to a (0-1) sigmoid anchored at 400. there is nothing magic about 400 it's just
 // knowledge of being 400 ahead is a likely win. we could incorporate the full move counter
 // and game length.
 //
 
-function sigmoid (s) {
- var p = s / 400.0;
+function sigmoid (qs) {
+ var p = qs / 400.0;
  return 1.0 / (1.0 + Math.pow(10.0,-p));
 }
 
@@ -89,7 +89,7 @@ function _map (sq) {
 //{{{  calcErr
 //
 // get the mean square error for all positions.
-// sequential calls to eval must not affect anything.
+// sequential calls to qs must not affect anything.
 // we explicitly check that later on.
 //
 
@@ -102,11 +102,11 @@ function calcErr () {
   process.stdout.write(tries+'\r');
 
   var err = 0;
-  var num = epds2.length;
+  var num = epds.length;
 
   for (var i=0; i < num; i++) {
 
-    var epd = epds2[i];
+    var epd = epds[i];
 
     uci.spec.board    = epd.board;
     uci.spec.turn     = epd.turn;
@@ -120,7 +120,8 @@ function calcErr () {
     lozza.position();
 
     var p = epd.prob;
-    var s = sigmoid(board.evaluate(board.turn));
+    var q = lozza.qSearch(lozza.rootNode,0,board.turn,-INFINITY,INFINITY);
+    var s = sigmoid(q);
 
     if (isNaN(p) || isNaN(s) || s > 1.0 || p > 1.0 || s < 0.0 || p < 0.0) {
       console.log('eek',p,s);
@@ -173,8 +174,6 @@ for (var i=0; i < numLines; i++) {
 
   var parts = line.split(' ');
 
-  var sfeval = parseInt(parts[10]);
-
   epds.push({eval:   0,
              board:  parts[0],
              turn:   parts[1],
@@ -187,54 +186,7 @@ for (var i=0; i < numLines; i++) {
 
 lines = []; // release
 
-console.log('candidates =',epds.length);
-
-//}}}
-//{{{  remove positions where e != q
-//
-// Remove positions where q != e so that we can use e in the testing.
-// Q search needs to be independent of TT and hisitory etc so that it
-// can be called with different positions OK. Or init a new game before
-// each call. Lozza Q is safe (I think). Ditto eval - needs to stay clear
-// of TT.
-//
-
-lozza.newGameInit();
-
-var epds2 = [];
-
-for (var i=0; i < epds.length; i++) {
-
-  var epd = epds[i];
-
-  uci.spec.board    = epd.board;
-  uci.spec.turn     = epd.turn;
-  uci.spec.rights   = epd.rights;
-  uci.spec.ep       = epd.ep;
-  uci.spec.fmc      = epd.fmvn;
-  uci.spec.hmc      = epd.hmvc;
-  uci.spec.id       = 'id' + i;
-  uci.spec.moves    = [];
-
-  lozza.position();
-
-  var e = board.evaluate(board.turn);
-  var q = lozza.qSearch(lozza.rootNode,0,board.turn,-INFINITY,INFINITY);
-
-  if (isNaN(e) || isNaN(q)) {
-    console.log('NaN');
-    process.exit();
-  }
-
-  if (e == q) {
-    epd.eval = e;
-    epds2.push(epd);
-  }
-}
-
-epds = []; // release
-
-console.log('usable (e==q) =',epds2.length);
+console.log('positions =',epds.length);
 
 //}}}
 //{{{  count win, lose, draw
@@ -246,9 +198,9 @@ var wins = 0;
 var loss = 0;
 var draw = 0;
 
-for (var i=0; i < epds2.length; i++) {
+for (var i=0; i < numLines; i++) {
 
-  var epd = epds2[i];
+  var epd = epds[i];
 
   if (epd.prob == 1.0)
     wins++;
@@ -267,7 +219,7 @@ for (var i=0; i < epds2.length; i++) {
 console.log('wins =',wins);
 console.log('losses =',loss);
 console.log('draws =',draw);
-console.log('error check =',epds2.length - wins - draw - loss,'(should be 0)');
+console.log('error check =',numLines - wins - draw - loss,'(should be 0)');
 
 //}}}
 //{{{  do the grunt
@@ -283,7 +235,7 @@ console.log('error check =',epds2.length - wins - draw - loss,'(should be 0)');
 // there is lots of scope for optimisation.
 //
 
-lozza.newGameInit();  // why not
+lozza.newGameInit();
 
 var wpsts = [WS_PST,WE_PST];
 var bpsts = [BS_PST,BE_PST];
@@ -294,11 +246,11 @@ var t2 = Date.now();
 console.log('err calc time =',(t2-t1)/1000/60,'mins');
 
 if (calcErr() != bestErr) {
-  console.log('eval is unstable');
+  console.log('qs is unstable');
   process.exit();
 }
 else
-  console.log('eval is stable'); // probably
+  console.log('qs is stable'); // probably
 
 console.log('starting error =',bestErr);
 console.log('**************');
