@@ -4978,10 +4978,10 @@ lozBoard.prototype.evaluate = function (turn) {
     attE += 0;
   }
   
-  if (wBishop && bBishop) {
-    bishopsS += 50;
-    bishopsE += 50;
-  }
+  //if (wBishop && bBishop) {
+    //bishopsS += 50;
+    //bishopsE += 50;
+  //}
   
   //}}}
   //{{{  black
@@ -5194,10 +5194,10 @@ lozBoard.prototype.evaluate = function (turn) {
     attE -= 0;
   }
   
-  if (wBishop && bBishop) {
-    bishopsS -= 50;
-    bishopsE -= 50;
-  }
+  //if (wBishop && bBishop) {
+    //bishopsS -= 50;
+    //bishopsE -= 50;
+  //}
   
   //}}}
   
@@ -6725,7 +6725,7 @@ function calcErr () {
 
 //}}}
 
-console.log('hello world');
+console.log('hello world! wait...');
 
 //{{{  get the epds
 //
@@ -6740,6 +6740,9 @@ var lines = data.split('\n');
 var epds  = [];
 
 for (var i=0; i < lines.length; i++) {
+
+  if (i % 100000 == 0)
+    process.stdout.write(i+'\r');
 
   var line = lines[i];
 
@@ -6775,6 +6778,9 @@ lozza.newGameInit();
 var epds2 = [];
 
 for (var i=0; i < epds.length; i++) {
+
+  if (i % 100000 == 0)
+    process.stdout.write(i+'\r');
 
   var epd = epds[i];
 
@@ -6815,6 +6821,9 @@ var loss = 0;
 var draw = 0;
 
 for (var i=0; i < epds2.length; i++) {
+
+  if (i % 100000 == 0)
+    process.stdout.write(i+'\r');
 
   var epd = epds2[i];
 
