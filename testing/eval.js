@@ -1,8 +1,9 @@
+//{{{  // https://github.com/op12no2
 //
 // https://github.com/op12no2
 //
 
-var BUILD = "2.12";
+var BUILD = "2.1";
 
 //{{{  history
 /*
@@ -622,7 +623,6 @@ Math.seedrandom('Lozza rules OK');  //always generates the same sequence of PRNs
 //{{{  tuned stuff
 
 var VALUE_VECTOR = [0,100,325,325,500,1000,10000];
-
 var VALUE_PAWN   = VALUE_VECTOR[1];
 
 var iMOB_NS               = 0;
@@ -672,7 +672,7 @@ var iMOBOFF_BE            = 43;
 var iMOBOFF_RS            = 44;
 var iMOBOFF_RE            = 45;
 
-var EV = Array(46);
+var EV = Array(40);
 
 EV[iMOB_NS]               = 4;
 EV[iMOB_NE]               = 4;
@@ -697,7 +697,7 @@ EV[iPAWN_PASSED_OFFSET_S] = 5;
 EV[iPAWN_PASSED_OFFSET_E] = 10;
 EV[iPAWN_PASSED_MULT_S]   = 50;
 EV[iPAWN_PASSED_MULT_E]   = 100;
-EV[iTWOBISHOPS]           = 0;
+EV[iTWOBISHOPS]           = 50;
 EV[iROOK7TH_S]            = 20;
 EV[iROOK7TH_E]            = 40;
 EV[iROOKOPEN_S]           = 10;
@@ -720,6 +720,7 @@ EV[iMOBOFF_BS]            = 0;
 EV[iMOBOFF_BE]            = 0;
 EV[iMOBOFF_RS]            = 0;
 EV[iMOBOFF_RE]            = 0;
+
 
 //}}}
 
@@ -4160,62 +4161,62 @@ var TEMPO_E = 10;
 var PAWN_PASSED     = [0,0,0,0,0.1,0.3,0.6,1.0,0];  // rank bonus curve.
 
 //}}}
-//{{{  tuned stuff
-
-var MOB_NS               = EV[iMOB_NS];
-var MOB_NE               = EV[iMOB_NE];
-var MOB_BS               = EV[iMOB_BS];
-var MOB_BE               = EV[iMOB_BE];
-var MOB_RS               = EV[iMOB_RS];
-var MOB_RE               = EV[iMOB_RE];
-var MOB_QS               = EV[iMOB_QS];
-var MOB_QE               = EV[iMOB_QE];
-var ATT_N                = EV[iATT_N];
-var ATT_B                = EV[iATT_B];
-var ATT_R                = EV[iATT_R];
-var ATT_Q                = EV[iATT_Q];
-var ATT_M                = EV[iATT_M];
-var PAWN_DOUBLED_S       = EV[iPAWN_DOUBLED_S];
-var PAWN_DOUBLED_E       = EV[iPAWN_DOUBLED_E];
-var PAWN_ISOLATED_S      = EV[iPAWN_ISOLATED_S];
-var PAWN_ISOLATED_E      = EV[iPAWN_ISOLATED_E];
-var PAWN_BACKWARD_S      = EV[iPAWN_BACKWARD_S];
-var PAWN_BACKWARD_E      = EV[iPAWN_BACKWARD_E];
-var PAWN_PASSED_OFFSET_S = EV[iPAWN_PASSED_OFFSET_S];
-var PAWN_PASSED_OFFSET_E = EV[iPAWN_PASSED_OFFSET_E];
-var PAWN_PASSED_MULT_S   = EV[iPAWN_PASSED_MULT_S];
-var PAWN_PASSED_MULT_E   = EV[iPAWN_PASSED_MULT_E];
-var TWOBISHOPS           = EV[iTWOBISHOPS];
-var ROOK7TH_S            = EV[iROOK7TH_S];
-var ROOK7TH_E            = EV[iROOK7TH_E];
-var ROOKOPEN_S           = EV[iROOKOPEN_S];
-var ROOKOPEN_E           = EV[iROOKOPEN_E];
-var QUEEN7TH_S           = EV[iQUEEN7TH_S];
-var QUEEN7TH_E           = EV[iQUEEN7TH_E];
-var TRAPPED              = EV[iTRAPPED];
-var KING_PENALTY         = EV[iKING_PENALTY];
-var PAWN_OFFSET_S        = EV[iPAWN_OFFSET_S];
-var PAWN_OFFSET_E        = EV[iPAWN_OFFSET_E];
-var PAWN_MULT_S          = EV[iPAWN_MULT_S];
-var PAWN_MULT_E          = EV[iPAWN_MULT_E];
-var PAWN_PASS_FREE       = EV[iPAWN_PASS_FREE];
-var PAWN_PASS_UNSTOP     = EV[iPAWN_PASS_UNSTOP];
-var PAWN_PASS_KING1      = EV[iPAWN_PASS_KING1];
-var PAWN_PASS_KING2      = EV[iPAWN_PASS_KING2];
-var MOBOFF_NS            = EV[iMOBOFF_NS] = 0;
-var MOBOFF_NE            = EV[iMOBOFF_NE] = 0;
-var MOBOFF_BS            = EV[iMOBOFF_BS] = 0;
-var MOBOFF_BE            = EV[iMOBOFF_BE] = 0;
-var MOBOFF_RS            = EV[iMOBOFF_RS] = 0;
-var MOBOFF_RE            = EV[iMOBOFF_RE] = 0;
-
-
-//}}}
 
 lozBoard.prototype.evaluate = function (turn) {
 
   //this.hashCheck(turn);
 
+  //{{{  tuned stuff
+  
+  var MOB_NS               = EV[iMOB_NS];
+  var MOB_NE               = EV[iMOB_NE];
+  var MOB_BS               = EV[iMOB_BS];
+  var MOB_BE               = EV[iMOB_BE];
+  var MOB_RS               = EV[iMOB_RS];
+  var MOB_RE               = EV[iMOB_RE];
+  var MOB_QS               = EV[iMOB_QS];
+  var MOB_QE               = EV[iMOB_QE];
+  var ATT_N                = EV[iATT_N];
+  var ATT_B                = EV[iATT_B];
+  var ATT_R                = EV[iATT_R];
+  var ATT_Q                = EV[iATT_Q];
+  var ATT_M                = EV[iATT_M];
+  var PAWN_DOUBLED_S       = EV[iPAWN_DOUBLED_S];
+  var PAWN_DOUBLED_E       = EV[iPAWN_DOUBLED_E];
+  var PAWN_ISOLATED_S      = EV[iPAWN_ISOLATED_S];
+  var PAWN_ISOLATED_E      = EV[iPAWN_ISOLATED_E];
+  var PAWN_BACKWARD_S      = EV[iPAWN_BACKWARD_S];
+  var PAWN_BACKWARD_E      = EV[iPAWN_BACKWARD_E];
+  var PAWN_PASSED_OFFSET_S = EV[iPAWN_PASSED_OFFSET_S];
+  var PAWN_PASSED_OFFSET_E = EV[iPAWN_PASSED_OFFSET_E];
+  var PAWN_PASSED_MULT_S   = EV[iPAWN_PASSED_MULT_S];
+  var PAWN_PASSED_MULT_E   = EV[iPAWN_PASSED_MULT_E];
+  var TWOBISHOPS           = EV[iTWOBISHOPS];
+  var ROOK7TH_S            = EV[iROOK7TH_S];
+  var ROOK7TH_E            = EV[iROOK7TH_E];
+  var ROOKOPEN_S           = EV[iROOKOPEN_S];
+  var ROOKOPEN_E           = EV[iROOKOPEN_E];
+  var QUEEN7TH_S           = EV[iQUEEN7TH_S];
+  var QUEEN7TH_E           = EV[iQUEEN7TH_E];
+  var TRAPPED              = EV[iTRAPPED];
+  var KING_PENALTY         = EV[iKING_PENALTY];
+  var PAWN_OFFSET_S        = EV[iPAWN_OFFSET_S];
+  var PAWN_OFFSET_E        = EV[iPAWN_OFFSET_E];
+  var PAWN_MULT_S          = EV[iPAWN_MULT_S];
+  var PAWN_MULT_E          = EV[iPAWN_MULT_E];
+  var PAWN_PASS_FREE       = EV[iPAWN_PASS_FREE];
+  var PAWN_PASS_UNSTOP     = EV[iPAWN_PASS_UNSTOP];
+  var PAWN_PASS_KING1      = EV[iPAWN_PASS_KING1];
+  var PAWN_PASS_KING2      = EV[iPAWN_PASS_KING2];
+  var MOBOFF_NS            = EV[iMOBOFF_NS] = 0;
+  var MOBOFF_NE            = EV[iMOBOFF_NE] = 0;
+  var MOBOFF_BS            = EV[iMOBOFF_BS] = 0;
+  var MOBOFF_BE            = EV[iMOBOFF_BE] = 0;
+  var MOBOFF_RS            = EV[iMOBOFF_RS] = 0;
+  var MOBOFF_RE            = EV[iMOBOFF_RE] = 0;
+  
+  
+  //}}}
   //{{{  init
   
   
@@ -6776,4 +6777,96 @@ if (lozzaHost == HOST_NODEJS) {
 }
 
 //}}}
+
+//}}}
+
+//{{{  lozza globals
+
+fs    = lozza.uci.nodefs;
+uci   = lozza.uci;
+board = lozza.board;
+
+//}}}
+
+console.log('hello world! wait...');
+
+//{{{  get the epds
+//
+// http://rebel13.nl/download/data.html
+// ccrl-40/2-elo-3400 - 1M positions from CCRL top engines.
+// 2r5/2P2pk1/3b2pp/Q2pq3/4p3/p3P1Pb/2RN1P1P/4R1K1 w - - 8 41; d2b3 - pgn=0.5 len=173
+// 0                                               1 2 3 4  5  6    7 8   9   10  11
+//
+
+var data  = fs.readFileSync('../tuning/epds.epd', 'utf8');
+var lines = data.split('\n');
+var epds  = [];
+
+var num = lines.length;
+
+//num = 10000;
+
+for (var i=0; i < num; i++) {
+
+  if (i % 100000 == 0)
+    process.stdout.write(i+'\r');
+
+  var line = lines[i];
+
+  line = line.replace(/(\r\n|\n|\r)/gm,'');
+  line = line.replace(/;/g,'');
+  line = line.replace(/=/g,' ');
+  line = line.trim();
+
+  if (!line)
+    continue;
+
+  var parts = line.split(' ');
+
+  epds.push({eval:   0,
+             board:  parts[0],
+             turn:   parts[1],
+             rights: parts[2],
+             ep:     parts[3],
+             fmvn:   parseInt(parts[4]),
+             hmvc:   parseInt(parts[5]),
+             prob:   parseFloat(parts[9])});
+}
+
+lines    = []; // release
+
+console.log('positions =',epds.length);
+
+//}}}
+//{{{  evaluate
+
+lozza.newGameInit();
+
+for (var i=0; i < epds.length; i++) {
+
+  if (i % 100000 == 0)
+    process.stdout.write(i+'\r');
+
+  var epd = epds[i];
+
+  uci.spec.board    = epd.board;
+  uci.spec.turn     = epd.turn;
+  uci.spec.rights   = epd.rights;
+  uci.spec.ep       = epd.ep;
+  uci.spec.fmc      = epd.fmvn;
+  uci.spec.hmc      = epd.hmvc;
+  uci.spec.id       = 'id' + i;
+  uci.spec.moves    = [];
+
+  lozza.position();
+
+  //var e = board.evaluate(board.turn);
+  var q = lozza.qSearch(lozza.rootNode,0,board.turn,-INFINITY,INFINITY);
+
+  console.log(uci.spec.board,q);
+}
+
+//}}}
+
+process.exit();
 
