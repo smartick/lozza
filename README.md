@@ -54,8 +54,6 @@ Chess programming wiki - https://www.chessprogramming.org/Main_Page
 
 Fruit 2.1 - https://www.chessprogramming.org/Fruit
 
-Computer chess forums - http://www.talkchess.com/forum3/index.php
-
 CCRL - https://ccrl.chessdom.com/ccrl/4040
 
 Texel tuning - https://www.chessprogramming.org/Texel%27s_Tuning_Method
