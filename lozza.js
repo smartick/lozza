@@ -2,13 +2,12 @@
 // https://github.com/op12no2
 //
 
-var BUILD = "2.d";
+var BUILD = "2";
 
 //{{{  history
 /*
 
 2.00 Rearrange eval params so they can be tuned.
-2.00 Don't return mate scores from Q search.
 2.00 Simplify phase and eval calc.
 
 1.18 Don't pseudo-move king adjacent to king.
@@ -908,7 +907,6 @@ var WKING_PSTE =      [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
 //}}}
 //{{{  tuned values
 
-
 //}}}
 //{{{  globals
 
@@ -1207,21 +1205,7 @@ var BQUEEN_PSTS  = Array(144);
 var BQUEEN_PSTE  = Array(144);
 var BKING_PSTS   = Array(144);
 var BKING_PSTE   = Array(144);
-
 var BOUTPOST     = Array(144);
-
-pst2Black(WPAWN_PSTS,   BPAWN_PSTS);
-pst2Black(WPAWN_PSTE,   BPAWN_PSTE);
-pst2Black(WKNIGHT_PSTS, BKNIGHT_PSTS);
-pst2Black(WKNIGHT_PSTE, BKNIGHT_PSTE);
-pst2Black(WBISHOP_PSTS, BBISHOP_PSTS);
-pst2Black(WBISHOP_PSTE, BBISHOP_PSTE);
-pst2Black(WROOK_PSTS,   BROOK_PSTS);
-pst2Black(WROOK_PSTE,   BROOK_PSTE);
-pst2Black(WQUEEN_PSTS,  BQUEEN_PSTS);
-pst2Black(WQUEEN_PSTE,  BQUEEN_PSTE);
-pst2Black(WKING_PSTS,   BKING_PSTS);
-pst2Black(WKING_PSTE,   BKING_PSTE);
 
 var WS_PST = [NULL_PST, WPAWN_PSTS,  WKNIGHT_PSTS, WBISHOP_PSTS, WROOK_PSTS, WQUEEN_PSTS, WKING_PSTS]; // opening/middle eval.
 var WE_PST = [NULL_PST, WPAWN_PSTE,  WKNIGHT_PSTE, WBISHOP_PSTE, WROOK_PSTE, WQUEEN_PSTE, WKING_PSTE]; // end eval.
@@ -1230,8 +1214,6 @@ var WM_PST = [NULL_PST, WPAWN_PSTE,  WKNIGHT_PSTE, WBISHOP_PSTE, WROOK_PSTE, WQU
 var BS_PST = [NULL_PST, BPAWN_PSTS,  BKNIGHT_PSTS, BBISHOP_PSTS, BROOK_PSTS, BQUEEN_PSTS, BKING_PSTS];
 var BE_PST = [NULL_PST, BPAWN_PSTE,  BKNIGHT_PSTE, BBISHOP_PSTE, BROOK_PSTE, BQUEEN_PSTE, BKING_PSTE];
 var BM_PST = [NULL_PST, BPAWN_PSTE,  BKNIGHT_PSTE, BBISHOP_PSTE, BROOK_PSTE, BQUEEN_PSTE, BKING_PSTE];
-
-pst2Black(WOUTPOST, BOUTPOST);
 
 var  B88 =  [26, 27, 28, 29, 30, 31, 32, 33,
              38, 39, 40, 41, 42, 43, 44, 45,
@@ -1383,6 +1365,29 @@ var STARRAY = Array(144);
 var WKZONES = Array(144);
 var BKZONES = Array(144);
 var DIST    = Array(144);
+
+//}}}
+//{{{  fill black psts
+
+pst2Black(WPAWN_PSTS,   BPAWN_PSTS);
+pst2Black(WPAWN_PSTE,   BPAWN_PSTE);
+
+pst2Black(WKNIGHT_PSTS, BKNIGHT_PSTS);
+pst2Black(WKNIGHT_PSTE, BKNIGHT_PSTE);
+
+pst2Black(WBISHOP_PSTS, BBISHOP_PSTS);
+pst2Black(WBISHOP_PSTE, BBISHOP_PSTE);
+
+pst2Black(WROOK_PSTS,   BROOK_PSTS);
+pst2Black(WROOK_PSTE,   BROOK_PSTE);
+
+pst2Black(WQUEEN_PSTS,  BQUEEN_PSTS);
+pst2Black(WQUEEN_PSTE,  BQUEEN_PSTE);
+
+pst2Black(WKING_PSTS,   BKING_PSTS);
+pst2Black(WKING_PSTE,   BKING_PSTE);
+
+pst2Black(WOUTPOST,     BOUTPOST);
 
 //}}}
 
@@ -2338,6 +2343,15 @@ lozChess.prototype.qSearch = function (node, depth, turn, alpha, beta) {
       alpha = score;
     }
   }
+
+  //{{{  no moves?
+  
+  if (inCheck && numLegalMoves == 0) {
+  
+     return -MATE + node.ply;
+  }
+  
+  //}}}
 
   return alpha;
 }
@@ -4143,7 +4157,7 @@ lozBoard.prototype.formatMove = function (move, fmt) {
 //  Currently this is pretty much just a subset of Fruit 2.1 eval.
 //
 
-//{{{  eval constants
+//{{{  eval globals
 
 var MOB_NIS = IS_NBRQKE;
 var MOB_BIS = IS_NBRQKE;
@@ -4173,7 +4187,7 @@ var TEMPO_E = 10;
 var PAWN_PASSED     = [0,0,0,0,0.1,0.3,0.6,1.0,0];  // rank bonus curve.
 
 //}}}
-//{{{  tuned stuff
+//{{{  tuned eval globals
 
 var MOB_NS               = EV[iMOB_NS];
 var MOB_NE               = EV[iMOB_NE];
