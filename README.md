@@ -60,4 +60,4 @@ CCRL - https://ccrl.chessdom.com/ccrl/4040
 
 Texel tuning - https://www.chessprogramming.org/Texel%27s_Tuning_Method
 
-Zurichess author for quiet-labelled.epd initially used to tune Lozza - https://www.chessprogramming.org/Zurichess
+Zurichess author for quiet-labeled.epd used to tune Lozza - https://www.chessprogramming.org/Zurichess
