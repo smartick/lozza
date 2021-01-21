@@ -42,9 +42,11 @@ Lozza has recently (Jan 2021) become a bot at Lichess. Please do not hesitate to
 Lozza can be used in chess UIs like WinBoard, Arena and CuteChess by using [node.js](https://nodejs.org) as the engine executable and lozza.js as a parameter
 to it. Full paths for both are recommended. node.js and Lozza do not need to be in the same folder. If the UI does not support engine parameters, create a batch file (say lozza.bat) containing somehting like:-
 
+```
 "c:\program files\nodejs\node.exe" c:\path\to\lozza.js 
+```
 
-Then use that as the engine target; similarly for Linux/Mac.  
+Then use lozza.bat as the engine target; similarly for Linux/Mac.  
 
 Alternatively you can package node and Lozza into a Windows/Linux/Mac executable using somethig like - https://dev.to/jochemstoel/bundle-your-node-app-to-a-single-executable-for-windows-linux-and-osx-2c89.
 
@@ -58,7 +60,9 @@ lozza.js is folded using {{{ and }}} (emacs convention) and most easily read usi
 
 To enter a javascript chess engine like Lozza into Hans G. Muller's monthly chess tournaments use somehting like:-
 
+```
 winboard -zp -ics -icshost winboard.nl -icshelper timeseal -fcp "node.exe lozza.js" -fd . -autoKibitz -fUCI -keepAlive 4 -firstXBook
+```
 
 ## Acknowledgements
 
@@ -70,4 +74,4 @@ CCRL - https://ccrl.chessdom.com/ccrl/4040
 
 Texel tuning - https://www.chessprogramming.org/Texel%27s_Tuning_Method
 
-Zurichess author for quiet-labeled.epd used to tune Lozza - https://www.chessprogramming.org/Zurichess
+Zurichess author for quiet-labeled.epd used to initially tune Lozza - https://www.chessprogramming.org/Zurichess
