@@ -33,14 +33,20 @@ See also here - https://op12no2.github.io/lozza-ui/consolehelp.htm.
 
 A sister project - https://github.com/op12no2/lozza-ui - has some example user interfaces for playing and analysing with Lozza, which you can try out here - https://op12no2.github.io/lozza-ui.
 
-## Playing Lozza on Lichess
+## Playing Lozza at Lichess.org
 
 Lozza has recently (Jan 2021) become a bot at Lichess. Please do not hesitate to contact me with any problems.  You can play her here - https://lichess.org/@/lozzaBot.
 
-## Playing Lozza offline
+## Playing Lozza offline in Arena, Winboard, Cutechess etc
 
 Lozza can be used in chess UIs like WinBoard, Arena and CuteChess by using [node.js](https://nodejs.org) as the engine executable and lozza.js as a parameter
-to it. Full paths for both are recommended. node.js and Lozza do not need to be in the same folder. If the UI does not support engine parameters, create a batch file and use that as the engine target.
+to it. Full paths for both are recommended. node.js and Lozza do not need to be in the same folder. If the UI does not support engine parameters, create a batch file (say lozza.bat) containing somehting like:-
+
+"c:\program files\nodejs\node.exe" c:\path\to\lozza.js 
+
+Then use that as the engine target; similarly for Linux/Mac.  
+
+Alternatively you can package node and Lozza into a Windows/Linux/Mac executable using somethig like - https://dev.to/jochemstoel/bundle-your-node-app-to-a-single-executable-for-windows-linux-and-osx-2c89.
 
 ## Online testing
 
