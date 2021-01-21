@@ -33,7 +33,7 @@ See also here - https://op12no2.github.io/lozza-ui/consolehelp.htm.
 
 A sister project - https://github.com/op12no2/lozza-ui - has some example user interfaces for playing and analysing with Lozza, which you can try out here - https://op12no2.github.io/lozza-ui.
 
-## Playing Lozza at Lichess.org
+## Playing lozzaBot at Lichess.org
 
 Lozza has recently (Jan 2021) become a bot at Lichess. Please do not hesitate to contact me with any problems.  You can play her here - https://lichess.org/@/lozzaBot.
 
