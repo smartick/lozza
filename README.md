@@ -54,7 +54,7 @@ Alternatively you can package node and Lozza into a Windows/Linux/Mac executable
 
 Perft - https://op12no2.github.io/lozza-ui/perft.htm - various Perft tests - the final one takes 25 seconds on my machine doing about 5M nps.
 
-## Offline testomg
+## Offline testing
 
 The tuning and testing directories of the repo contain some node.js Javascript utilities. They should be pretty easy to adapt to other Javascript engines. Run using node.js, for example:-
 
