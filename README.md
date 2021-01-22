@@ -1,13 +1,12 @@
 # Lozza
 
-A UCI compliant Javascript chess engine rated about 2400 on CCRL. Lozza is a traditional mailbox engine with PVS search. It's easy to embed Lozza into your web project or use her offline in client user interfaces like Arena and Winboard. A sister project also allows Lozza to be played online. There is nothing new in Lozza - it's just an ongoing and fun coding exercise. 
+A UCI compliant Javascript chess engine. Lozza is a traditional mailbox engine with PVS search. It's easy to embed Lozza into your web project or use her offline in client user interfaces like Arena and Winboard. A sister project also allows Lozza to be played online. There is nothing new in Lozza - it's just an ongoing and fun coding exercise. 
 
 In 1.x versions the piece values and PSTs were from Fruit 2.1. In later versions they have been tuned using the Texel author's method. The evaluation function initially used elements from Fruit 2.1, but is gradaully moving towards somehting more unique to Lozza. The search algorithms etc are from the Chess Programming Wiki. 
 
 ## Why Javascript?
 
-Mostly I was curious if a Javascript engine could compete with more traditional engines in the rating lists like CCRL, as at the time there were none listed (yes). There were
-Javascript engines with their own user interfaces on the internet (like garbochess), but none that complied with the UCI protocol. The Javascript development cycle is very quick because there is no build process; you can even make changes while it's playing to see what happens. Javascript also makes the engine platform-independent - running online in any browser and offline on any OS that supports node.js (pretty much everything). Not least, Javascript is a lot of fun!
+Mostly I was curious if a Javascript engine could compete with more traditional engines in the engine rating lists like CCRL, as at the time there were none listed (yes). There were Javascript engines with their own user interfaces on the internet (like garbochess), but none that complied with the UCI protocol. The Javascript development cycle is very quick because there is no build process; you can even make changes while it's playing to see what happens. Javascript also makes the engine platform-independent - running online in any browser and offline on any OS that supports node.js (pretty much everything). Not least, Javascript is a lot of fun!
 
 ## Example web use in a project
 
