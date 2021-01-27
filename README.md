@@ -4,7 +4,7 @@ A UCI compliant Javascript chess engine. Lozza is a traditional mailbox engine w
 
 ## Goals
 
-v2.00 and higher: to escape Lozza's Fruit evaluation roots and become totally unique and possible quirky; which may well mean not as strong as previous versions.
+v2.00 and higher: to escape Lozza's Fruit evaluation roots and become totally unique and possibly quirky; which may well mean not as strong as previous versions.
 
 ## Why Javascript?
 
