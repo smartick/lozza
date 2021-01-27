@@ -2,10 +2,6 @@
 
 A UCI compliant Javascript chess engine. Lozza is a traditional mailbox engine with PVS search. It's easy to embed Lozza into your web project or use her offline in client user interfaces like Arena and Winboard. A sister project also allows Lozza to be played online. There is nothing new in Lozza - it's just an ongoing and fun coding exercise. 
 
-## Goals
-
-v2.00 and higher: to escape Lozza's Fruit evaluation roots and become totally unique and possibly quirky; which may well mean not as strong as previous versions.
-
 ## Why Javascript?
 
 Mostly I was curious if a Javascript engine could compete with more traditional engines in the engine rating lists like CCRL, as at the time there were none listed (yes). There were Javascript engines with their own user interfaces on the internet (like Gary Linscott's Garbochess), but none that used the UCI protocol. The Javascript development cycle is very quick because there is no build process; you can even make changes while it's playing to see what happens. Javascript also makes the engine platform-independent - running online in any browser and offline on any OS that supports node.js (pretty much everything). Not least, Javascript is a lot of fun! One downside is a hit in performance compared with traditionally compiled languages like C etc; but the JIT compiler in Google's V8 Javascript engine (that sits in node.js and the Chrome browser) is quite extraordinary. Another is that there are no native 64 bit integer values (there are 53 usable bits in the native Javascript Number type). Recently-ish however the concept of a BigInt was introduced - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt - which may suffice depending on performance; I have not tried them. Lozza uses Typed-Arrays and 2 32bit values for it's hash - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays.  
