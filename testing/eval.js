@@ -1,5 +1,5 @@
 //
-// redirect into a file for different versions to check eval is not broken.
+// redirect e and q into a file for different versions to check e/q is not broken.
 //
 
 //{{{  lozza globals
@@ -23,6 +23,8 @@ console.log('hello world! wait...');
 var data  = fs.readFileSync('../tuning/epds.epd', 'utf8');
 var lines = data.split('\n');
 var epds  = [];
+
+data = '';  //release.
 
 var num = lines.length;
 
@@ -66,9 +68,6 @@ lozza.newGameInit();
 
 for (var i=0; i < epds.length; i++) {
 
-  if (i % 100000 == 0)
-    process.stdout.write(i+'\r');
-
   var epd = epds[i];
 
   uci.spec.board    = epd.board;
@@ -82,10 +81,10 @@ for (var i=0; i < epds.length; i++) {
 
   lozza.position();
 
-  //var e = board.evaluate(board.turn);
+  var e = board.evaluate(board.turn);
   var q = lozza.qSearch(lozza.rootNode,0,board.turn,-INFINITY,INFINITY);
 
-  console.log(uci.spec.board,q);
+  console.log(uci.spec.board,e,q);
 }
 
 //}}}

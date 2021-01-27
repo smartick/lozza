@@ -18,6 +18,8 @@ var data  = fs.readFileSync('../tuning/epds.epd', 'utf8');
 var lines = data.split('\n');
 var epds  = [];
 
+data = '';  //release.
+
 var num = lines.length;
 
 for (var i=0; i < num; i++) {
@@ -91,6 +93,13 @@ lines    = []; // release
 
 console.log('flipped positions =',epdsf.length);
 
+if (epds.length != epdsf.length) {
+  console.log('num positions differ');
+  process.exit();
+}
+else
+  console.log('files sizes good');
+
 //}}}
 //{{{  compare
 
@@ -124,6 +133,11 @@ for (var i=0; i < epds.length; i++) {
   uci.spec.moves    = [];
   lozza.position();
   var ef = board.evaluate(board.turn);
+
+  if (epd.board == epdf.board && epd.turn == epdf.turn && epd.rights == epdf.rights && epd.ep == epdf.ep) {
+    console.log('oops',epd.board,epdf.board);
+    process.exit();
+  }
 
   if (e != ef) {
     console.log('eval mismatch');
