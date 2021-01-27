@@ -37,7 +37,7 @@ A sister project - https://github.com/op12no2/lozza-ui - has some example user i
 ## Playing Lozza offline in Arena, Winboard, Cutechess etc
 
 Lozza can be used in chess UIs like WinBoard, Arena and CuteChess by using node.js - https://nodejs.org - as the engine executable and lozza.js as a parameter
-to it. Full paths for both are recommended. node.js and Lozza do not need to be in the same folder. If the UI does not support engine parameters, create a batch file (say lozza.bat) containing somehting like:-
+to it. Full paths for both are recommended. node.js and Lozza do not need to be in the same folder. If the UI does not support engine parameters, create a batch file (say lozza.bat) containing something like:-
 
 ```
 "c:\program files\nodejs\node.exe" c:\path\to\lozza.js 
