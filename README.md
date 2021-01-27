@@ -63,12 +63,6 @@ node texeltune.js
 
 lozza.js is folded using {{{ and }}} (emacs convention) and most easily read using an editor with a folding capability.
 
-To enter a javascript chess engine like Lozza into Hans G. Muller's monthly chess tournaments use somehting like:-
-
-```
-winboard -zp -ics -icshost winboard.nl -icshelper timeseal -fcp "node.exe lozza.js" -fd . -autoKibitz -fUCI -keepAlive 4 -firstXBook
-```
-
 ## Acknowledgements
 
-In Lozza 1.xy versions the piece values and PSTs were from Fabian Letouzey's Fruit 2.1. In 2.00 and later versions they have been tuned using Peter Österlund's method ("Texel tuning") into values unique to Lozza. The initial tuning used data was quiet-labeled.epd published by Alexandru Moșoi, the Zurichess author. Later tuning data came from Lozza self-play. Similarly, Lozza's evaluation function was initially a subset of Fruit 2.1, but is gradaully moving towards something unique to Lozza. The search algorithms etc are from the Chess Programming Wiki edited by Gred Isenberg; which has been - and still is invaluable. I would also like to mention Harm Geert Muller who is always generous with his time.
+In Lozza 1.xy versions the piece values and PSTs were from Fabian Letouzey's Fruit 2.1. In 2.00 and later versions they have been tuned using Peter Österlund's method ("Texel tuning") into values unique to Lozza. The initial tuning data was quiet-labeled.epd published by Alexandru Moșoi, the Zurichess author. Later tuning data came from Lozza self-play. Similarly, Lozza's evaluation function was initially a subset of Fruit 2.1, but is gradaully moving towards something unique to Lozza. The search algorithms etc are from the Chess Programming Wiki edited by Gred Isenberg; which has been - and still is invaluable. I would also like to mention Harm Geert Muller who is always generous with his time.
