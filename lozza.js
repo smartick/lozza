@@ -6692,6 +6692,15 @@ onmessage = function(e) {
       
       //}}}
 
+    case 'stop':
+      //{{{  stop
+      
+      lozza.stats.timeOut = 1;
+      
+      break;
+      
+      //}}}
+
     case 'debug':
       //{{{  debug
       
@@ -6817,11 +6826,11 @@ if (lozzaHost == HOST_NODEJS) {
   process.stdin.setEncoding('utf8');
 
   process.stdin.on('readable', function() {
+    process.stdin.resume();
     var chunk = process.stdin.read();
     if (chunk !== null) {
       onmessage({data: chunk});
     }
-    process.stdin.resume();
   });
 
   process.stdin.on('end', function() {
