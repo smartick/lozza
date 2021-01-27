@@ -6817,11 +6817,11 @@ if (lozzaHost == HOST_NODEJS) {
   process.stdin.setEncoding('utf8');
 
   process.stdin.on('readable', function() {
-    process.stdin.resume();
     var chunk = process.stdin.read();
     if (chunk !== null) {
       onmessage({data: chunk});
     }
+    process.stdin.resume();
   });
 
   process.stdin.on('end', function() {
