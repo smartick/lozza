@@ -8,7 +8,7 @@ v2.00 and higher: to escape Lozza's Fruit evaluation roots and become totally un
 
 ## Why Javascript?
 
-Mostly I was curious if a Javascript engine could compete with more traditional engines in the engine rating lists like CCRL, as at the time there were none listed (yes). There were Javascript engines with their own user interfaces on the internet (like Gary Linscott's Garbochess), but none that used the UCI protocol. The Javascript development cycle is very quick because there is no build process; you can even make changes while it's playing to see what happens. Javascript also makes the engine platform-independent - running online in any browser and offline on any OS that supports node.js (pretty much everything). Not least, Javascript is a lot of fun! The only downside is a hit in performance compared with traditionally compiled languages like C etc; but the JIT compiler in Google's V8 Javascript engine (that sits in node.js and the Chrome browser) is quite extraordinary.
+Mostly I was curious if a Javascript engine could compete with more traditional engines in the engine rating lists like CCRL, as at the time there were none listed (yes). There were Javascript engines with their own user interfaces on the internet (like Gary Linscott's Garbochess), but none that used the UCI protocol. The Javascript development cycle is very quick because there is no build process; you can even make changes while it's playing to see what happens. Javascript also makes the engine platform-independent - running online in any browser and offline on any OS that supports node.js (pretty much everything). Not least, Javascript is a lot of fun! One downside is a hit in performance compared with traditionally compiled languages like C etc; but the JIT compiler in Google's V8 Javascript engine (that sits in node.js and the Chrome browser) is quite extraordinary. Another is that there are no native 64 bit integer values. Recently however the concept of BigInts was introduced - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt - which may suffice depending on performance; I have not tried them. Lozza uses 2 32bit values for it's hash.  
 
 ## Example web use in a project
 
@@ -27,8 +27,7 @@ lozza.postMessage('go depth 10'); // 10 ply search
 
 Try this example here https://op12no2.github.io/lozza-ui/ex.htm.
 
-See the LozUCI class for a complete list of commands that Lozza can handle.
-See also here - https://op12no2.github.io/lozza-ui/consolehelp.htm.
+See the LozUCI class for a complete list of commands that Lozza can handle. See also here - https://op12no2.github.io/lozza-ui/consolehelp.htm. You do not have to use a web worker or the UCI interface, but you will not be able to update a web page until Lozza returns - see for example texeltune.js in the tuning folder above, which just includes lozza.js and uses it's function interface directly. While that is a node.js example, the same can be done in web pages.
 
 ## Playing Lozza online
 
@@ -65,4 +64,4 @@ lozza.js is folded using {{{ and }}} (emacs convention) and most easily read usi
 
 ## Acknowledgements
 
-In Lozza 1.xy versions the piece values and PSTs were from Fabian Letouzey's Fruit 2.1. In 2.00 and later versions they have been tuned using Peter Österlund's method ("Texel tuning") into values unique to Lozza. The initial tuning data was quiet-labeled.epd published by Alexandru Moșoi, the Zurichess author. Later tuning data came from Lozza self-play. Similarly, Lozza's evaluation function was initially a subset of Fruit 2.1, but is gradaully moving towards something unique to Lozza. The search algorithms etc are from the Chess Programming Wiki edited by Gred Isenberg; which has been - and still is invaluable. I would also like to mention Harm Geert Muller who is always generous with his time.
+In Lozza 1.xy versions the piece values and PSTs were from Fabian Letouzey's Fruit 2.1. In 2.00 and later versions they have been tuned using Peter Österlund's method ("Texel tuning") into values unique to Lozza. The initial tuning data was quiet-labeled.epd published by Alexandru Moșoi, the Zurichess author. Later tuning data came from Lozza self-play. Similarly, Lozza's evaluation function was initially a subset of Fruit 2.1, but is gradaully moving towards something unique to Lozza. The search algorithms etc are from the Chess Programming Wiki edited by Gerd Isenberg; which has been - and still is invaluable. I would also like to mention Harm Geert Muller who is always generous with his time.
