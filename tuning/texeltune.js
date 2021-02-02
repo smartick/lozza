@@ -1,4 +1,5 @@
-//{{{  // https://github.com/op12no2
+//{{{  //"use strict"
+//"use strict"
 //
 // https://github.com/op12no2
 //
@@ -8,7 +9,9 @@ var BUILD = "2";
 //{{{  history
 /*
 
+2.00 Remove support for jsUCI.
 2.00 Rearrange eval params so they can be tuned.
+2.00 Tune piece values and PSTs.
 2.00 Simplify phase and eval calc.
 
 1.18 Don't pseudo-move king adjacent to king.
@@ -197,21 +200,22 @@ var BUILD = "2";
 //{{{  detect host
 
 var HOST_WEB     = 0;
-var HOST_NODEJS  = 1;  // and jxCore.
-var HOST_JSUCI   = 2;
-var HOSTS        = ['Web','Node','jsUCI'];
-var lozzaHost    = HOST_WEB;
+var HOST_NODEJS  = 1;
+var HOST_CONSOLE = 2;
+var HOSTS        = ['Web','Node','Console'];
+
+var lozzaHost = HOST_WEB;
 
 if ((typeof process) != 'undefined')
 
-  lozzaHost = HOST_NODEJS;  // or jxCore.
+  lozzaHost = HOST_NODEJS;
 
-else if ((typeof lastMessage) != 'undefined')
+else if ((typeof WorkerGlobalScope) == 'undefined')
 
-  lozzaHost = HOST_JSUCI;
+  lozzaHost = HOST_CONSOLE;
 
 //}}}
-//{{{  seed
+//{{{  prng
 /**
 
 seedrandom.js
@@ -646,272 +650,8 @@ function pst2Black (from,to) {
 
 //}}}
 
-//{{{  eval indexes
+//{{{  constants
 
-var iMOB_NS               = 0;
-var iMOB_NE               = 1;
-var iMOB_BS               = 2;
-var iMOB_BE               = 3;
-var iMOB_RS               = 4;
-var iMOB_RE               = 5;
-var iMOB_QS               = 6;
-var iMOB_QE               = 7;
-var iATT_N                = 8;
-var iATT_B                = 9;
-var iATT_R                = 10;
-var iATT_Q                = 11;
-var iATT_M                = 12;
-var iPAWN_DOUBLED_S       = 13;
-var iPAWN_DOUBLED_E       = 14;
-var iPAWN_ISOLATED_S      = 15;
-var iPAWN_ISOLATED_E      = 16;
-var iPAWN_BACKWARD_S      = 17;
-var iPAWN_BACKWARD_E      = 18;
-var iPAWN_PASSED_OFFSET_S = 19;
-var iPAWN_PASSED_OFFSET_E = 20;
-var iPAWN_PASSED_MULT_S   = 21;
-var iPAWN_PASSED_MULT_E   = 22;
-var iTWOBISHOPS           = 23;
-var iROOK7TH_S            = 24;
-var iROOK7TH_E            = 25;
-var iROOKOPEN_S           = 26;
-var iROOKOPEN_E           = 27;
-var iQUEEN7TH_S           = 28;
-var iQUEEN7TH_E           = 29;
-var iTRAPPED              = 30;
-var iKING_PENALTY         = 31;
-var iPAWN_OFFSET_S        = 32;
-var iPAWN_OFFSET_E        = 33;
-var iPAWN_MULT_S          = 34;
-var iPAWN_MULT_E          = 35;
-var iPAWN_PASS_FREE       = 36;
-var iPAWN_PASS_UNSTOP     = 37;
-var iPAWN_PASS_KING1      = 38;
-var iPAWN_PASS_KING2      = 39;
-var iMOBOFF_NS            = 40;
-var iMOBOFF_NE            = 41;
-var iMOBOFF_BS            = 42;
-var iMOBOFF_BE            = 43;
-var iMOBOFF_RS            = 44;
-var iMOBOFF_RE            = 45;
-
-//}}}
-//{{{  untuned values
-
-var VALUE_VECTOR = [0,100,325,325,500,1000,10000];
-
-var EV = [];
-
-EV[iMOB_NS]               = 4;
-EV[iMOB_NE]               = 4;
-EV[iMOB_BS]               = 5;
-EV[iMOB_BE]               = 5;
-EV[iMOB_RS]               = 2;
-EV[iMOB_RE]               = 4;
-EV[iMOB_QS]               = 1;
-EV[iMOB_QE]               = 2;
-EV[iATT_N]                = 1;
-EV[iATT_B]                = 1;
-EV[iATT_R]                = 3;
-EV[iATT_Q]                = 4;
-EV[iATT_M]                = 20;
-EV[iPAWN_DOUBLED_S]       = 10;
-EV[iPAWN_DOUBLED_E]       = 20;
-EV[iPAWN_ISOLATED_S]      = 10;
-EV[iPAWN_ISOLATED_E]      = 20;
-EV[iPAWN_BACKWARD_S]      = 8;
-EV[iPAWN_BACKWARD_E]      = 10;
-EV[iPAWN_PASSED_OFFSET_S] = 5;
-EV[iPAWN_PASSED_OFFSET_E] = 10;
-EV[iPAWN_PASSED_MULT_S]   = 50;
-EV[iPAWN_PASSED_MULT_E]   = 100;
-EV[iTWOBISHOPS]           = 50;
-EV[iROOK7TH_S]            = 20;
-EV[iROOK7TH_E]            = 40;
-EV[iROOKOPEN_S]           = 10;
-EV[iROOKOPEN_E]           = 10;
-EV[iQUEEN7TH_S]           = 10;
-EV[iQUEEN7TH_E]           = 20;
-EV[iTRAPPED]              = 100;
-EV[iKING_PENALTY]         = 11;
-EV[iPAWN_OFFSET_S]        = 10;
-EV[iPAWN_OFFSET_E]        = 20;
-EV[iPAWN_MULT_S]          = 60;
-EV[iPAWN_MULT_E]          = 120;
-EV[iPAWN_PASS_FREE]       = 60;
-EV[iPAWN_PASS_UNSTOP]     = 800;
-EV[iPAWN_PASS_KING1]      = 20;
-EV[iPAWN_PASS_KING2]      = 5;
-EV[iMOBOFF_NS]            = 0;
-EV[iMOBOFF_NE]            = 0;
-EV[iMOBOFF_BS]            = 0;
-EV[iMOBOFF_BE]            = 0;
-EV[iMOBOFF_RS]            = 0;
-EV[iMOBOFF_RE]            = 0;
-
-var WPAWN_PSTS =      [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0, -15,  -5,   0,   5,   5,   0,  -5, -15,   0,   0,
-                       0,   0, -15,  -5,   0,   5,   5,   0,  -5, -15,   0,   0,
-                       0,   0, -15,  -5,   0,   5,   5,   0,  -5, -15,   0,   0,
-                       0,   0, -15,  -5,   0,  15,  15,   0,  -5, -15,   0,   0,
-                       0,   0, -15,  -5,   0,  25,  25,   0,  -5, -15,   0,   0,
-                       0,   0, -15,  -5,   0,  15,  15,   0,  -5, -15,   0,   0,
-                       0,   0, -15,  -5,   0,   5,   5,   0,  -5, -15,   0,   0,
-                       0,   0, -15,  -5,   0,   5,   5,   0,  -5, -15,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0];
-
-var WPAWN_PSTE =      [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0];
-
-var WKNIGHT_PSTS =    [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,-135, -25, -15, -10, -10, -15, -25,-135,   0,   0,
-                       0,   0, -20, -10,   0,   5,   5,   0, -10, -20,   0,   0,
-                       0,   0,  -5,   5,  15,  20,  20,  15,   5,  -5,   0,   0,
-                       0,   0,  -5,   5,  15,  20,  20,  15,   5,  -5,   0,   0,
-                       0,   0, -10,   0,  10,  15,  15,  10,   0, -10,   0,   0,
-                       0,   0, -20, -10,   0,   5,   5,   0, -10, -20,   0,   0,
-                       0,   0, -35, -25, -15, -10, -10, -15, -25, -35,   0,   0,
-                       0,   0, -50, -40, -30, -25, -25, -30, -40, -50,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0];
-
-var WKNIGHT_PSTE =    [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0, -40, -30, -20, -15, -15, -20, -30, -40,   0,   0,
-                       0,   0, -30, -20, -10,  -5,  -5, -10, -20, -30,   0,   0,
-                       0,   0, -20, -10,   0,   5,   5,   0, -10, -20,   0,   0,
-                       0,   0, -15,  -5,   5,  10,  10,   5,  -5, -15,   0,   0,
-                       0,   0, -15,  -5,   5,  10,  10,   5,  -5, -15,   0,   0,
-                       0,   0, -20, -10,   0,   5,   5,   0, -10, -20,   0,   0,
-                       0,   0, -30, -20, -10,  -5,  -5, -10, -20, -30,   0,   0,
-                       0,   0, -40, -30, -20, -15, -15, -20, -30, -40,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0];
-
-var WBISHOP_PSTS =    [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,  -8,  -8,  -6,  -4,  -4,  -6,  -8,  -8,   0,   0,
-                       0,   0,  -8,   0,  -2,   0,   0,  -2,   0,  -8,   0,   0,
-                       0,   0,  -6,  -2,   4,   2,   2,   4,  -2,  -6,   0,   0,
-                       0,   0,  -4,   0,   2,   8,   8,   2,   0,  -4,   0,   0,
-                       0,   0,  -4,   0,   2,   8,   8,   2,   0,  -4,   0,   0,
-                       0,   0,  -6,  -2,   4,   2,   2,   4,  -2,  -6,   0,   0,
-                       0,   0,  -8,   0,  -2,   0,   0,  -2,   0,  -8,   0,   0,
-                       0,   0, -18, -18, -16, -14, -14, -16, -18, -18,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0];
-
-var WBISHOP_PSTE =    [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0, -18, -12,  -9,  -6,  -6,  -9, -12, -18,   0,   0,
-                       0,   0, -12,  -6,  -3,   0,   0,  -3,  -6, -12,   0,   0,
-                       0,   0,  -9,  -3,   0,   3,   3,   0,  -3,  -9,   0,   0,
-                       0,   0,  -6,   0,   3,   6,   6,   3,   0,  -6,   0,   0,
-                       0,   0,  -6,   0,   3,   6,   6,   3,   0,  -6,   0,   0,
-                       0,   0,  -9,  -3,   0,   3,   3,   0,  -3,  -9,   0,   0,
-                       0,   0, -12,  -6,  -3,   0,   0,  -3,  -6, -12,   0,   0,
-                       0,   0, -18, -12,  -9,  -6,  -6,  -9, -12, -18,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0];
-
-var WROOK_PSTS =      [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,  -6,  -3,   0,   3,   3,   0,  -3,  -6,   0,   0,
-                       0,   0,  -6,  -3,   0,   3,   3,   0,  -3,  -6,   0,   0,
-                       0,   0,  -6,  -3,   0,   3,   3,   0,  -3,  -6,   0,   0,
-                       0,   0,  -5,  -3,   0,   3,   3,   0,  -3,  -6,   0,   0,
-                       0,   0,  -5,  -3,   0,   3,   3,   0,  -3,  -6,   0,   0,
-                       0,   0,  -5,  -3,   0,   3,   3,   0,  -3,  -6,   0,   0,
-                       0,   0,  -5,  -3,   0,   3,   3,   0,  -3,  -6,   0,   0,
-                       0,   0,  -6,  -3,   0,   3,   3,   0,  -3,  -6,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0];
-
-var WROOK_PSTE =      [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0];
-
-var WQUEEN_PSTS =     [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,  -5,  -5,  -5,  -5,  -5,  -5,  -5,  -5,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0];
-
-var WQUEEN_PSTE =     [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0, -24, -16, -12,  -8,  -8, -12, -16, -24,   0,   0,
-                       0,   0, -16,  -8,  -4,   0,   0,  -4,  -8, -16,   0,   0,
-                       0,   0, -12,  -4,   0,   4,   4,   0,  -4, -12,   0,   0,
-                       0,   0,  -8,   0,   4,   8,   8,   4,   0,  -8,   0,   0,
-                       0,   0,  -8,   0,   4,   8,   8,   4,   0,  -8,   0,   0,
-                       0,   0, -12,  -4,   0,   4,   4,   0,  -4, -12,   0,   0,
-                       0,   0, -16,  -8,  -4,   0,   0,  -4,  -8, -16,   0,   0,
-                       0,   0, -24, -16, -12,  -8,  -8, -12, -16, -24,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0];
-
-var WKING_PSTS =      [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0, -40, -30, -50, -70, -70, -50, -30, -40,   0,   0,
-                       0,   0, -30, -20, -40, -60, -60, -40, -20, -30,   0,   0,
-                       0,   0, -20, -10, -30, -50, -50, -30, -10, -20,   0,   0,
-                       0,   0, -10,   0, -20, -40, -40, -20,   0, -10,   0,   0,
-                       0,   0,   0,  10, -10, -30, -30, -10,  10,   0,   0,   0,
-                       0,   0,  10,  20,   0, -20, -20,   0,  20,  10,   0,   0,
-                       0,   0,  30,  40,  20,   0,   0,  20,  40,  30,   0,   0,
-                       0,   0,  40,  50,  30,  10,  10,  30,  50,  40,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0];
-
-var WKING_PSTE =      [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0, -72, -48, -36, -24, -24, -36, -48, -72,   0,   0,
-                       0,   0, -48, -24, -12,   0,   0, -12, -24, -48,   0,   0,
-                       0,   0, -36, -12,   0,  12,  12,   0, -12, -36,   0,   0,
-                       0,   0, -24,   0,  12,  24,  24,  12,   0, -24,   0,   0,
-                       0,   0, -24,   0,  12,  24,  24,  12,   0, -24,   0,   0,
-                       0,   0, -36, -12,   0,  12,  12,   0, -12, -36,   0,   0,
-                       0,   0, -48, -24, -12,   0,   0, -12, -24, -48,   0,   0,
-                       0,   0, -72, -48, -36, -24, -24, -36, -48, -72,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0];
-
-//}}}
-//{{{  tuned values
-
-//}}}
-//{{{  globals
-
-var VALUE_PAWN      = VALUE_VECTOR[1];
 var MAX_PLY         = 100;                // limited by lozza.board.ttDepth bits.
 var MAX_MOVES       = 250;
 var INFINITY        = 30000;              // limited by lozza.board.ttScore bits.
@@ -939,10 +679,41 @@ var M_BLACK = -1;                 // +1/-1 colour multiplier, compute with: (-tu
 var PIECE_MASK = 0x7;
 var COLOR_MASK = 0x8;
 
+const TTSIZE = 1 << 24;
+const TTMASK = TTSIZE - 1;
+
+const PTTSIZE = 1 << 14;
+const PTTMASK = PTTSIZE - 1;
+
 var TT_EMPTY  = 0;
 var TT_EXACT  = 1;
 var TT_BETA   = 2;
 var TT_ALPHA  = 3;
+
+var PTT_EXACT = 1;
+var PTT_WHOME = 2;
+var PTT_BHOME = 4;
+var PTT_WPASS = 8;
+var PTT_BPASS = 16;
+
+//                                 Killer?
+// max            9007199254740992
+//
+
+var BASE_HASH       =  10000012000;  // no
+var BASE_PROMOTES   =  10000011000;  // no
+var BASE_GOODTAKES  =  10000010000;  // no
+var BASE_EVENTAKES  =  10000009000;  // no
+var BASE_EPTAKES    =  10000008000;  // no
+var BASE_MATEKILLER =  10000007000;
+var BASE_MYKILLERS  =  10000006000;
+var BASE_GPKILLERS  =  10000005000;
+var BASE_CASTLING   =  10000004000;  // yes
+var BASE_BADTAKES   =  10000003000;  // yes
+var BASE_HISSLIDE   =         2000;  // yes
+var BASE_PSTSLIDE   =         1000;  // yes
+
+var BASE_LMR        = BASE_BADTAKES;
 
 var MOVE_TO_BITS      = 0;
 var MOVE_FR_BITS      = 8;
@@ -995,6 +766,7 @@ var B_KING   = KING   | BLACK;
 //               0  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15
 //               E  W  W  W  W  W  W  X  -  B  B  B  B  B  B  -
 //               E  P  N  B  R  Q  K  X  -  P  N  B  R  Q  K  -
+//
 
 var IS_O      = [0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0];
 var IS_E      = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -1033,101 +805,30 @@ var VPHASE = [0,PPHASE,NPHASE,BPHASE,RPHASE,QPHASE,0];
 var TPHASE = PPHASE*16 + NPHASE*4 + BPHASE*4 + RPHASE*4 + QPHASE*2;
 var EPHASE = 16;  //  Don't do Q futility after this.
 
-var A1 = 110;
-var B1 = 111;
-var C1 = 112;
-var D1 = 113;
-var E1 = 114;
-var F1 = 115;
-var G1 = 116;
-var H1 = 117;
+var W_PROMOTE_SQ = [0,26, 27, 28, 29, 30, 31, 32, 33];
+var B_PROMOTE_SQ = [0,110,111,112,113,114,115,116,117];
 
-var A8 = 26;
-var B8 = 27;
-var C8 = 28;
-var D8 = 29;
-var E8 = 30;
-var F8 = 31;
-var G8 = 32;
-var H8 = 33;
+var A1 = 110, B1 = 111, C1 = 112, D1 = 113, E1 = 114, F1 = 115, G1 = 116, H1 = 117;
+var A8 = 26,  B8 = 27,  C8 = 28,  D8 = 29,  E8 = 30,  F8 = 31,  G8 = 32,  H8 = 33;
 
-var SQA1 = 110;
-var SQB1 = 111;
-var SQC1 = 112;
-var SQD1 = 113;
-var SQE1 = 114;
-var SQF1 = 115;
-var SQG1 = 116;
-var SQH1 = 117;
-
-var SQA2 = 98;
-var SQB2 = 99;
-var SQC2 = 100;
-var SQD2 = 101;
-var SQE2 = 102;
-var SQF2 = 103;
-var SQG2 = 104;
-var SQH2 = 105;
-
-var SQA3 = 86;
-var SQB3 = 87;
-var SQC3 = 88;
-var SQD3 = 89;
-var SQE3 = 90;
-var SQF3 = 91;
-var SQG3 = 92;
-var SQH3 = 93;
-
-var SQA4 = 74;
-var SQB4 = 75;
-var SQC4 = 76;
-var SQD4 = 77;
-var SQE4 = 78;
-var SQF4 = 79;
-var SQG4 = 80;
-var SQH4 = 81;
-
-var SQA5 = 62;
-var SQB5 = 63;
-var SQC5 = 64;
-var SQD5 = 65;
-var SQE5 = 66;
-var SQF5 = 67;
-var SQG5 = 68;
-var SQH5 = 69;
-
-var SQA6 = 50;
-var SQB6 = 51;
-var SQC6 = 52;
-var SQD6 = 53;
-var SQE6 = 54;
-var SQF6 = 55;
-var SQG6 = 56;
-var SQH6 = 57;
-
-var SQA7 = 38;
-var SQB7 = 39;
-var SQC7 = 40;
-var SQD7 = 41;
-var SQE7 = 42;
-var SQF7 = 43;
-var SQG7 = 44;
-var SQH7 = 45;
-
-var SQA8 = 26;
-var SQB8 = 27;
-var SQC8 = 28;
-var SQD8 = 29;
-var SQE8 = 30;
-var SQF8 = 31;
-var SQG8 = 32;
-var SQH8 = 33;
-
+var SQA1 = 110, SQB1 = 111, SQC1 = 112, SQD1 = 113, SQE1 = 114, SQF1 = 115, SQG1 = 116, SQH1 = 117;
+var SQA2 = 98,  SQB2 = 99,  SQC2 = 100, SQD2 = 101, SQE2 = 102, SQF2 = 103, SQG2 = 104, SQH2 = 105;
+var SQA3 = 86,  SQB3 = 87,  SQC3 = 88,  SQD3 = 89,  SQE3 = 90,  SQF3 = 91,  SQG3 = 92,  SQH3 = 93;
+var SQA4 = 74,  SQB4 = 75,  SQC4 = 76,  SQD4 = 77,  SQE4 = 78,  SQF4 = 79,  SQG4 = 80,  SQH4 = 81;
+var SQA5 = 62,  SQB5 = 63,  SQC5 = 64,  SQD5 = 65,  SQE5 = 66,  SQF5 = 67,  SQG5 = 68,  SQH5 = 69;
+var SQA6 = 50,  SQB6 = 51,  SQC6 = 52,  SQD6 = 53,  SQE6 = 54,  SQF6 = 55,  SQG6 = 56,  SQH6 = 57;
+var SQA7 = 38,  SQB7 = 39,  SQC7 = 40,  SQD7 = 41,  SQE7 = 42,  SQF7 = 43,  SQG7 = 44,  SQH7 = 45;
+var SQA8 = 26,  SQB8 = 27,  SQC8 = 28,  SQD8 = 29,  SQE8 = 30,  SQF8 = 31,  SQG8 = 32,  SQH8 = 33;
 
 var MOVE_E1G1 = MOVE_CASTLE_MASK | (W_KING << MOVE_FROBJ_BITS) | (E1 << MOVE_FR_BITS) | G1;
 var MOVE_E1C1 = MOVE_CASTLE_MASK | (W_KING << MOVE_FROBJ_BITS) | (E1 << MOVE_FR_BITS) | C1;
 var MOVE_E8G8 = MOVE_CASTLE_MASK | (B_KING << MOVE_FROBJ_BITS) | (E8 << MOVE_FR_BITS) | G8;
 var MOVE_E8C8 = MOVE_CASTLE_MASK | (B_KING << MOVE_FROBJ_BITS) | (E8 << MOVE_FR_BITS) | C8;
+
+var QPRO = (QUEEN-2)  << MOVE_PROMAS_BITS | MOVE_PROMOTE_MASK;
+var RPRO = (ROOK-2)   << MOVE_PROMAS_BITS | MOVE_PROMOTE_MASK;
+var BPRO = (BISHOP-2) << MOVE_PROMAS_BITS | MOVE_PROMOTE_MASK;
+var NPRO = (KNIGHT-2) << MOVE_PROMAS_BITS | MOVE_PROMOTE_MASK;
 
 var WHITE_RIGHTS_KING  = 0x00000001;
 var WHITE_RIGHTS_QUEEN = 0x00000002;
@@ -1164,57 +865,9 @@ var QUEEN_OFFSETS   = [11,-11,13,-13,1,-1,12,-12];
 var KING_OFFSETS    = [11,-11,13,-13,1,-1,12,-12];
 
 var OFFSETS = [0,0,KNIGHT_OFFSETS,BISHOP_OFFSETS,ROOK_OFFSETS,QUEEN_OFFSETS,KING_OFFSETS];
-var LIMITS  = [0,1,1,8,8,8,1];
+var LIMITS  = [0,1,1,             8,             8,           8,            1];
 
 var RANK_VECTOR  = [0,1,2,2,4,5,6];  // for move sorting.
-
-var NULL_PST =        [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0];
-
-var WOUTPOST =        [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   4,   5,   5,   4,   0,   0,   0,   0,
-                       0,   0,   0,   2,   5,  10,  10,   5,   2,   0,   0,   0,
-                       0,   0,   0,   2,   5,  10,  10,   5,   2,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0];
-
-var BPAWN_PSTS   = Array(144);
-var BPAWN_PSTE   = Array(144);
-var BKNIGHT_PSTS = Array(144);
-var BKNIGHT_PSTE = Array(144);
-var BBISHOP_PSTS = Array(144);
-var BBISHOP_PSTE = Array(144);
-var BROOK_PSTS   = Array(144);
-var BROOK_PSTE   = Array(144);
-var BQUEEN_PSTS  = Array(144);
-var BQUEEN_PSTE  = Array(144);
-var BKING_PSTS   = Array(144);
-var BKING_PSTE   = Array(144);
-var BOUTPOST     = Array(144);
-
-var WS_PST = [NULL_PST, WPAWN_PSTS,  WKNIGHT_PSTS, WBISHOP_PSTS, WROOK_PSTS, WQUEEN_PSTS, WKING_PSTS]; // opening/middle eval.
-var WE_PST = [NULL_PST, WPAWN_PSTE,  WKNIGHT_PSTE, WBISHOP_PSTE, WROOK_PSTE, WQUEEN_PSTE, WKING_PSTE]; // end eval.
-var WM_PST = [NULL_PST, WPAWN_PSTE,  WKNIGHT_PSTE, WBISHOP_PSTE, WROOK_PSTE, WQUEEN_PSTE, WKING_PSTE]; // move eval.
-
-var BS_PST = [NULL_PST, BPAWN_PSTS,  BKNIGHT_PSTS, BBISHOP_PSTS, BROOK_PSTS, BQUEEN_PSTS, BKING_PSTS];
-var BE_PST = [NULL_PST, BPAWN_PSTE,  BKNIGHT_PSTE, BBISHOP_PSTE, BROOK_PSTE, BQUEEN_PSTE, BKING_PSTE];
-var BM_PST = [NULL_PST, BPAWN_PSTE,  BKNIGHT_PSTE, BBISHOP_PSTE, BROOK_PSTE, BQUEEN_PSTE, BKING_PSTE];
 
 var  B88 =  [26, 27, 28, 29, 30, 31, 32, 33,
              38, 39, 40, 41, 42, 43, 44, 45,
@@ -1306,32 +959,6 @@ var  BSQUARE=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-var DIAG1 =  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-              0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 0, 0,
-              0, 0, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0,
-              0, 0, 3, 4, 5, 6, 7, 8, 9,10, 0, 0,
-              0, 0, 4, 5, 6, 7, 8, 9,10,11, 0, 0,
-              0, 0, 5, 6, 7, 8, 9,10,11,12, 0, 0,
-              0, 0, 6, 7, 8, 9,10,11,12,13, 0, 0,
-              0, 0, 7, 8, 9,10,11,12,23,14, 0, 0,
-              0, 0, 8, 9,10,11,12,23,14,15, 0, 0,
-              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-
-var DIAG2 =  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-              0, 0, 8, 7, 6, 5, 4, 3, 2, 1, 0, 0,
-              0, 0, 9, 8, 7, 6, 5, 4, 3, 2, 0, 0,
-              0, 0, 10,9, 8, 7, 6, 5, 4, 3, 0, 0,
-              0, 0, 11,10,9, 8, 7, 6, 5, 4, 0, 0,
-              0, 0, 12,11,10,9, 8, 7, 6, 5, 0, 0,
-              0, 0, 13,12,11,10,9, 8, 7, 6, 0, 0,
-              0, 0, 14,13,12,11,10,9, 8, 7, 0, 0,
-              0, 0, 15,14,13,12,11,10,9, 8, 0, 0,
-              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-
 var MAP = [];
 
 MAP['p'] = B_PAWN;
@@ -1368,7 +995,80 @@ var BKZONES = Array(144);
 var DIST    = Array(144);
 
 //}}}
-//{{{  fill black psts
+
+//{{{  piece values and psts
+
+var VALUE_PAWN = 100;
+
+var VALUE_VECTOR = [0,VALUE_PAWN,338,352,547,1094,10000];
+
+var WPAWN_PSTS = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-15,-5,0,5,5,0,-5,-15,0,0,0,0,19,64,31,46,45,15,3,-30,0,0,0,0,-2,8,23,-1,37,45,16,-28,0,0,0,0,-14,10,2,14,17,3,3,-34,0,0,0,0,-29,-22,2,10,11,1,-22,-36,0,0,0,0,-23,-21,0,-9,-4,-1,5,-21,0,0,0,0,-36,-15,-25,-24,-41,3,3,-33,0,0,0,0,-15,-5,0,5,5,0,-5,-15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var WKNIGHT_PSTS = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-150,-72,-31,-38,24,-99,-46,-106,0,0,0,0,-59,-28,31,32,-12,37,3,-38,0,0,0,0,-40,52,29,53,93,74,61,22,0,0,0,0,-8,19,21,42,28,72,25,32,0,0,0,0,-9,16,18,11,30,20,26,-5,0,0,0,0,-18,-5,11,28,43,18,29,-14,0,0,0,0,-18,-40,-3,3,9,20,6,2,0,0,0,0,-106,-15,-37,-23,8,-8,-13,-17,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var WBISHOP_PSTS = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-40,-2,-77,-49,-37,-55,12,-5,0,0,0,0,-27,24,-20,-32,14,-8,103,-76,0,0,0,0,-27,26,13,15,2,43,27,-8,0,0,0,0,-2,3,11,36,24,24,3,-6,0,0,0,0,-3,16,12,29,32,4,9,7,0,0,0,0,7,21,22,24,29,36,26,15,0,0,0,0,15,26,22,8,16,29,49,10,0,0,0,0,-26,10,6,0,12,8,-20,-9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var WROOK_PSTS = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,17,22,11,26,25,10,10,19,0,0,0,0,-11,7,16,24,26,25,-15,-1,0,0,0,0,7,10,15,15,9,19,30,3,0,0,0,0,-18,-14,8,17,11,20,-7,-30,0,0,0,0,-28,-23,-9,1,7,-7,7,-19,0,0,0,0,-37,-17,-3,-4,11,1,1,-23,0,0,0,0,-37,-8,-6,4,7,12,-5,-56,0,0,0,0,-6,-4,10,16,16,9,-23,-4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var WQUEEN_PSTS = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-24,2,15,9,46,29,35,33,0,0,0,0,-28,-37,-6,20,-14,18,17,29,0,0,0,0,-11,-12,-5,-1,14,51,30,41,0,0,0,0,-24,-23,-17,-21,2,5,5,-10,0,0,0,0,-5,-21,-6,-6,-1,-3,3,-1,0,0,0,0,-18,13,1,7,12,7,17,11,0,0,0,0,-20,9,22,13,20,28,7,22,0,0,0,0,14,-7,5,19,-4,-2,-17,-38,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var WKING_PSTS = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-71,17,3,-31,-82,-47,1,-18,0,0,0,0,14,14,-19,-20,-33,-4,0,-28,0,0,0,0,22,21,9,-52,-25,12,46,-1,0,0,0,0,-4,12,-7,-49,-41,-30,6,-42,0,0,0,0,-26,22,-26,-49,-44,-36,-14,-42,0,0,0,0,16,27,-4,-23,-21,-8,23,-6,0,0,0,0,30,62,24,-22,-8,19,52,42,0,0,0,0,-2,57,41,-27,42,-9,52,28,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var WPAWN_PSTE = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,23,17,5,-10,6,-7,25,39,0,0,0,0,27,21,5,-16,-24,-7,12,23,0,0,0,0,8,-7,-14,-27,-24,-12,-6,4,0,0,0,0,4,-5,-17,-22,-22,-16,-12,-5,0,0,0,0,-9,-11,-19,-14,-11,-11,-23,-15,0,0,0,0,1,-14,0,-7,12,-5,-18,-14,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var WKNIGHT_PSTE = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-44,-53,-24,-40,-35,-46,-72,-81,0,0,0,0,-35,-17,-34,-11,-20,-40,-37,-57,0,0,0,0,-33,-31,-9,-11,-40,-26,-35,-54,0,0,0,0,-20,-7,6,4,7,-10,-2,-28,0,0,0,0,-18,-20,0,10,-1,2,-3,-22,0,0,0,0,-31,-13,-17,-6,-12,-16,-32,-23,0,0,0,0,-45,-26,-18,-13,-14,-32,-31,-57,0,0,0,0,-23,-49,-29,-16,-27,-27,-46,-78,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var WBISHOP_PSTE = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-31,-43,-29,-26,-24,-25,-33,-48,0,0,0,0,-15,-32,-17,-34,-29,-21,-28,-19,0,0,0,0,-9,-28,-27,-32,-31,-34,-25,-11,0,0,0,0,-24,-17,-21,-24,-24,-25,-26,-17,0,0,0,0,-26,-27,-18,-17,-34,-22,-31,-26,0,0,0,0,-26,-23,-18,-24,-20,-31,-29,-32,0,0,0,0,-30,-35,-32,-23,-21,-33,-32,-48,0,0,0,0,-32,-25,-26,-22,-24,-24,-25,-28,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var WROOK_PSTE = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,33,29,30,25,26,35,33,32,0,0,0,0,17,8,4,-1,-8,8,19,19,0,0,0,0,29,31,24,23,18,24,24,23,0,0,0,0,33,28,31,16,19,26,23,37,0,0,0,0,31,32,28,16,12,18,11,20,0,0,0,0,26,23,9,11,3,9,10,9,0,0,0,0,24,12,15,13,6,7,6,23,0,0,0,0,13,19,13,8,7,14,17,-9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var WQUEEN_PSTE = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-11,21,29,28,35,25,14,24,0,0,0,0,-32,0,18,26,45,17,6,10,0,0,0,0,-11,15,19,62,54,45,35,19,0,0,0,0,23,27,34,53,58,39,53,36,0,0,0,0,-5,35,29,53,35,40,38,30,0,0,0,0,5,-22,24,9,6,24,25,17,0,0,0,0,-17,-24,-18,-8,-8,-17,-29,-32,0,0,0,0,-30,-24,-13,-31,9,-30,-16,-42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var WKING_PSTE = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-125,-51,-36,-42,-17,12,-13,-37,0,0,0,0,-21,2,10,14,18,35,12,-2,0,0,0,0,-4,11,11,13,13,45,36,-3,0,0,0,0,-22,7,14,22,20,25,17,-12,0,0,0,0,-37,-20,9,15,17,11,-5,-27,0,0,0,0,-43,-25,-5,5,6,0,-14,-31,0,0,0,0,-53,-39,-17,-8,-5,-15,-29,-46,0,0,0,0,-87,-66,-48,-32,-55,-32,-54,-76,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+// bestErr=0.056359418804630225
+// last update Mon Feb 01 2021 21:21:39 GMT+0000 (Greenwich Mean Time)
+
+
+var WOUTPOST =        [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   4,   5,   5,   4,   0,   0,   0,   0,
+                       0,   0,   0,   2,   5,  10,  10,   5,   2,   0,   0,   0,
+                       0,   0,   0,   2,   5,  10,  10,   5,   2,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0];
+
+var NULL_PST =        [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0];
+
+var BPAWN_PSTS   = Array(144);
+var BPAWN_PSTE   = Array(144);
+var BKNIGHT_PSTS = Array(144);
+var BKNIGHT_PSTE = Array(144);
+var BBISHOP_PSTS = Array(144);
+var BBISHOP_PSTE = Array(144);
+var BROOK_PSTS   = Array(144);
+var BROOK_PSTE   = Array(144);
+var BQUEEN_PSTS  = Array(144);
+var BQUEEN_PSTE  = Array(144);
+var BKING_PSTS   = Array(144);
+var BKING_PSTE   = Array(144);
+var BOUTPOST     = Array(144);
 
 pst2Black(WPAWN_PSTS,   BPAWN_PSTS);
 pst2Black(WPAWN_PSTE,   BPAWN_PSTE);
@@ -1389,6 +1089,207 @@ pst2Black(WKING_PSTS,   BKING_PSTS);
 pst2Black(WKING_PSTE,   BKING_PSTE);
 
 pst2Black(WOUTPOST,     BOUTPOST);
+
+var WE_PST = [NULL_PST, WPAWN_PSTE,  WKNIGHT_PSTE, WBISHOP_PSTE, WROOK_PSTE, WQUEEN_PSTE, WKING_PSTE]; // end eval.
+var WS_PST = [NULL_PST, WPAWN_PSTS,  WKNIGHT_PSTS, WBISHOP_PSTS, WROOK_PSTS, WQUEEN_PSTS, WKING_PSTS]; // opening/middle eval.
+
+var BS_PST = [NULL_PST, BPAWN_PSTS,  BKNIGHT_PSTS, BBISHOP_PSTS, BROOK_PSTS, BQUEEN_PSTS, BKING_PSTS];
+var BE_PST = [NULL_PST, BPAWN_PSTE,  BKNIGHT_PSTE, BBISHOP_PSTE, BROOK_PSTE, BQUEEN_PSTE, BKING_PSTE];
+
+var WM_PST = [NULL_PST, WPAWN_PSTE,  WKNIGHT_PSTE, WBISHOP_PSTE, WROOK_PSTE, WQUEEN_PSTE, WKING_PSTE]; // move eval.
+var BM_PST = [NULL_PST, BPAWN_PSTE,  BKNIGHT_PSTE, BBISHOP_PSTE, BROOK_PSTE, BQUEEN_PSTE, BKING_PSTE];
+
+//}}}
+//{{{  ev vector
+
+//{{{  ev indexes
+
+var iMOB_NS               = 0;
+var iMOB_NE               = 1;
+var iMOB_BS               = 2;
+var iMOB_BE               = 3;
+var iMOB_RS               = 4;
+var iMOB_RE               = 5;
+var iMOB_QS               = 6;
+var iMOB_QE               = 7;
+var iATT_N                = 8;
+var iATT_B                = 9;
+var iATT_R                = 10;
+var iATT_Q                = 11;
+var iATT_M                = 12;
+var iPAWN_DOUBLED_S       = 13;
+var iPAWN_DOUBLED_E       = 14;
+var iPAWN_ISOLATED_S      = 15;
+var iPAWN_ISOLATED_E      = 16;
+var iPAWN_BACKWARD_S      = 17;
+var iPAWN_BACKWARD_E      = 18;
+var iPAWN_PASSED_OFFSET_S = 19;
+var iPAWN_PASSED_OFFSET_E = 20;
+var iPAWN_PASSED_MULT_S   = 21;
+var iPAWN_PASSED_MULT_E   = 22;
+var iTWOBISHOPS_S         = 23;
+var iROOK7TH_S            = 24;
+var iROOK7TH_E            = 25;
+var iROOKOPEN_S           = 26;
+var iROOKOPEN_E           = 27;
+var iQUEEN7TH_S           = 28;
+var iQUEEN7TH_E           = 29;
+var iTRAPPED              = 30;
+var iKING_PENALTY         = 31;
+var iPAWN_OFFSET_S        = 32;
+var iPAWN_OFFSET_E        = 33;
+var iPAWN_MULT_S          = 34;
+var iPAWN_MULT_E          = 35;
+var iPAWN_PASS_FREE       = 36;
+var iPAWN_PASS_UNSTOP     = 37;
+var iPAWN_PASS_KING1      = 38;
+var iPAWN_PASS_KING2      = 39;
+var iMOBOFF_NS            = 40;
+var iMOBOFF_NE            = 41;
+var iMOBOFF_BS            = 42;
+var iMOBOFF_BE            = 43;
+var iMOBOFF_RS            = 44;
+var iMOBOFF_RE            = 45;
+var iTWOBISHOPS_E         = 46;
+var iTEMPO_S              = 47;
+var iTEMPO_E              = 48;
+
+var iSIZE                 = 49;
+
+//}}}
+//{{{  ev
+
+var EV = Array(iSIZE);
+
+EV[iMOB_NS]               = 4;
+EV[iMOB_NE]               = 4;
+EV[iMOB_BS]               = 5;
+EV[iMOB_BE]               = 5;
+EV[iMOB_RS]               = 2;
+EV[iMOB_RE]               = 4;
+EV[iMOB_QS]               = 1;
+EV[iMOB_QE]               = 2;
+EV[iATT_N]                = 1;
+EV[iATT_B]                = 1;
+EV[iATT_R]                = 3;
+EV[iATT_Q]                = 4;
+EV[iATT_M]                = 20;
+EV[iPAWN_DOUBLED_S]       = 10;
+EV[iPAWN_DOUBLED_E]       = 20;
+EV[iPAWN_ISOLATED_S]      = 10;
+EV[iPAWN_ISOLATED_E]      = 20;
+EV[iPAWN_BACKWARD_S]      = 8;
+EV[iPAWN_BACKWARD_E]      = 10;
+EV[iPAWN_PASSED_OFFSET_S] = 5;
+EV[iPAWN_PASSED_OFFSET_E] = 10;
+EV[iPAWN_PASSED_MULT_S]   = 50;
+EV[iPAWN_PASSED_MULT_E]   = 100;
+EV[iTWOBISHOPS_S]         = 0;
+EV[iROOK7TH_S]            = 20;
+EV[iROOK7TH_E]            = 40;
+EV[iROOKOPEN_S]           = 10;
+EV[iROOKOPEN_E]           = 10;
+EV[iQUEEN7TH_S]           = 10;
+EV[iQUEEN7TH_E]           = 20;
+EV[iTRAPPED]              = 100;
+EV[iKING_PENALTY]         = 11;
+EV[iPAWN_OFFSET_S]        = 10;
+EV[iPAWN_OFFSET_E]        = 20;
+EV[iPAWN_MULT_S]          = 60;
+EV[iPAWN_MULT_E]          = 120;
+EV[iPAWN_PASS_FREE]       = 60;
+EV[iPAWN_PASS_UNSTOP]     = 800;
+EV[iPAWN_PASS_KING1]      = 20;
+EV[iPAWN_PASS_KING2]      = 5;
+EV[iMOBOFF_NS]            = 0;
+EV[iMOBOFF_NE]            = 0;
+EV[iMOBOFF_BS]            = 0;
+EV[iMOBOFF_BE]            = 0;
+EV[iMOBOFF_RS]            = 0;
+EV[iMOBOFF_RE]            = 0;
+EV[iTWOBISHOPS_E]         = 50;
+EV[iTEMPO_S]              = 20;
+EV[iTEMPO_E]              = 10;
+
+//}}}
+//{{{  ev assignments
+
+var MOB_NS               = EV[iMOB_NS];
+var MOB_NE               = EV[iMOB_NE];
+var MOB_BS               = EV[iMOB_BS];
+var MOB_BE               = EV[iMOB_BE];
+var MOB_RS               = EV[iMOB_RS];
+var MOB_RE               = EV[iMOB_RE];
+var MOB_QS               = EV[iMOB_QS];
+var MOB_QE               = EV[iMOB_QE];
+var ATT_N                = EV[iATT_N];
+var ATT_B                = EV[iATT_B];
+var ATT_R                = EV[iATT_R];
+var ATT_Q                = EV[iATT_Q];
+var ATT_M                = EV[iATT_M];
+var PAWN_DOUBLED_S       = EV[iPAWN_DOUBLED_S];
+var PAWN_DOUBLED_E       = EV[iPAWN_DOUBLED_E];
+var PAWN_ISOLATED_S      = EV[iPAWN_ISOLATED_S];
+var PAWN_ISOLATED_E      = EV[iPAWN_ISOLATED_E];
+var PAWN_BACKWARD_S      = EV[iPAWN_BACKWARD_S];
+var PAWN_BACKWARD_E      = EV[iPAWN_BACKWARD_E];
+var PAWN_PASSED_OFFSET_S = EV[iPAWN_PASSED_OFFSET_S];
+var PAWN_PASSED_OFFSET_E = EV[iPAWN_PASSED_OFFSET_E];
+var PAWN_PASSED_MULT_S   = EV[iPAWN_PASSED_MULT_S];
+var PAWN_PASSED_MULT_E   = EV[iPAWN_PASSED_MULT_E];
+var TWOBISHOPS_S         = EV[iTWOBISHOPS_S];
+var ROOK7TH_S            = EV[iROOK7TH_S];
+var ROOK7TH_E            = EV[iROOK7TH_E];
+var ROOKOPEN_S           = EV[iROOKOPEN_S];
+var ROOKOPEN_E           = EV[iROOKOPEN_E];
+var QUEEN7TH_S           = EV[iQUEEN7TH_S];
+var QUEEN7TH_E           = EV[iQUEEN7TH_E];
+var TRAPPED              = EV[iTRAPPED];
+var KING_PENALTY         = EV[iKING_PENALTY];
+var PAWN_OFFSET_S        = EV[iPAWN_OFFSET_S];
+var PAWN_OFFSET_E        = EV[iPAWN_OFFSET_E];
+var PAWN_MULT_S          = EV[iPAWN_MULT_S];
+var PAWN_MULT_E          = EV[iPAWN_MULT_E];
+var PAWN_PASS_FREE       = EV[iPAWN_PASS_FREE];
+var PAWN_PASS_UNSTOP     = EV[iPAWN_PASS_UNSTOP];
+var PAWN_PASS_KING1      = EV[iPAWN_PASS_KING1];
+var PAWN_PASS_KING2      = EV[iPAWN_PASS_KING2];
+var MOBOFF_NS            = EV[iMOBOFF_NS];
+var MOBOFF_NE            = EV[iMOBOFF_NE];
+var MOBOFF_BS            = EV[iMOBOFF_BS];
+var MOBOFF_BE            = EV[iMOBOFF_BE];
+var MOBOFF_RS            = EV[iMOBOFF_RS];
+var MOBOFF_RE            = EV[iMOBOFF_RE];
+var TWOBISHOPS_E         = EV[iTWOBISHOPS_E];
+var TEMPO_S              = EV[iTEMPO_S];
+var TEMPO_E              = EV[iTEMPO_E];
+
+//}}}
+
+//}}}
+//{{{  other eval params
+
+var imbalN_S = [0,0,0,0,0,0,0,0,0];
+var imbalN_E = [0,0,0,0,0,0,0,0,0];
+var imbalB_S = [0,0,0,0,0,0,0,0,0];
+var imbalB_E = [0,0,0,0,0,0,0,0,0];
+var imbalR_S = [0,0,0,0,0,0,0,0,0];
+var imbalR_E = [0,0,0,0,0,0,0,0,0];
+var imbalQ_S = [0,0,0,0,0,0,0,0,0];
+var imbalQ_E = [0,0,0,0,0,0,0,0,0];
+
+var MOB_NIS = IS_NBRQKE;
+var MOB_BIS = IS_NBRQKE;
+var MOB_RIS = IS_RQKE;
+var MOB_QIS = IS_QKE;
+
+var ATT_W = [0,0,0.5,0.75,0.88,0.94,0.97,0.99];
+var ATT_L = 7;
+
+var WSHELTER = [0,  0,  0,  11, 20, 27, 32, 35, 0, 36];
+var WSTORM   = [0,  0,  0,  60, 30, 10, 0,  0,  0, 0];
+
+var PAWN_PASSED = [0,0,0,0,0.1,0.3,0.6,1.0,0];  // rank bonus curve.
 
 //}}}
 
@@ -1700,10 +1601,10 @@ lozChess.prototype.go = function() {
       //{{{  research
       
       if (score >= beta) {
-        this.uci.debug('BETA', ply, score, '>=', beta);
+        //this.uci.debug('BETA', ply, score, '>=', beta);
       }
       else {
-        this.uci.debug('ALPHA', ply, score, '<=', alpha);
+        //this.uci.debug('ALPHA', ply, score, '<=', alpha);
         if (totTime > 30000) {
           movTime              = movTime / 2 | 0;
           this.stats.moveTime += movTime;
@@ -1738,13 +1639,10 @@ lozChess.prototype.go = function() {
 
   bestMoveStr = board.formatMove(this.stats.bestMove,UCI_FMT);
 
-  board.makeMove(this.rootNode,this.stats.bestMove);
+  if (lozzaHost == HOST_WEB)
+    board.makeMove(this.rootNode,this.stats.bestMove);
 
   this.uci.send('bestmove',bestMoveStr);
-
-  //this.uci.debug(board.initNumWhitePieces,board.initNumWhitePawns,board.initNumBlackPieces,board.initNumBlackPawns);
-  this.uci.debug(spec.board + ' ' + spec.turn + ' ' + spec.rights + ' ' + spec.ep);
-  this.uci.debug(BUILD + ' ' + spec.depth+'p','|',this.stats.nodesMega+'Mn','|',this.stats.nodes+'n','|',this.stats.timeSec+'s','|',bestMoveStr,'|',board.formatMove(this.stats.bestMove,SAN_FMT));
 }
 
 //}}}
@@ -1871,7 +1769,6 @@ lozChess.prototype.search = function (node, depth, turn, alpha, beta) {
           return score;
         }
         alpha = score;
-        //board.ttPut(TT_ALPHA, depth, score, move, node.ply, alpha, beta);
         board.addHistory(depth, move);
         //{{{  update best move & send score to UI
         
@@ -1893,15 +1790,6 @@ lozChess.prototype.search = function (node, depth, turn, alpha, beta) {
         
         this.uci.send('info',this.stats.nodeStr(),'depth',this.stats.ply,'seldepth',this.stats.selDepth,'score',units,uciScore,'pv',pvStr);
         this.stats.update();
-        
-        //if (!board.ttGetMove(node))
-          //this.uci.debug('TT AWOL FOR',mv);
-        
-        //if (!pvStr)
-          //this.uci.debug('NULL PV FOR',mv);
-        
-        //if (pvStr.indexOf(mv) != 0)
-          //this.uci.debug('WRONG PV FOR',mv);
         
         if (this.stats.splits > 5)
           this.uci.send('info hashfull',myround(1000*board.hashUsed/TTSIZE));
@@ -2208,7 +2096,6 @@ lozChess.prototype.alphabeta = function (node, depth, turn, alpha, beta, nullOK,
           board.addHistory(depth, move);
           return score;
         }
-        //board.ttPut(TT_ALPHA, depth, score, move, node.ply, alpha, beta);
         board.addHistory(depth, move);
         alpha     = score;
       }
@@ -2455,12 +2342,6 @@ lozChess.prototype.perftSearch = function (node, depth, turn, inner) {
 
 //{{{  lozBoard
 
-const TTSIZE = 1 << 24;
-const TTMASK = TTSIZE - 1;
-
-const PTTSIZE = 1 << 14;
-const PTTMASK = PTTSIZE - 1;
-
 function lozBoard () {
 
   this.lozza        = null;
@@ -2508,7 +2389,11 @@ function lozBoard () {
   this.pttwMost  = new Uint32Array(PTTSIZE);
   this.pttbMost  = new Uint32Array(PTTSIZE);
 
-  this.ttInit();
+  for (var i=0; i < TTSIZE; i++)
+    this.ttType[i] = TT_EMPTY;
+
+  for (var i=0; i < PTTSIZE; i++)
+    this.pttFlags[i] = TT_EMPTY;
 
   this.turn = 0;
 
@@ -4154,97 +4039,65 @@ lozBoard.prototype.formatMove = function (move, fmt) {
 
 //}}}
 //{{{  .evaluate
-//
-//  Currently this is pretty much just a subset of Fruit 2.1 eval.
-//
-
-//{{{  eval globals
-
-var MOB_NIS = IS_NBRQKE;
-var MOB_BIS = IS_NBRQKE;
-var MOB_RIS = IS_RQKE;
-var MOB_QIS = IS_QKE;
-
-var ATT_W = [0,0,0.5,0.75,0.88,0.94,0.97,0.99];
-var ATT_L = 7;
-
-var WSHELTER = new Uint32Array([0,  0,  0,  11, 20, 27, 32, 35, 0, 36]);
-var BSHELTER = new Uint32Array([36, 0,  35, 32, 27, 20, 11, 0,  0, 0]);
-var WSTORM   = new Uint32Array([0,  0,  0,  60, 30, 10, 0,  0,  0, 0]);
-var BSTORM   = new Uint32Array([0,  0,  0,  0,  10, 30, 60, 0,  0, 0]);
-
-var PTT_EXACT = 1;
-var PTT_WHOME = 2;
-var PTT_BHOME = 4;
-var PTT_WPASS = 8;
-var PTT_BPASS = 16;
-
-var W_PROMOTE_SQ = [0,26, 27, 28, 29, 30, 31, 32, 33];
-var B_PROMOTE_SQ = [0,110,111,112,113,114,115,116,117];
-
-var TEMPO_S = 20;
-var TEMPO_E = 10;
-
-var PAWN_PASSED     = [0,0,0,0,0.1,0.3,0.6,1.0,0];  // rank bonus curve.
-
-//}}}
-//{{{  tuned eval globals
-
-var MOB_NS               = EV[iMOB_NS];
-var MOB_NE               = EV[iMOB_NE];
-var MOB_BS               = EV[iMOB_BS];
-var MOB_BE               = EV[iMOB_BE];
-var MOB_RS               = EV[iMOB_RS];
-var MOB_RE               = EV[iMOB_RE];
-var MOB_QS               = EV[iMOB_QS];
-var MOB_QE               = EV[iMOB_QE];
-var ATT_N                = EV[iATT_N];
-var ATT_B                = EV[iATT_B];
-var ATT_R                = EV[iATT_R];
-var ATT_Q                = EV[iATT_Q];
-var ATT_M                = EV[iATT_M];
-var PAWN_DOUBLED_S       = EV[iPAWN_DOUBLED_S];
-var PAWN_DOUBLED_E       = EV[iPAWN_DOUBLED_E];
-var PAWN_ISOLATED_S      = EV[iPAWN_ISOLATED_S];
-var PAWN_ISOLATED_E      = EV[iPAWN_ISOLATED_E];
-var PAWN_BACKWARD_S      = EV[iPAWN_BACKWARD_S];
-var PAWN_BACKWARD_E      = EV[iPAWN_BACKWARD_E];
-var PAWN_PASSED_OFFSET_S = EV[iPAWN_PASSED_OFFSET_S];
-var PAWN_PASSED_OFFSET_E = EV[iPAWN_PASSED_OFFSET_E];
-var PAWN_PASSED_MULT_S   = EV[iPAWN_PASSED_MULT_S];
-var PAWN_PASSED_MULT_E   = EV[iPAWN_PASSED_MULT_E];
-var TWOBISHOPS           = EV[iTWOBISHOPS];
-var ROOK7TH_S            = EV[iROOK7TH_S];
-var ROOK7TH_E            = EV[iROOK7TH_E];
-var ROOKOPEN_S           = EV[iROOKOPEN_S];
-var ROOKOPEN_E           = EV[iROOKOPEN_E];
-var QUEEN7TH_S           = EV[iQUEEN7TH_S];
-var QUEEN7TH_E           = EV[iQUEEN7TH_E];
-var TRAPPED              = EV[iTRAPPED];
-var KING_PENALTY         = EV[iKING_PENALTY];
-var PAWN_OFFSET_S        = EV[iPAWN_OFFSET_S];
-var PAWN_OFFSET_E        = EV[iPAWN_OFFSET_E];
-var PAWN_MULT_S          = EV[iPAWN_MULT_S];
-var PAWN_MULT_E          = EV[iPAWN_MULT_E];
-var PAWN_PASS_FREE       = EV[iPAWN_PASS_FREE];
-var PAWN_PASS_UNSTOP     = EV[iPAWN_PASS_UNSTOP];
-var PAWN_PASS_KING1      = EV[iPAWN_PASS_KING1];
-var PAWN_PASS_KING2      = EV[iPAWN_PASS_KING2];
-var MOBOFF_NS            = EV[iMOBOFF_NS];
-var MOBOFF_NE            = EV[iMOBOFF_NE];
-var MOBOFF_BS            = EV[iMOBOFF_BS];
-var MOBOFF_BE            = EV[iMOBOFF_BE];
-var MOBOFF_RS            = EV[iMOBOFF_RS];
-var MOBOFF_RE            = EV[iMOBOFF_RE];
-
-//}}}
 
 lozBoard.prototype.evaluate = function (turn) {
 
   //this.hashCheck(turn);
+  //{{{  ev assignments
+  
+  var MOB_NS               = EV[iMOB_NS];
+  var MOB_NE               = EV[iMOB_NE];
+  var MOB_BS               = EV[iMOB_BS];
+  var MOB_BE               = EV[iMOB_BE];
+  var MOB_RS               = EV[iMOB_RS];
+  var MOB_RE               = EV[iMOB_RE];
+  var MOB_QS               = EV[iMOB_QS];
+  var MOB_QE               = EV[iMOB_QE];
+  var ATT_N                = EV[iATT_N];
+  var ATT_B                = EV[iATT_B];
+  var ATT_R                = EV[iATT_R];
+  var ATT_Q                = EV[iATT_Q];
+  var ATT_M                = EV[iATT_M];
+  var PAWN_DOUBLED_S       = EV[iPAWN_DOUBLED_S];
+  var PAWN_DOUBLED_E       = EV[iPAWN_DOUBLED_E];
+  var PAWN_ISOLATED_S      = EV[iPAWN_ISOLATED_S];
+  var PAWN_ISOLATED_E      = EV[iPAWN_ISOLATED_E];
+  var PAWN_BACKWARD_S      = EV[iPAWN_BACKWARD_S];
+  var PAWN_BACKWARD_E      = EV[iPAWN_BACKWARD_E];
+  var PAWN_PASSED_OFFSET_S = EV[iPAWN_PASSED_OFFSET_S];
+  var PAWN_PASSED_OFFSET_E = EV[iPAWN_PASSED_OFFSET_E];
+  var PAWN_PASSED_MULT_S   = EV[iPAWN_PASSED_MULT_S];
+  var PAWN_PASSED_MULT_E   = EV[iPAWN_PASSED_MULT_E];
+  var TWOBISHOPS_S         = EV[iTWOBISHOPS_S];
+  var ROOK7TH_S            = EV[iROOK7TH_S];
+  var ROOK7TH_E            = EV[iROOK7TH_E];
+  var ROOKOPEN_S           = EV[iROOKOPEN_S];
+  var ROOKOPEN_E           = EV[iROOKOPEN_E];
+  var QUEEN7TH_S           = EV[iQUEEN7TH_S];
+  var QUEEN7TH_E           = EV[iQUEEN7TH_E];
+  var TRAPPED              = EV[iTRAPPED];
+  var KING_PENALTY         = EV[iKING_PENALTY];
+  var PAWN_OFFSET_S        = EV[iPAWN_OFFSET_S];
+  var PAWN_OFFSET_E        = EV[iPAWN_OFFSET_E];
+  var PAWN_MULT_S          = EV[iPAWN_MULT_S];
+  var PAWN_MULT_E          = EV[iPAWN_MULT_E];
+  var PAWN_PASS_FREE       = EV[iPAWN_PASS_FREE];
+  var PAWN_PASS_UNSTOP     = EV[iPAWN_PASS_UNSTOP];
+  var PAWN_PASS_KING1      = EV[iPAWN_PASS_KING1];
+  var PAWN_PASS_KING2      = EV[iPAWN_PASS_KING2];
+  var MOBOFF_NS            = EV[iMOBOFF_NS];
+  var MOBOFF_NE            = EV[iMOBOFF_NE];
+  var MOBOFF_BS            = EV[iMOBOFF_BS];
+  var MOBOFF_BE            = EV[iMOBOFF_BE];
+  var MOBOFF_RS            = EV[iMOBOFF_RS];
+  var MOBOFF_RE            = EV[iMOBOFF_RE];
+  var TWOBISHOPS_E         = EV[iTWOBISHOPS_E];
+  var TEMPO_S              = EV[iTEMPO_S];
+  var TEMPO_E              = EV[iTEMPO_E];
+  
+  //}}}
 
   //{{{  init
-  
   
   var uci = this.lozza.uci;
   var b   = this.b;
@@ -4871,13 +4724,13 @@ lozBoard.prototype.evaluate = function (turn) {
     
     penalty = 0;
     
-    penalty += BSHELTER[(bLeast & bKingMask) >>> bKingBits] * 2;
+    penalty += WSHELTER[9 - ((bLeast & bKingMask) >>> bKingBits)] * 2;
     
     if (bKingFile != 8)
-      penalty += BSHELTER[(bLeastR & bKingMask) >>> bKingBits];
+      penalty += WSHELTER[9 - ((bLeastR & bKingMask) >>> bKingBits)];
     
     if (bKingFile != 1)
-      penalty += BSHELTER[(bLeastL & bKingMask) >>> bKingBits];
+      penalty += WSHELTER[9 - ((bLeastL & bKingMask) >>> bKingBits)];
     
     if (penalty == 0)
       penalty = KING_PENALTY;
@@ -4889,13 +4742,13 @@ lozBoard.prototype.evaluate = function (turn) {
     
     penalty = 0;
     
-    penalty += BSTORM[(wMost & bKingMask) >>> bKingBits];
+    penalty += WSTORM[9 - ((wMost & bKingMask) >>> bKingBits)];
     
     if (bKingFile != 8)
-      penalty += BSTORM[(wMostR & bKingMask) >>> bKingBits];
+      penalty += WSTORM[9 - ((wMostR & bKingMask) >>> bKingBits)];
     
     if (bKingFile != 1)
-      penalty += BSTORM[(wMostL & bKingMask) >>> bKingBits];
+      penalty += WSTORM[9 - ((wMostL & bKingMask) >>> bKingBits)];
     
     kingS += penalty;
     
@@ -5000,6 +4853,9 @@ lozBoard.prototype.evaluate = function (turn) {
       
       //}}}
       
+      knightsS += imbalN_S[wNumPawns];
+      knightsE += imbalN_E[wNumPawns];
+      
       //}}}
     }
   
@@ -5024,6 +4880,9 @@ lozBoard.prototype.evaluate = function (turn) {
       
       wBishop += WSQUARE[fr];
       bBishop += BSQUARE[fr];
+      
+      bishopsS += imbalB_S[wNumPawns];
+      bishopsE += imbalB_E[wNumPawns];
       
       //}}}
     }
@@ -5081,6 +4940,9 @@ lozBoard.prototype.evaluate = function (turn) {
       
       //}}}
       
+      rooksS += imbalR_S[wNumPawns];
+      rooksE += imbalR_E[wNumPawns];
+      
       //}}}
     }
   
@@ -5117,6 +4979,9 @@ lozBoard.prototype.evaluate = function (turn) {
       
       //}}}
       
+      queensS += imbalQ_S[wNumPawns];
+      queensE += imbalQ_E[wNumPawns];
+      
       //}}}
     }
   
@@ -5133,8 +4998,8 @@ lozBoard.prototype.evaluate = function (turn) {
   }
   
   if (wBishop && bBishop) {
-    //bishopsS += TWOBISHOPS;
-    bishopsE += TWOBISHOPS;
+    bishopsS += TWOBISHOPS_S;
+    bishopsE += TWOBISHOPS_E;
   }
   
   //}}}
@@ -5216,6 +5081,9 @@ lozBoard.prototype.evaluate = function (turn) {
       
       //}}}
       
+      knightsS -= imbalN_S[bNumPawns];
+      knightsE -= imbalN_E[bNumPawns];
+      
       //}}}
     }
   
@@ -5240,6 +5108,9 @@ lozBoard.prototype.evaluate = function (turn) {
       
       wBishop += WSQUARE[fr];
       bBishop += BSQUARE[fr];
+      
+      bishopsS -= imbalB_S[bNumPawns];
+      bishopsE -= imbalB_E[bNumPawns];
       
       //}}}
     }
@@ -5297,6 +5168,9 @@ lozBoard.prototype.evaluate = function (turn) {
       
       //}}}
       
+      rooksS -= imbalR_S[bNumPawns];
+      rooksE -= imbalR_E[bNumPawns];
+      
       //}}}
     }
   
@@ -5333,6 +5207,9 @@ lozBoard.prototype.evaluate = function (turn) {
       
       //}}}
       
+      queensS -= imbalQ_S[bNumPawns];
+      queensE -= imbalQ_E[bNumPawns];
+      
       //}}}
     }
   
@@ -5349,8 +5226,8 @@ lozBoard.prototype.evaluate = function (turn) {
   }
   
   if (wBishop && bBishop) {
-    //bishopsS -= TWOBISHOPS;
-    bishopsE -= TWOBISHOPS;
+    bishopsS -= TWOBISHOPS_S;
+    bishopsE -= TWOBISHOPS_E;
   }
   
   //}}}
@@ -5503,20 +5380,20 @@ lozBoard.prototype.evaluate = function (turn) {
   //{{{  verbose
   
   if (this.verbose) {
-    uci.send('info string','phased eval',    'PH',this.phase,       'VAL',e);
-    uci.send('info string','evaluation',     'MG',evalS,            'EG',evalE);
-    uci.send('info string','trapped',        'MG',trappedS,         'EG',trappedE);
-    uci.send('info string','mobility',       'MG',mobS,             'EG',mobE);
-    uci.send('info string','attacks',        'MG',attS,             'EG',attE);
-    uci.send('info string','material',       'MG',this.runningEvalS,'EG',this.runningEvalE);
-    uci.send('info string','king',           'MG',kingS,            'EG',kingE);
-    uci.send('info string','queens',         'MG',queensS,          'EG',queensE);
-    uci.send('info string','rooks',          'MG',rooksS,           'EG',rooksE);
-    uci.send('info string','bishops',        'MG',bishopsS,         'EG',bishopsE);
-    uci.send('info string','knights',        'MG',knightsS,         'EG',knightsE);
-    uci.send('info string','pawns',          'MG',pawnsS,           'EG',pawnsE);
-    uci.send('info string','home pawn',      'W', wHome != 0,       'B', bHome != 0);
-    uci.send('info string','tempo',          'MG',tempoS,           'EG',tempoE);
+    uci.send('info string','phased eval =',e);
+    uci.send('info string','phase =',phase);
+    uci.send('info string','evaluation =',evalS,evalE);
+    uci.send('info string','trapped =',trappedS,trappedE);
+    uci.send('info string','mobility =',mobS,mobE);
+    uci.send('info string','attacks =',attS,attE);
+    uci.send('info string','material =',this.runningEvalS,this.runningEvalE);
+    uci.send('info string','kings =',kingS,kingE);
+    uci.send('info string','queens =',queensS,queensE);
+    uci.send('info string','rooks =',rooksS,rooksE);
+    uci.send('info string','bishops =',bishopsS,bishopsE);
+    uci.send('info string','knights =',knightsS,knightsE);
+    uci.send('info string','pawns =',pawnsS,pawnsE);
+    uci.send('info string','tempo =',tempoS,tempoE);
   }
   
   //}}}
@@ -5884,24 +5761,6 @@ lozBoard.prototype.cleanPhase = function (p) {
 //}}}
 //{{{  lozNode class
 
-//                                 Killer?
-// max            9007199254740992
-
-var BASE_HASH       =  10000012000;  // no
-var BASE_PROMOTES   =  10000011000;  // no
-var BASE_GOODTAKES  =  10000010000;  // no
-var BASE_EVENTAKES  =  10000009000;  // no
-var BASE_EPTAKES    =  10000008000;  // no
-var BASE_MATEKILLER =  10000007000;
-var BASE_MYKILLERS  =  10000006000;
-var BASE_GPKILLERS  =  10000005000;
-var BASE_CASTLING   =  10000004000;  // yes
-var BASE_BADTAKES   =  10000003000;  // yes
-var BASE_HISSLIDE   =         2000;  // yes
-var BASE_PSTSLIDE   =         1000;  // yes
-
-var BASE_LMR        = BASE_BADTAKES;
-
 //{{{  lozNode
 
 function lozNode (parentNode) {
@@ -6182,11 +6041,6 @@ lozNode.prototype.addCapture = function (move) {
 //}}}
 //{{{  .addPromotion
 
-var QPRO = (QUEEN-2)  << MOVE_PROMAS_BITS | MOVE_PROMOTE_MASK;
-var RPRO = (ROOK-2)   << MOVE_PROMAS_BITS | MOVE_PROMOTE_MASK;
-var BPRO = (BISHOP-2) << MOVE_PROMAS_BITS | MOVE_PROMOTE_MASK;
-var NPRO = (KNIGHT-2) << MOVE_PROMAS_BITS | MOVE_PROMOTE_MASK;
-
 lozNode.prototype.addPromotion = function (move) {
 
   var n = 0;
@@ -6438,14 +6292,11 @@ lozUCI.prototype.post = function (s) {
   if (lozzaHost == HOST_NODEJS)
     this.nodefs.writeSync(1, s + '\n');
 
-  else if (lozzaHost == HOST_JSUCI)
-    postMessage(s);
-
   else if (lozzaHost == HOST_WEB)
     postMessage(s);
 
   else
-    console.log(s);                      // for debug w/o worker.
+    console.log(s);
 }
 
 //}}}
@@ -6666,6 +6517,15 @@ onmessage = function(e) {
       
       //}}}
 
+    case 'stop':
+      //{{{  stop
+      
+      lozza.stats.timeOut = 1;
+      
+      break;
+      
+      //}}}
+
     case 'debug':
       //{{{  debug
       
@@ -6819,6 +6679,13 @@ board = lozza.board;
 //}}}
 //{{{  functions
 
+var bestErr = 0;
+var thisErr = 0;
+var tries   = 0;  // num calls to calcErr() in a iter
+var changes = 0;
+var better  = false;
+var changes = 0;
+
 //{{{  sigmoid
 
 var kkk = 1.51; //for quiet-labeled.epd super-quiet positions.
@@ -6832,8 +6699,6 @@ function sigmoid (qs) {
 
 //}}}
 //{{{  calcErr
-
-var tries = 0; // num calls to calcErr() in a iter
 
 function calcErr () {
 
@@ -6899,6 +6764,121 @@ function getprob (r) {
   else
     console.log('unknown result',r);
 }
+
+//}}}
+//{{{  try*
+
+//{{{  tryarrayslice
+//
+// like tryarray but just an inclusive [lo,hi] slice.
+//
+
+function tryarrayslice (a,inc,lo,hi) {
+
+  var inc2 = inc + inc;
+
+  for (var p=lo; p<=hi; p++) {
+    a[p] = a[p] + inc;
+    thisErr = calcErr();
+    if (thisErr < bestErr) {
+      changes++;
+      bestErr = thisErr;
+      better  = true;
+    }
+    else {
+      a[p] = a[p] - inc2;
+      thisErr = calcErr();
+      if (thisErr < bestErr) {
+        changes++;
+        bestErr = thisErr;
+        better = true;
+      }
+      else {
+        a[p] = a[p] + inc;
+      }
+    }
+  }
+}
+
+//}}}
+//{{{  tryarray
+
+function tryarray (a,inc) {
+  tryarrayslice(a,inc,0,a.length-1);
+}
+
+//}}}
+//{{{  trypstsq
+//
+// try a single w b pst square;
+//
+
+function trypstsq(aw,ab,wi,inc) {
+
+  var inc2 = inc + inc;
+  var bi   = wbmap(wi);
+
+  if (aw[wi] != ab[bi]) {
+    console.log('pst outta sync');  // jic.
+    process.exit();
+  }
+
+  aw[wi] = aw[wi] + inc;
+  ab[bi] = ab[bi] + inc;
+  thisErr = calcErr();
+  if (thisErr < bestErr) {
+    changes++;
+    bestErr = thisErr;
+    better  = true;
+  }
+  else {
+    aw[wi] = aw[wi] - inc2;
+    ab[bi] = ab[bi] - inc2;
+    thisErr = calcErr();
+    if (thisErr < bestErr) {
+      changes++;
+      bestErr = thisErr;
+      better = true;
+    }
+    else {
+      aw[wi] = aw[wi] + inc;
+      ab[bi] = ab[bi] + inc;
+    }
+  }
+}
+
+//}}}
+//{{{  trypst
+//
+// try [0,63] based w b squares from lo to hi invlusively.
+//
+
+function trypst (aw,ab,lo,hi,inc) {
+
+  for (var sq=lo; sq<=hi; sq++) {
+
+    var wi = B88[sq];  // map to [0,143] range
+
+    trypstsq(aw,ab,wi,inc);
+  }
+}
+
+//}}}
+//{{{  trypst2
+//
+// a list of [0,143] based squares to try are in ai.
+//
+
+function trypst2(aw,ab,ai,inc) {
+
+  for (var i=0; i<ai.length; i++) {
+
+    var wi = ai[i];
+    trypstsq(aw,ab,wi,inc);
+  }
+}
+
+//}}}
 
 //}}}
 
@@ -7064,7 +7044,7 @@ var bpsts = [BS_PST,BE_PST];
 
 var t1 = Date.now();
 
-var bestErr = calcErr();
+bestErr = calcErr();
 
 var t2 = Date.now();
 var et = (t2-t1)/1000;
@@ -7084,12 +7064,13 @@ console.log('**************');
 
 //{{{  search
 
-var iter    = 1;      // num full iters (trying all params)
-var thisErr = 0;
-var better  = true;
-var changes = 0;      // num changes made in this iter
+iter     = 1;          // num full iters (trying all params)
+thisErr  = 0;
+better   = true;
+changes  = 0;          // num changes made in this iter
+tries    = 0;          // num calls to calcErr() made in this iter
 
-tries = 0;            // num calls to calcErr() made in this iter
+var nosq =[51,52,53,54,55,56,63,64,65,66,67,68,75,76,77,78,79,80]; //knight outpost squares
 
 while (better) {
 
@@ -7097,117 +7078,44 @@ while (better) {
 
   better = false;
 
-  //{{{  pieces
+  //{{{  try each param
   
-  var delta = 1;
+  tryarrayslice(VALUE_VECTOR,KNIGHT,QUEEN,1);
   
-  for (var p=KNIGHT; p<=QUEEN; p++) { // n,b,r,q
-    VALUE_VECTOR[p] = VALUE_VECTOR[p] + delta;
-    thisErr = calcErr();
-    if (thisErr < bestErr) {
-      changes++;
-      bestErr = thisErr;
-      better  = true;
-    }
-    else {
-      VALUE_VECTOR[p] = VALUE_VECTOR[p] - delta - delta;  // -1
-      thisErr = calcErr();
-      if (thisErr < bestErr) {
-        changes++;
-        bestErr = thisErr;
-        better = true;
-      }
-      else {
-        VALUE_VECTOR[p] = VALUE_VECTOR[p] + delta;  // back to 0 - leave this one where it is this time.
-      }
-    }
-  }
+  trypst(WPAWN_PSTS,  BPAWN_PSTS,  8,55,1);
+  trypst(WPAWN_PSTE,  BPAWN_PSTE,  8,55,1);
+  trypst(WKNIGHT_PSTS,BKNIGHT_PSTS,0,63,1);
+  trypst(WKNIGHT_PSTE,BKNIGHT_PSTE,0,63,1);
+  trypst(WBISHOP_PSTS,BBISHOP_PSTS,0,63,1);
+  trypst(WBISHOP_PSTE,BBISHOP_PSTE,0,63,1);
+  trypst(WROOK_PSTS,  BROOK_PSTS,  0,63,1);
+  trypst(WROOK_PSTE,  BROOK_PSTE,  0,63,1);
+  trypst(WQUEEN_PSTS, BQUEEN_PSTS, 0,63,1);
+  trypst(WQUEEN_PSTE, BQUEEN_PSTE, 0,63,1);
+  trypst(WKING_PSTS,  BKING_PSTS,  0,63,1);
+  trypst(WKING_PSTE,  BKING_PSTE,  0,63,1);
   
-  //}}}
-  //{{{  eval
-  /*
-  for (var p=0; p<EV.length; p++) {
-    EV[p] = EV[p] + 1;
-    thisErr = calcErr();
-    if (thisErr < bestErr) {
-      changes++;
-      bestErr = thisErr;
-      better  = true;
-    }
-    else {
-      EV[p] = EV[p] - 2;  // -1
-      thisErr = calcErr();
-      if (thisErr < bestErr) {
-        changes++;
-        bestErr = thisErr;
-        better = true;
-      }
-      else {
-        EV[p] = EV[p] + 1;  // back to 0 - leave this one where it is this time.
-      }
-    }
-  }
-  */
-  //}}}
-  //{{{  psts
+  //trypst2(WOUTPOST,BOUTPOST,nosq,1);
   
-  for (var se=0; se<=1; se++) {  // mid/end game
+  //tryarray(imbalN_S,1);
+  //tryarray(imbalN_E,1);
+  //tryarray(imbalB_S,1);
+  //tryarray(imbalB_E,1);
+  //tryarray(imbalR_S,1);
+  //tryarray(imbalR_E,1);
+  //tryarray(imbalQ_S,1);
+  //tryarray(imbalQ_E,1);
   
-    var wpstse = wpsts[se];  // list of white mid/end game psts
-    var bpstse = bpsts[se];
+  //tryarray(EV,1);
   
-    for (var p=PAWN; p<=KING; p++) {  // p,n,b,r,q,k
+  //tryarrayslice(PAWN_PASSED,1,7,0.1);
   
-      var wpst = wpstse[p];  // actual mid/end game pst
-      var bpst = bpstse[p];
+  //tryarrayslice(ATT_W,1,7,0.01);
   
-      if (p > PAWN) {
-        var losq = 0;
-        var hisq = 64;
-      }
-      else {
-        var losq = 8;
-        var hisq = 56;
-      }
-  
-      for (var sq=losq; sq<hisq; sq++) {  // 64 pst values
-  
-        var wi = B88[sq];    // white pst index
-        var bi = wbmap(wi);  // map to black index
-  
-        if (wpst[wi] != bpst[bi]) {
-          console.log('psts outta sync',se,p,sq,wpst[wi],bpst[bi]);  // jic.
-          process.exit();
-        }
-  
-        wpst[wi] = wpst[wi] + 1;
-        bpst[bi] = bpst[bi] + 1;
-        thisErr = calcErr();
-        if (thisErr < bestErr) {
-          changes++;
-          bestErr = thisErr;
-          better  = true;
-        }
-        else {
-          wpst[wi] = wpst[wi] - 2;
-          bpst[bi] = bpst[bi] - 2;
-          thisErr = calcErr();
-          if (thisErr < bestErr) {
-            changes++;
-            bestErr = thisErr;
-            better = true;
-          }
-          else {
-            wpst[wi] = wpst[wi] + 1;
-            bpst[bi] = bpst[bi] + 1;
-          }
-        }
-      }
-    }
-  }
+  //tryarrayslice(WSHELTER,3,9,1);
+  //tryarrayslice(WSTORM,  3,9,1);
   
   //}}}
-
   //{{{  save to file
   
   var d   = new Date();
@@ -7216,8 +7124,33 @@ while (better) {
   out = out + 'var VALUE_VECTOR = [' + VALUE_VECTOR.toString() + '];';
   out = out + '\r\n\r\n';
   
-  //out = out + 'var EV = [' + EV.toString() + '];';
-  //out = out + '\r\n\r\n';
+  /*
+  out = out + 'var EV = [' + EV.toString() + '];';
+  out = out + '\r\n\r\n';
+  
+  out = out + 'var WOUTPOST = [' + WOUTPOST.toString() + '];';
+  out = out + '\r\n\r\n';
+  
+  out = out + 'var imbalN_S = [' + imbalN_S.toString() + '];';
+  out = out + '\r\n\r\n';
+  out = out + 'var imbalN_E = [' + imbalN_E.toString() + '];';
+  out = out + '\r\n\r\n';
+  
+  out = out + 'var imbalB_S = [' + imbalB_S.toString() + '];';
+  out = out + '\r\n\r\n';
+  out = out + 'var imbalB_E = [' + imbalB_E.toString() + '];';
+  out = out + '\r\n\r\n';
+  
+  out = out + 'var imbalR_S = [' + imbalR_S.toString() + '];';
+  out = out + '\r\n\r\n';
+  out = out + 'var imbalR_E = [' + imbalR_E.toString() + '];';
+  out = out + '\r\n\r\n';
+  
+  out = out + 'var imbalQ_S = [' + imbalQ_S.toString() + '];';
+  out = out + '\r\n\r\n';
+  out = out + 'var imbalQ_E = [' + imbalQ_E.toString() + '];';
+  out = out + '\r\n\r\n';
+  */
   
   out = out + 'var WPAWN_PSTS = [' + WPAWN_PSTS.toString() + '];';
   out = out + '\r\n\r\n';
