@@ -1157,7 +1157,7 @@ var iTEMPO_E              = 48;
 var iSIZE                 = 49;
 
 //}}}
-//{{{  ev
+//{{{  ev values
 
 var EV = Array(iSIZE);
 
@@ -4043,59 +4043,6 @@ lozBoard.prototype.formatMove = function (move, fmt) {
 lozBoard.prototype.evaluate = function (turn) {
 
   //this.hashCheck(turn);
-  //{{{  ev assignments
-  
-  var MOB_NS               = EV[iMOB_NS];
-  var MOB_NE               = EV[iMOB_NE];
-  var MOB_BS               = EV[iMOB_BS];
-  var MOB_BE               = EV[iMOB_BE];
-  var MOB_RS               = EV[iMOB_RS];
-  var MOB_RE               = EV[iMOB_RE];
-  var MOB_QS               = EV[iMOB_QS];
-  var MOB_QE               = EV[iMOB_QE];
-  var ATT_N                = EV[iATT_N];
-  var ATT_B                = EV[iATT_B];
-  var ATT_R                = EV[iATT_R];
-  var ATT_Q                = EV[iATT_Q];
-  var ATT_M                = EV[iATT_M];
-  var PAWN_DOUBLED_S       = EV[iPAWN_DOUBLED_S];
-  var PAWN_DOUBLED_E       = EV[iPAWN_DOUBLED_E];
-  var PAWN_ISOLATED_S      = EV[iPAWN_ISOLATED_S];
-  var PAWN_ISOLATED_E      = EV[iPAWN_ISOLATED_E];
-  var PAWN_BACKWARD_S      = EV[iPAWN_BACKWARD_S];
-  var PAWN_BACKWARD_E      = EV[iPAWN_BACKWARD_E];
-  var PAWN_PASSED_OFFSET_S = EV[iPAWN_PASSED_OFFSET_S];
-  var PAWN_PASSED_OFFSET_E = EV[iPAWN_PASSED_OFFSET_E];
-  var PAWN_PASSED_MULT_S   = EV[iPAWN_PASSED_MULT_S];
-  var PAWN_PASSED_MULT_E   = EV[iPAWN_PASSED_MULT_E];
-  var TWOBISHOPS_S         = EV[iTWOBISHOPS_S];
-  var ROOK7TH_S            = EV[iROOK7TH_S];
-  var ROOK7TH_E            = EV[iROOK7TH_E];
-  var ROOKOPEN_S           = EV[iROOKOPEN_S];
-  var ROOKOPEN_E           = EV[iROOKOPEN_E];
-  var QUEEN7TH_S           = EV[iQUEEN7TH_S];
-  var QUEEN7TH_E           = EV[iQUEEN7TH_E];
-  var TRAPPED              = EV[iTRAPPED];
-  var KING_PENALTY         = EV[iKING_PENALTY];
-  var PAWN_OFFSET_S        = EV[iPAWN_OFFSET_S];
-  var PAWN_OFFSET_E        = EV[iPAWN_OFFSET_E];
-  var PAWN_MULT_S          = EV[iPAWN_MULT_S];
-  var PAWN_MULT_E          = EV[iPAWN_MULT_E];
-  var PAWN_PASS_FREE       = EV[iPAWN_PASS_FREE];
-  var PAWN_PASS_UNSTOP     = EV[iPAWN_PASS_UNSTOP];
-  var PAWN_PASS_KING1      = EV[iPAWN_PASS_KING1];
-  var PAWN_PASS_KING2      = EV[iPAWN_PASS_KING2];
-  var MOBOFF_NS            = EV[iMOBOFF_NS];
-  var MOBOFF_NE            = EV[iMOBOFF_NE];
-  var MOBOFF_BS            = EV[iMOBOFF_BS];
-  var MOBOFF_BE            = EV[iMOBOFF_BE];
-  var MOBOFF_RS            = EV[iMOBOFF_RS];
-  var MOBOFF_RE            = EV[iMOBOFF_RE];
-  var TWOBISHOPS_E         = EV[iTWOBISHOPS_E];
-  var TEMPO_S              = EV[iTEMPO_S];
-  var TEMPO_E              = EV[iTEMPO_E];
-  
-  //}}}
 
   //{{{  init
   
@@ -6688,7 +6635,7 @@ var changes = 0;
 
 //{{{  sigmoid
 
-var kkk = 1.51; //for quiet-labeled.epd super-quiet positions.
+var kkk = 1.603; //for quiet-labeled.epd
 
 console.log('k =',kkk);
 
@@ -6707,11 +6654,11 @@ function calcErr () {
   process.stdout.write(tries+'\r');
 
   var err = 0;
-  var num = epds2.length;
+  var num = epds.length;
 
   for (var i=0; i < num; i++) {
 
-    var epd = epds2[i];
+    var epd = epds[i];
 
     uci.spec.board    = epd.board;
     uci.spec.turn     = epd.turn;
@@ -6773,7 +6720,7 @@ function getprob (r) {
 // like tryarray but just an inclusive [lo,hi] slice.
 //
 
-function tryarrayslice (a,inc,lo,hi) {
+function tryarrayslice (a,lo,hi,inc) {
 
   var inc2 = inc + inc;
 
@@ -6804,7 +6751,7 @@ function tryarrayslice (a,inc,lo,hi) {
 //{{{  tryarray
 
 function tryarray (a,inc) {
-  tryarrayslice(a,inc,0,a.length-1);
+  tryarrayslice(a,0,a.length-1,inc);
 }
 
 //}}}
@@ -6935,57 +6882,6 @@ lines = []; // release
 console.log('positions =',epds.length);
 
 //}}}
-//{{{  get super-quiet positions
-//
-// because q is too slow.
-//
-
-lozza.newGameInit();
-
-var epds2 = [];
-
-for (var i=0; i < epds.length; i++) {
-
-  if (i % 100000 == 0)
-    process.stdout.write(i+'\r');
-
-  var epd = epds[i];
-
-  uci.spec.board    = epd.board;
-  uci.spec.turn     = epd.turn;
-  uci.spec.rights   = epd.rights;
-  uci.spec.ep       = epd.ep;
-  uci.spec.fmc      = epd.fmvn;
-  uci.spec.hmc      = epd.hmvc;
-  uci.spec.id       = 'id' + i;
-  uci.spec.moves    = [];
-
-  lozza.position();
-
-  var e = board.evaluate(board.turn);
-  var q = lozza.qSearch(lozza.rootNode,0,board.turn,-INFINITY,INFINITY);
-
-  if (board.turn == BLACK) {
-    e = -e;  // undo negamax.
-    q = -q;
-  }
-
-  if (isNaN(e) || isNaN(q)) {
-    console.log('NaN');
-    process.exit();
-  }
-
-  if (e == q) {
-    epd.eval = e;      // just keep super-quiet positions.
-    epds2.push(epd);
-  }
-}
-
-epds = []; // release
-
-console.log('super-quiet positions =',epds2.length);
-
-//}}}
 //{{{  count win, lose, draw
 //
 // Just to make sure the file has been parsed OK.
@@ -6995,12 +6891,12 @@ var wins = 0;
 var loss = 0;
 var draw = 0;
 
-for (var i=0; i < epds2.length; i++) {
+for (var i=0; i < epds.length; i++) {
 
   if (i % 100000 == 0)
     process.stdout.write(i+'\r');
 
-  var epd = epds2[i];
+  var epd = epds[i];
 
   if (epd.prob == 1.0)
     wins++;
@@ -7016,18 +6912,23 @@ for (var i=0; i < epds2.length; i++) {
   }
 }
 
-console.log('wins =',wins);
-console.log('losses =',loss);
-console.log('draws =',draw);
-console.log('error check =',epds2.length - wins - draw - loss,'(should be 0)');
+console.log('wins =',wins,'losses =',loss,'draws =',draw);
+console.log('error check =',epds.length - wins - draw - loss,'(should be 0)');
 
 //}}}
 //{{{  find k
 /*
-for (var x=1.0;x<2.0;x+=0.01) {
+var min = 100.0;
+
+for (var x=1.59;x<1.62;x+=0.001) {
   kkk = x;
-  var err=calcErr();
-  console.log(kkk,err);
+  var err = calcErr();
+  if (err <  min) {
+    console.log(kkk,err);
+    min = err;
+  }
+  else
+    console.log('found min');
 }
 
 process.exit();
@@ -7036,9 +6937,6 @@ process.exit();
 //{{{  do the grunt
 
 lozza.newGameInit();
-
-var wpsts = [WS_PST,WE_PST];
-var bpsts = [BS_PST,BE_PST];
 
 //{{{  check eval
 
@@ -7095,25 +6993,25 @@ while (better) {
   trypst(WKING_PSTS,  BKING_PSTS,  0,63,1);
   trypst(WKING_PSTE,  BKING_PSTE,  0,63,1);
   
-  //trypst2(WOUTPOST,BOUTPOST,nosq,1);
+  trypst2(WOUTPOST,BOUTPOST,nosq,1);
   
-  //tryarray(imbalN_S,1);
-  //tryarray(imbalN_E,1);
-  //tryarray(imbalB_S,1);
-  //tryarray(imbalB_E,1);
-  //tryarray(imbalR_S,1);
-  //tryarray(imbalR_E,1);
-  //tryarray(imbalQ_S,1);
-  //tryarray(imbalQ_E,1);
+  tryarrayslice(imbalN_S,1,8,1);
+  tryarrayslice(imbalN_E,1,8,1);
+  tryarrayslice(imbalB_S,1,8,1);
+  tryarrayslice(imbalB_E,1,8,1);
+  tryarrayslice(imbalR_S,1,8,1);
+  tryarrayslice(imbalR_E,1,8,1);
+  tryarrayslice(imbalQ_S,1,8,1);
+  tryarrayslice(imbalQ_E,1,8,1);
   
-  //tryarray(EV,1);
+  tryarray(EV,1);
   
-  //tryarrayslice(PAWN_PASSED,1,7,0.1);
+  tryarrayslice(PAWN_PASSED,1,7,0.1);
   
-  //tryarrayslice(ATT_W,1,7,0.01);
+  tryarrayslice(ATT_W,1,7,0.01);
   
-  //tryarrayslice(WSHELTER,3,9,1);
-  //tryarrayslice(WSTORM,  3,9,1);
+  tryarrayslice(WSHELTER,3,9,1);
+  tryarrayslice(WSTORM,  3,9,1);
   
   //}}}
   //{{{  save to file
@@ -7123,34 +7021,6 @@ while (better) {
   
   out = out + 'var VALUE_VECTOR = [' + VALUE_VECTOR.toString() + '];';
   out = out + '\r\n\r\n';
-  
-  /*
-  out = out + 'var EV = [' + EV.toString() + '];';
-  out = out + '\r\n\r\n';
-  
-  out = out + 'var WOUTPOST = [' + WOUTPOST.toString() + '];';
-  out = out + '\r\n\r\n';
-  
-  out = out + 'var imbalN_S = [' + imbalN_S.toString() + '];';
-  out = out + '\r\n\r\n';
-  out = out + 'var imbalN_E = [' + imbalN_E.toString() + '];';
-  out = out + '\r\n\r\n';
-  
-  out = out + 'var imbalB_S = [' + imbalB_S.toString() + '];';
-  out = out + '\r\n\r\n';
-  out = out + 'var imbalB_E = [' + imbalB_E.toString() + '];';
-  out = out + '\r\n\r\n';
-  
-  out = out + 'var imbalR_S = [' + imbalR_S.toString() + '];';
-  out = out + '\r\n\r\n';
-  out = out + 'var imbalR_E = [' + imbalR_E.toString() + '];';
-  out = out + '\r\n\r\n';
-  
-  out = out + 'var imbalQ_S = [' + imbalQ_S.toString() + '];';
-  out = out + '\r\n\r\n';
-  out = out + 'var imbalQ_E = [' + imbalQ_E.toString() + '];';
-  out = out + '\r\n\r\n';
-  */
   
   out = out + 'var WPAWN_PSTS = [' + WPAWN_PSTS.toString() + '];';
   out = out + '\r\n\r\n';
@@ -7175,6 +7045,44 @@ while (better) {
   out = out + 'var WQUEEN_PSTE = [' + WQUEEN_PSTE.toString() + '];';
   out = out + '\r\n\r\n';
   out = out + 'var WKING_PSTE = [' + WKING_PSTE.toString() + '];';
+  out = out + '\r\n\r\n';
+  
+  out = out + 'var WOUTPOST = [' + WOUTPOST.toString() + '];';
+  out = out + '\r\n\r\n';
+  
+  out = out + 'var EV = [' + EV.toString() + '];';
+  out = out + '\r\n\r\n';
+  
+  out = out + 'var imbalN_S = [' + imbalN_S.toString() + '];';
+  out = out + '\r\n\r\n';
+  out = out + 'var imbalN_E = [' + imbalN_E.toString() + '];';
+  out = out + '\r\n\r\n';
+  
+  out = out + 'var imbalB_S = [' + imbalB_S.toString() + '];';
+  out = out + '\r\n\r\n';
+  out = out + 'var imbalB_E = [' + imbalB_E.toString() + '];';
+  out = out + '\r\n\r\n';
+  
+  out = out + 'var imbalR_S = [' + imbalR_S.toString() + '];';
+  out = out + '\r\n\r\n';
+  out = out + 'var imbalR_E = [' + imbalR_E.toString() + '];';
+  out = out + '\r\n\r\n';
+  
+  out = out + 'var imbalQ_S = [' + imbalQ_S.toString() + '];';
+  out = out + '\r\n\r\n';
+  out = out + 'var imbalQ_E = [' + imbalQ_E.toString() + '];';
+  out = out + '\r\n\r\n';
+  
+  out = out + 'var WSHELTER = [' + WSHELTER.toString() + '];';
+  out = out + '\r\n\r\n';
+  
+  out = out + 'var WSTORM = [' + WSTORM.toString() + '];';
+  out = out + '\r\n\r\n';
+  
+  out = out + 'var ATT_W = [' + ATT_W.toString() + '];';
+  out = out + '\r\n\r\n';
+  
+  out = out + 'var PAWN_PASSED = [' + PAWN_PASSED.toString() + '];';
   out = out + '\r\n\r\n';
   
   out = out + '// bestErr='+bestErr;
