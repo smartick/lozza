@@ -1,0 +1,17 @@
+[
+{
+  "name": "coalface",
+  "command": "c:\\program files\\nodejs\\node.exe e:\\projects\\lozza\\trunk\\lozza.js",
+  "protocol": "uci"
+},
+{
+  "name": "200",
+  "command": "c:\\program files\\nodejs\\node.exe e:\\projects\\lozza\\trunk\\history\\2.0\\lozza.js",
+  "protocol": "uci"
+},
+{
+  "name": "118",
+  "command": "c:\\program files\\nodejs\\node.exe e:\\projects\\lozza\\trunk\\history\\1.18\\lozza.js",
+  "protocol": "uci"
+}
+]

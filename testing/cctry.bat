@@ -1,0 +1,2 @@
+del cctry.pgn
+"C:\Program Files (x86)\Cute Chess\cutechess-cli" -engine conf=coalface tc=0/20+0.2 -engine conf=%1 tc=0/20+0.2 -tournament round-robin -games 2 -rounds %2 -resign movecount=6 score=1000 -draw movenumber=45 movecount=5 score=15 -repeat -openings file=arasan.pgn format=pgn order=random plies=10 -pgnout cctry.pgn  
