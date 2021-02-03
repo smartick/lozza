@@ -1710,7 +1710,8 @@ lozChess.prototype.search = function (node, depth, turn, alpha, beta) {
         var pvStr    = board.getPVStr(node,move,depth);
         
         if (absScore >= MINMATE && absScore <= MATE) {
-          pvStr += '#';
+          if (lozzaHost != HOST_NODEJS)
+            pvStr += '#';
           var units    = 'mate';
           var uciScore = (MATE - absScore) / 2 | 0;
           if (score < 0)
@@ -6426,7 +6427,7 @@ onmessage = function(e) {
       
       uci.send('id name Lozza',BUILD);
       uci.send('id author Colin Jenkins');
-      uci.send('option');
+      //uci.send('option');
       uci.send('uciok');
       
       break;
