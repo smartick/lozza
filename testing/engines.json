@@ -5,12 +5,12 @@
   "protocol": "uci"
 },
 {
-  "name": "master",
+  "name": "candidate",
   "command": "c:\\program files\\nodejs\\node.exe e:\\projects\\lozza\\trunk\\history\\2.0\\lozza.js",
   "protocol": "uci"
 },
 {
-  "name": "published",
+  "name": "released",
   "command": "c:\\program files\\nodejs\\node.exe e:\\projects\\lozza\\trunk\\history\\1.18\\lozza.js",
   "protocol": "uci"
 }

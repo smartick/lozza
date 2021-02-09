@@ -18,12 +18,13 @@ rem ill finish quickly.rbut if y is large and the gain is small the test w
 rem ill continue for arvery long time / forever. the test till finish w
 rem hen the llr hits a llr bound. (see the cc output every -ratinginterval
 rem games) we acan ccept -ve x for simplifications  for example.
+
 del cctry.pgn
 
-set tc=tc=0/10+0.01
+set tc=tc=0/10+0.1
 
-set e1=-engine conf=coalface %tc
-set e2=-engine conf=master   %tc
+set e1=-engine conf=coalface  %tc
+set e2=-engine conf=candidate %tc
 
 set t=-tournament round-robin -games 100000
 
@@ -37,7 +38,7 @@ set f=-pgnout cctry.pgn fi
 
 set s=-sprt elo0=0 elo1=5 alpha=0.05 beta=0.05 -ratinginterval 10
 
-set m=-recover -concurrency 1
+set m=-recover -concurrency 2
 
 "C:\Program Files (x86)\Cute Chess\cutechess-cli" %e1 %e2 %t %r %d %o %f %s %m
 
