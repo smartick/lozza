@@ -1,0 +1,11 @@
+
+10/02/21 use depth^3 (>=beta), depth^2 (>=alpha) and -depth  (< alpha) for history
+Finished game 3143 (coalface vs candidate): 1-0 {White wins by adjudication}
+Score of coalface vs candidate: 996 - 853 - 1294  [0.523] 3143
+...      coalface playing White: 520 - 429 - 623  [0.529] 1572
+...      coalface playing Black: 476 - 424 - 671  [0.517] 1571
+...      White vs Black: 944 - 905 - 1294  [0.506] 3143
+Elo difference: 15.8 +/- 9.3, LOS: 100.0 %, DrawRatio: 41.2 %
+SPRT: llr 2.95 (100.2%), lbound -2.94, ubound 2.94 - H1 was accepted
+Finished match
+
