@@ -56,7 +56,7 @@ The tuning and testing directories of this repo contain some node.js Javascript 
 node texeltune.js
 ```
 
-You can also fire up Lozza in node.js form the command line and tye UCI commands. i.e.:-
+You can also fire up Lozza in node.js form the command line and enter UCI commands. i.e.:-
 
 ```
 node lozza.js
