@@ -56,6 +56,22 @@ The tuning and testing directories of this repo contain some node.js Javascript 
 node texeltune.js
 ```
 
+You can also fire up Lozza in node.js form the command line and tye UCI commands. i.e.:-
+
+```
+node lozza.js
+```
+
+Then for example:-
+
+```
+uci
+ucinewgame
+position startpos
+board
+go depth 10
+```
+
 ## Notes
 
 lozza.js is folded using {{{ and }}} (emacs convention) and most easily read using an editor with a folding capability.
