@@ -8,7 +8,7 @@ Mostly I was curious if a Javascript engine could compete with more traditional 
 
 One downside is a hit in performance compared with traditionally compiled languages like C etc; but the JIT compiler in Google's V8 Javascript engine (that sits in node.js and the Chrome browser) is quite extraordinary. Another is that there are no native 64 bit integer values (there are 53 usable bits in the native Javascript Number type). Recently-ish however the concept of a BigInt was introduced - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt - which may suffice depending on performance; I have not tried them. Lozza uses Typed-Arrays and 2 32bit values for it's hash - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays.  
 
-## Example web use in a project
+## Example use in a web  project
 
 ```Javascript
 var lozza = new Worker('lozza.js');
@@ -31,7 +31,7 @@ See the LozUCI class for a complete list of commands that Lozza can handle. See 
 
 A sister project - https://github.com/op12no2/lozza-ui - has some example user interfaces for playing and analysing with Lozza, which you can try out here - https://op12no2.github.io/lozza-ui.
 
-## Playing Lozza offline in Arena, Winboard, Cutechess etc
+## Playing Lozza offline in Arena, Winboard, Cutechess etc UIs
 
 Lozza can be used in chess UIs like WinBoard, Arena and CuteChess by using node.js - https://nodejs.org - as the engine executable and lozza.js as a parameter
 to it. Full paths for both are recommended. node.js and Lozza do not need to be in the same folder. If the UI does not support engine parameters, create a batch file (say lozza.bat) containing something like:-
