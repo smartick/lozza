@@ -1,5 +1,5 @@
 //
-// validates eval by evaluation position and flipped position to check the are the same.
+// validate eval by evaluation position n and flipped position n to check they are the same.
 //
 
 //{{{  lozza globals

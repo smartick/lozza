@@ -1,5 +1,14 @@
 
-10/02/21 use depth^3 (>=beta), depth^2 (>=alpha) and -depth  (< alpha) for history
+11/02/21 2.0 Cumulative v 1.18.
+Finished game 478 (released vs coalface): * {No result}
+Score of coalface vs released: 260 - 105 - 110  [0.663] 475
+...      coalface playing White: 128 - 53 - 57  [0.658] 238
+...      coalface playing Black: 132 - 52 - 53  [0.669] 237
+...      White vs Black: 180 - 185 - 110  [0.495] 475
+Elo difference: 117.7 +/- 28.5, LOS: 100.0 %, DrawRatio: 23.2 %
+SPRT: llr 2.95 (100.3%), lbound -2.94, ubound 2.94 - H1 was accepted
+
+10/02/21 2.0 use depth^3 (>=beta), depth^2 (>=alpha) and -depth  (< alpha) for history
 Finished game 3143 (coalface vs candidate): 1-0 {White wins by adjudication}
 Score of coalface vs candidate: 996 - 853 - 1294  [0.523] 3143
 ...      coalface playing White: 520 - 429 - 623  [0.529] 1572
@@ -7,5 +16,4 @@ Score of coalface vs candidate: 996 - 853 - 1294  [0.523] 3143
 ...      White vs Black: 944 - 905 - 1294  [0.506] 3143
 Elo difference: 15.8 +/- 9.3, LOS: 100.0 %, DrawRatio: 41.2 %
 SPRT: llr 2.95 (100.2%), lbound -2.94, ubound 2.94 - H1 was accepted
-Finished match
 
