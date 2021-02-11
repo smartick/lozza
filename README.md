@@ -25,7 +25,7 @@ lozza.postMessage('go depth 10'); // 10 ply search
 
 Try this example here https://op12no2.github.io/lozza-ui/ex.htm.
 
-See the LozUCI class for a complete list of commands that Lozza can handle. See also here - https://op12no2.github.io/lozza-ui/consolehelp.htm. You do not have to use a web worker or the UCI interface, but you will not be able to update a web page until Lozza returns - see for example texeltune.js in the tuning folder above, which just includes lozza.js and uses it's function interface directly. While that is a node.js example, the same can be done in web pages.
+You do not have to use a web worker or the UCI interface, but you will not be able to update a web page until Lozza returns - see for example texeltune.js in the tuning folder above, which just includes lozza.js and uses it's function interface directly. While that is a node.js example, the same can be done in web pages.
 
 ## Playing Lozza online
 
@@ -71,6 +71,8 @@ position startpos
 board
 go depth 10
 ```
+
+See the LozUCI class for a complete list of commands that Lozza can handle. See also here - https://op12no2.github.io/lozza-ui/consolehelp.htm. 
 
 ## Notes
 
