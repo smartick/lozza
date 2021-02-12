@@ -1,6 +1,12 @@
+2.0 12/02/21 Do LMR earlier.
+Score of coalface vs candidate: 757 - 615 - 850  [0.532] 2222
+...      coalface playing White: 365 - 323 - 423  [0.519] 1111
+...      coalface playing Black: 392 - 292 - 427  [0.545] 1111
+...      White vs Black: 657 - 715 - 850  [0.487] 2222
+Elo difference: 22.2 +/- 11.3, LOS: 100.0 %, DrawRatio: 38.3 %
+SPRT: llr 2.95 (100.1%), lbound -2.94, ubound 2.94 - H1 was accepted
 
-11/02/21 2.0 Cumulative v 1.18.
-Finished game 478 (released vs coalface): * {No result}
+2.0 11/02/21 Cumulative v 1.18.
 Score of coalface vs released: 260 - 105 - 110  [0.663] 475
 ...      coalface playing White: 128 - 53 - 57  [0.658] 238
 ...      coalface playing Black: 132 - 52 - 53  [0.669] 237
@@ -8,8 +14,7 @@ Score of coalface vs released: 260 - 105 - 110  [0.663] 475
 Elo difference: 117.7 +/- 28.5, LOS: 100.0 %, DrawRatio: 23.2 %
 SPRT: llr 2.95 (100.3%), lbound -2.94, ubound 2.94 - H1 was accepted
 
-10/02/21 2.0 use depth^3 (>=beta), depth^2 (>=alpha) and -depth  (< alpha) for history
-Finished game 3143 (coalface vs candidate): 1-0 {White wins by adjudication}
+2.0 10/02/21 use depth^3 (>=beta), depth^2 (>=alpha) and -depth  (< alpha) for history.
 Score of coalface vs candidate: 996 - 853 - 1294  [0.523] 3143
 ...      coalface playing White: 520 - 429 - 623  [0.529] 1572
 ...      coalface playing Black: 476 - 424 - 671  [0.517] 1571
