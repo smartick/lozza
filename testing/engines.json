@@ -1,17 +1,17 @@
 [
 {
   "name": "coalface",
-  "command": "c:\\program files\\nodejs\\node.exe e:\\projects\\lozza\\trunk\\lozza.js",
+  "command": "e:\\projects\\lozza\\trunk\\testing\\node1.exe e:\\projects\\lozza\\trunk\\lozza.js",
   "protocol": "uci"
 },
 {
   "name": "candidate",
-  "command": "c:\\program files\\nodejs\\node.exe e:\\projects\\lozza\\trunk\\history\\2.0\\lozza.js",
+  "command": "e:\\projects\\lozza\\trunk\\testing\\node2.exe e:\\projects\\lozza\\trunk\\history\\2.0\\lozza.js",
   "protocol": "uci"
 },
 {
   "name": "released",
-  "command": "c:\\program files\\nodejs\\node.exe e:\\projects\\lozza\\trunk\\history\\1.18\\lozza.js",
+  "command": "e:\\projects\\lozza\\trunk\\testing\\node2.exe e:\\projects\\lozza\\trunk\\history\\1.18\\lozza.js",
   "protocol": "uci"
 }
 ]

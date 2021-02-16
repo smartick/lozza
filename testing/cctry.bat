@@ -18,7 +18,7 @@ set f=-pgnout cctry.pgn fi
 
 set s=-sprt elo0=0 elo1=5 alpha=0.05 beta=0.05 -ratinginterval 10
 
-set m=-recover -concurrency 8
+set m=-recover -concurrency 4
 
 "C:\Program Files (x86)\Cute Chess\cutechess-cli" %e1 %e2 %t %r %d %o %f %s %m
 

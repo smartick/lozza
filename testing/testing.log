@@ -1,3 +1,11 @@
+2.0 16/02/21 Swap mate and draw testing order in search.
+Score of coalface vs candidate: 1266 - 1226 - 1663  [0.505] 4155
+...      coalface playing White: 628 - 616 - 834  [0.503] 2078
+...      coalface playing Black: 638 - 610 - 829  [0.507] 2077
+...      White vs Black: 1238 - 1254 - 1663  [0.498] 4155
+Elo difference: 3.3 +/- 8.2, LOS: 78.9 %, DrawRatio: 40.0 %
+SPRT: llr 0.242 (8.2%), lbound -2.94, ubound 2.94
+
 2.0 12/02/21 Do LMR earlier.
 Score of coalface vs candidate: 757 - 615 - 850  [0.532] 2222
 ...      coalface playing White: 365 - 323 - 423  [0.519] 1111
