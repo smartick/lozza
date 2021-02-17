@@ -1,3 +1,11 @@
+2.0 17/02/21 Tune all eval params.
+Score of coalface vs candidate: 473 - 329 - 401  [0.560] 1203
+...      coalface playing White: 236 - 164 - 202  [0.560] 602
+...      coalface playing Black: 237 - 165 - 199  [0.560] 601
+...      White vs Black: 401 - 401 - 401  [0.500] 1203
+Elo difference: 41.8 +/- 16.1, LOS: 100.0 %,tio: 33.3 %
+SPRT: llr 2.95 (100.1%), lbound -2.94, ubound 2.94 - H1 was accepted
+
 2.0 16/02/21 Swap mate and draw testing order in search.
 Score of coalface vs candidate: 1266 - 1226 - 1663  [0.505] 4155
 ...      coalface playing White: 628 - 616 - 834  [0.503] 2078
