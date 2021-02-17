@@ -18,7 +18,7 @@ console.log('hello world! wait...');
 // rnb1kbnr/pp1pppp1/7p/2q5/5P2/N1P1P3/P2P2PP/R1BQKBNR w KQkq - c9 "1/2-1/2"
 // 0                                                   1 2    3 4  5
 
-var data  = fs.readFileSync('../../../chess/games/quiet-labeled.epd', 'utf8');
+var data  = fs.readFileSync('quiet-labeled.epd', 'utf8');
 var lines = data.split('\n');
 var epds  = [];
 
