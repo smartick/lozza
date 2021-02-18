@@ -1,13 +1,13 @@
 
-2.0 18/02/21 Cumulative v 1.18.
+2.0 18/02/21 Cumulative v 1.18 at LTC.
 Score of coalface vs released: 191 - 43 - 63  [0.749] 297
 ...      coalface playing White: 95 - 17 - 36  [0.764] 148
 ...      coalface playing Black: 96 - 26 - 27  [0.735] 149
 ...      White vs Black: 121 - 113 - 63  [0.513] 297
-Elo difference: 190.1 +/- 38.8, LOS: 100.0 %, DrawRatio: 21.2 %, TC: 60 + 1
+Elo difference: 190.1 +/- 38.8, LOS: 100.0 %, DrawRatio: 21.2 %, TC: 60+1
 SPRT: llr 2.95 (100.3%), lbound -2.94, ubound 2.94 - H1 was accepted
 
-2.0 17/02/21 Cumulative v 1.18.
+2.0 17/02/21 Cumulative v 1.18 at STC.
 Score of coalface vs released: 233 - 77 - 80  [0.700] 390
 ...      coalface playing White: 112 - 41 - 42  [0.682] 195
 ...      coalface playing Black: 121 - 36 - 38  [0.718] 195
@@ -56,7 +56,7 @@ Score of coalface vs candidate: 996 - 853 - 1294  [0.523] 3143
 Elo difference: 15.8 +/- 9.3, LOS: 100.0 %, DrawRatio: 41.2 %, TC: 10+0.1
 SPRT: llr 2.95 (100.2%), lbound -2.94, ubound 2.94 - H1 was accepted
 
-{{{  tuned params
+{{{  tuning runs
 
 {{{  16/2/21 mat + pst + eval tuned
 
