@@ -4,10 +4,12 @@
 // testing and tuning results in testing/testing.log
 //
 
-var BUILD = "2.0";
+var BUILD = "3";
 
 //{{{  history
 /*
+
+3 18/02/21 Nothing yet.
 
 2.0 17/02/21 Tune all eval params.
 2.0 16/02/21 Swap mate and draw testing order in search.
