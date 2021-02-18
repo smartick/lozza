@@ -6,12 +6,12 @@
 },
 {
   "name": "candidate",
-  "command": "e:\\projects\\lozza\\trunk\\testing\\node2.exe e:\\projects\\lozza\\trunk\\history\\2.0\\lozza.js",
+  "command": "e:\\projects\\lozza\\trunk\\testing\\node2.exe e:\\projects\\lozza\\trunk\\history\\3\\lozza.js",
   "protocol": "uci"
 },
 {
   "name": "released",
-  "command": "e:\\projects\\lozza\\trunk\\testing\\node2.exe e:\\projects\\lozza\\trunk\\history\\1.18\\lozza.js",
+  "command": "e:\\projects\\lozza\\trunk\\testing\\node2.exe e:\\projects\\lozza\\trunk\\history\\2.0\\lozza.js",
   "protocol": "uci"
 }
 ]
