@@ -1,9 +1,24 @@
+2.0 18/02/21 Cumulative v 1.18.
+Score of coalface vs released: 191 - 43 - 63  [0.749] 297
+...      coalface playing White: 95 - 17 - 36  [0.764] 148
+...      coalface playing Black: 96 - 26 - 27  [0.735] 149
+...      White vs Black: 121 - 113 - 63  [0.513] 297
+Elo difference: 190.1 +/- 38.8, LOS: 100.0 %, DrawRatio: 21.2 %, TC: 60 + 1
+SPRT: llr 2.95 (100.3%), lbound -2.94, ubound 2.94 - H1 was accepted
+2.0 17/02/21 Cumulative v 1.18.
+Score of coalface vs released: 233 - 77 - 80  [0.700] 390
+...      coalface playing White: 112 - 41 - 42  [0.682] 195
+...      coalface playing Black: 121 - 36 - 38  [0.718] 195
+...      White vs Black: 148 - 162 - 80  [0.482] 390
+Elo difference: 147.2 +/- 32.8, LOS: 100.0 %, DrawRatio: 20.5 %, TC: 10+0.1
+SPRT: llr 2.93 (99.5%), lbound -2.94, ubound 2.94
+
 2.0 17/02/21 Tune all eval params.
 Score of coalface vs candidate: 473 - 329 - 401  [0.560] 1203
 ...      coalface playing White: 236 - 164 - 202  [0.560] 602
 ...      coalface playing Black: 237 - 165 - 199  [0.560] 601
 ...      White vs Black: 401 - 401 - 401  [0.500] 1203
-Elo difference: 41.8 +/- 16.1, LOS: 100.0 %,tio: 33.3 %
+Elo difference: 41.8 +/- 16.1, LOS: 100.0 %,tio: 33.3 %, TC: 10+0.1
 SPRT: llr 2.95 (100.1%), lbound -2.94, ubound 2.94 - H1 was accepted
 
 2.0 16/02/21 Swap mate and draw testing order in search.
@@ -11,7 +26,7 @@ Score of coalface vs candidate: 1266 - 1226 - 1663  [0.505] 4155
 ...      coalface playing White: 628 - 616 - 834  [0.503] 2078
 ...      coalface playing Black: 638 - 610 - 829  [0.507] 2077
 ...      White vs Black: 1238 - 1254 - 1663  [0.498] 4155
-Elo difference: 3.3 +/- 8.2, LOS: 78.9 %, DrawRatio: 40.0 %
+Elo difference: 3.3 +/- 8.2, LOS: 78.9 %, DrawRatio: 40.0 %, TC: 10+0.1
 SPRT: llr 0.242 (8.2%), lbound -2.94, ubound 2.94
 
 2.0 12/02/21 Do LMR earlier.
@@ -19,7 +34,7 @@ Score of coalface vs candidate: 757 - 615 - 850  [0.532] 2222
 ...      coalface playing White: 365 - 323 - 423  [0.519] 1111
 ...      coalface playing Black: 392 - 292 - 427  [0.545] 1111
 ...      White vs Black: 657 - 715 - 850  [0.487] 2222
-Elo difference: 22.2 +/- 11.3, LOS: 100.0 %, DrawRatio: 38.3 %
+Elo difference: 22.2 +/- 11.3, LOS: 100.0 %, DrawRatio: 38.3 %, TC: 10+0.1
 SPRT: llr 2.95 (100.1%), lbound -2.94, ubound 2.94 - H1 was accepted
 
 2.0 11/02/21 Cumulative v 1.18.
@@ -27,7 +42,7 @@ Score of coalface vs released: 260 - 105 - 110  [0.663] 475
 ...      coalface playing White: 128 - 53 - 57  [0.658] 238
 ...      coalface playing Black: 132 - 52 - 53  [0.669] 237
 ...      White vs Black: 180 - 185 - 110  [0.495] 475
-Elo difference: 117.7 +/- 28.5, LOS: 100.0 %, DrawRatio: 23.2 %
+Elo difference: 117.7 +/- 28.5, LOS: 100.0 %, DrawRatio: 23.2 %, TC: 10+0.1
 SPRT: llr 2.95 (100.3%), lbound -2.94, ubound 2.94 - H1 was accepted
 
 2.0 10/02/21 use depth^3 (>=beta), depth^2 (>=alpha) and -depth  (< alpha) for history.
@@ -35,7 +50,7 @@ Score of coalface vs candidate: 996 - 853 - 1294  [0.523] 3143
 ...      coalface playing White: 520 - 429 - 623  [0.529] 1572
 ...      coalface playing Black: 476 - 424 - 671  [0.517] 1571
 ...      White vs Black: 944 - 905 - 1294  [0.506] 3143
-Elo difference: 15.8 +/- 9.3, LOS: 100.0 %, DrawRatio: 41.2 %
+Elo difference: 15.8 +/- 9.3, LOS: 100.0 %, DrawRatio: 41.2 %, TC: 10+0.1
 SPRT: llr 2.95 (100.2%), lbound -2.94, ubound 2.94 - H1 was accepted
 
 {{{  tuned params

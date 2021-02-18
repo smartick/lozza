@@ -1,4 +1,5 @@
 //
+// copy lozza.js above here.
 // redirect e and q into a file for different versions to check e/q is not broken.
 //
 

@@ -1,4 +1,5 @@
 //
+// copy lozza.js above here.
 // validate eval by evaluation position n and flipped position n to check they are the same.
 //
 
