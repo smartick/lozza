@@ -1,7 +1,7 @@
 
 del cctry.pgn
 
-set tc=tc=0/60+1
+set tc=tc=0/10+0.1
 
 set e1=-engine conf=coalface  %tc
 set e2=-engine conf=candidate %tc
