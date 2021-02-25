@@ -2,8 +2,6 @@
 
 A UCI compliant Javascript chess engine. Lozza is a traditional mailbox engine with PVS search. It's easy to embed Lozza into your web project or use her offline in client user interfaces like Arena and Winboard. A sister project also allows Lozza to be played online in your web browser via PC/laptop/tablet/phone etc. There is nothing new in Lozza - it's just an ongoing and fun coding exercise. 
 
-**To download lozza.js, click on lozza.js above, _then click the Raw button_, then right-click and select "Save as...".**
-
 ## Why Javascript?
 
 Mostly I was curious if a Javascript engine could compete with more traditional engines in the engine rating lists like CCRL, as at the time there were none listed. There were Javascript engines with their own user interfaces on the internet (like Gary Linscott's Garbochess), but none that used the UCI (or Winboard) protocol - needed to be included in the testing platforms. The Javascript development cycle is very quick because there is no build process; you can even make changes while it's playing to see what happens. Javascript effectively makes the engine platform-independent - running online in any browser/device and offline on any OS that supports node.js (pretty much everything). Not least, Javascript is a lot of fun! 
@@ -36,6 +34,8 @@ A sister project - https://github.com/op12no2/lozza-ui - has some example user i
 
 ## Playing Lozza offline in Arena, Winboard, Cutechess etc UIs
 
+**To download lozza.js, click on lozza.js above, _then click the Raw button_, then right-click and select "Save as...".**
+
 Lozza can be used in chess UIs like WinBoard, Arena and CuteChess by using node.js - https://nodejs.org - as the engine executable and lozza.js as a parameter
 to it. Full paths for both are recommended. node.js and Lozza do not need to be in the same folder. If the UI does not support engine parameters, create a batch file (say lozza.bat) containing something like:-
 
@@ -46,6 +46,8 @@ to it. Full paths for both are recommended. node.js and Lozza do not need to be 
 Then use lozza.bat as the engine target; similarly for Linux/Mac.  
 
 Alternatively you can package node and Lozza into a Windows/Linux/Mac executable using a node.js extension; for example - https://dev.to/jochemstoel/bundle-your-node-app-to-a-single-executable-for-windows-linux-and-osx-2c89.
+
+On Windows, modern versions of node.js require Windows version 8.1 or later. To run Lozza on Windows 7 please contact me for a hack.
 
 ## Online testing
 
