@@ -2,7 +2,7 @@
 
 A UCI compliant Javascript chess engine. Lozza is a traditional mailbox engine with PVS search. It's easy to embed Lozza into your web project or use her offline in client user interfaces like Arena and Winboard. A sister project also allows Lozza to be played online in your web browser via PC/laptop/tablet/phone etc. There is nothing new in Lozza - it's just an ongoing and fun coding exercise. 
 
-**To download lozza.js, click on lozza.js above, then click the Raw button, then right-click and select "Save as...".**
+**To download lozza.js, click on lozza.js above, _then click the Raw button_, then right-click and select "Save as...".**
 
 ## Why Javascript?
 
