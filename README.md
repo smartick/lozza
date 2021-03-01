@@ -34,7 +34,7 @@ A sister project - https://github.com/op12no2/lozza-ui - has some example user i
 
 ## Playing Lozza offline in Arena, Winboard, Cutechess etc UIs
 
-Lozza can be used on almost any platform via Nodejs. Download the latest Lozza release (Lozza2.0.zip) and follow the instructions in readme.txt. Short version: Install Nodejs and edit the batch file one-liner included in the release to point at the node executable and lozza.js. Then point your chess UI at the batch file.
+Lozza can be used on almost any platform via Nodejs. Download the latest Lozza release (lozza2.0.zip) and follow the instructions in readme.txt. Short version: Install Nodejs and edit the batch file one-liner included in the release to point at the node executable and lozza.js. Then point your chess UI at the batch file.
 
 ## Notes
 
