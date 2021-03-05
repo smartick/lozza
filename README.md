@@ -1,4 +1,4 @@
-_To use Lozza in a chess UI or command line, download the latest release (see right-hand section of this page). All platforms supported._
+_To use Lozza in Arena, Winboard etc. or command line, download the latest release (see right-hand section of this page). All platforms supported._
 
 # Lozza
 
