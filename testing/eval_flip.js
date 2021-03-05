@@ -15,7 +15,7 @@ console.log('hello world! wait...');
 
 //{{{  get the epds
 
-var data  = fs.readFileSync('../tuning/epds.epd', 'utf8');
+var data  = fs.readFileSync('epds.epd', 'utf8');
 var lines = data.split('\n');
 var epds  = [];
 
@@ -57,7 +57,7 @@ console.log('positions =',epds.length);
 //}}}
 //{{{  get the flipped epds
 
-var data  = fs.readFileSync('../tuning/epds_flip.epd', 'utf8');
+var data  = fs.readFileSync('epds_flip.epd', 'utf8');
 var lines = data.split('\n');
 var epdsf  = [];
 
