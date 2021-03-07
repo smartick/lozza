@@ -1,4 +1,14 @@
 
+
+2.1 05/03/21 Remove R Q imbalance.
+2.1 05/03/21 Remove mobility offets - don't seem to do anything according to tuning.
+Score of coalface vs released: 6409 - 6345 - 9136  [0.501] 21890
+...      coalface playing White: 3243 - 3199 - 4503  [0.502] 10945
+...      coalface playing Black: 3166 - 3146 - 4633  [0.501] 10945
+...      White vs Black: 6389 - 6365 - 9136  [0.501] 21890
+Elo difference: 1.0 +/- 3.5, LOS: 71.5 %, DrawRatio: 41.7 %
+SPRT: llr -2.31 (-78.4%), lbound -2.94, ubound 2.94
+
 2.0 18/02/21 Cumulative v 1.18 at LTC.
 Score of coalface vs released: 191 - 43 - 63  [0.749] 297
 ...      coalface playing White: 95 - 17 - 36  [0.764] 148
