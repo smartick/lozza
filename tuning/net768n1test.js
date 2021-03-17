@@ -6643,7 +6643,7 @@ console.log('hello world! wait...');
 // rnb1kbnr/pp1pppp1/7p/2q5/5P2/N1P1P3/P2P2PP/R1BQKBNR w KQkq - c9 "1/2-1/2"
 // 0                                                   1 2    3 4  5
 
-var data  = lozfs.readFileSync('../testing/quiet-labeled.epd', 'utf8');
+var data  = lozfs.readFileSync('c:/projects/chessdata/quiet-labeled.epd', 'utf8');
 var lines = data.split('\n');
 var epds  = [];
 
@@ -7598,7 +7598,7 @@ for (var i=0; i < 20; i++) {
 */
 //{{{  test 4
 
-var batchSize = 20;
+var batchSize = 200;
 var positions = epds.length;
 var lr        = 0.001;
 var runTime   = 10000000; // seconds
@@ -7612,7 +7612,6 @@ netInitRandom();
 var batchNum = 0;
 var time1    = Date.now();
 var time2    = Date.now();
-
 
 while(1) {
 
@@ -7722,86 +7721,10 @@ while(1) {
 
   netApplyGradients(batchSize,lr);
 
-  if ((Date.now() - time1) > 5*1000) {
+  if ((Date.now() - time1) > 60*1000) {
     console.log('batch =',batchNum,'mean abs diff per position in cp =',(loss/batchSize)*1000.0);
     time1 = Date.now();
   }
-}
-
-// see how it did
-
-for (var i=0; i < 20; i++) {
-  var epd = epds[i];
-  //{{{  input = epd
-  
-  lozuci.spec.board    = epd.board;
-  lozuci.spec.turn     = epd.turn;
-  lozuci.spec.rights   = epd.rights;
-  lozuci.spec.ep       = epd.ep;
-  lozuci.spec.fmc      = epd.fmvn;
-  lozuci.spec.hmc      = epd.hmvc;
-  lozuci.spec.moves    = [];
-  
-  lozza.position();
-  
-  netClearInput();
-  
-  //{{{  add white pieces
-  
-  var pList   = lozb.wList;
-  var pCount  = lozb.wCount;
-  
-  var next    = 0;
-  var count   = 0;
-  var fr      = 0;
-  var frPiece = 0;
-  var count   = 0;
-  
-  while (count < pCount) {
-  
-    fr = pList[next++];
-    if (!fr)
-      continue;
-  
-    count++;
-  
-    frPiece = lozb.b[fr] & PIECE_MASK;
-  
-    netAddWhite(frPiece-1,SQ64[fr]);
-  }
-  
-  //}}}
-  //{{{  add black pieces
-  
-  var pList  = lozb.bList;
-  var pCount = lozb.bCount;
-  
-  var next    = 0;
-  var count   = 0;
-  var fr      = 0;
-  var frPiece = 0;
-  var count   = 0;
-  
-  while (count < pCount) {
-  
-    fr = pList[next++];
-    if (!fr)
-      continue;
-  
-    count++;
-  
-    frPiece = lozb.b[fr] & PIECE_MASK;
-  
-    netAddBlack(frPiece-1,SQ64[fr]);
-  }
-  
-  //}}}
-  
-  //}}}
-  var myEval = epd.eval;
-  netForward();
-  var netEval = neto[0][NETOUT];
-  console.log('lozza',myEval*1000,'net',Math.round(netEval*1000)|0);
 }
 
 //}}}

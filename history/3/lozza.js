@@ -1,7 +1,6 @@
 //"use strict"
 //
 // https://github.com/op12no2
-// testing and tuning results in testing/testing.log
 //
 
 var BUILD = "3";
