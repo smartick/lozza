@@ -1,1 +1,0 @@
-.\PGN-Extract.exe -Wepd --nofauxep -s -ocute.epd cute.pgn
