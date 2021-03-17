@@ -6718,79 +6718,22 @@ console.log('added evals');
 //}}}
 //{{{  create net
 
-//{{{  random funcs
-var spareRandom = null;
-
-
-function normalRandom()
-{
-  var val, u, v, s, mul;
-
-  if(spareRandom !== null)
-  {
-   val = spareRandom;
-   spareRandom = null;
-  }
-  else
-  {
-   do
-   {
-     u = Math.random()*2-1;
-     v = Math.random()*2-1;
-
-     s = u*u+v*v;
-   } while(s === 0 || s >= 1);
-
-   mul = Math.sqrt(-2 * Math.log(s) / s);
-
-   val = u * mul;
-   spareRandom = v * mul;
-  }
-
-  return val;
-}
-
-function normalRandomInRange(min, max)
-{
-  var val;
-  do
-  {
-   val = normalRandom();
-  } while(val < min || val > max);
-
-  return val;
-}
-
-function normalRandomScaled(mean, stddev)
-{
-  var r = normalRandom();
-
-  r = r * stddev + mean;
-
-  return Math.round(r);
-}
-
-//}}}
-
 var netInputSize   = 768;  // input layer.
 var netHiddenSize  = 16;   // hidden later.
 var netOutputSize  = 1;    // output layer.
 
 //{{{  data structures
 
-//
-// Each node has 7 elements.
-//
-
-var NETIN          = 0;  // node input = sum of weights
-var NETGIN         = 1;  // gradient of above
-var NETOUT         = 2;  // node output = sigmoid(input)
-var NETGOUT        = 3;  // gradient of above
-var NETWEIGHTS     = 4;  // weights for node
-var NETGWEIGHTS    = 5;  // gradients of above
-var NETGWEIGHTSSUM = 6;  // sum of above when batching
-
-var NETNODESIZE    = 7;
+var NETIN          = 0;
+var NETGIN         = 1;
+var NETOUT         = 2;
+var NETGOUT        = 3;
+var NETWEIGHTS     = 4;
+var NETGWEIGHTS    = 5;
+var NETGWEIGHTSSUM = 6;
+var MOM1           = 7
+var MOM2           = 8
+var NETNODESIZE    = 9;
 
 var neti = Array(netInputSize);
 var neth = Array(netHiddenSize);
@@ -6805,6 +6748,8 @@ for (var h=0; h < netHiddenSize; h++) {
   neth[h][NETWEIGHTS]     = Array(netInputSize);
   neth[h][NETGWEIGHTS]    = Array(netInputSize);
   neth[h][NETGWEIGHTSSUM] = Array(netInputSize);
+  neth[h][MOM1]           = Array(netInputSize);
+  neth[h][MOM2]           = Array(netInputSize);
 }
 
 for (var o=0; o < netOutputSize; o++) {
@@ -6816,6 +6761,8 @@ for (var o=0; o < netOutputSize; o++) {
   neto[o][NETWEIGHTS]     = Array(netInputSize);
   neto[o][NETGWEIGHTS]    = Array(netInputSize);
   neto[o][NETGWEIGHTSSUM] = Array(netInputSize);
+  neth[h][MOM1]           = Array(netInputSize);
+  neth[h][MOM2]           = Array(netInputSize);
 }
 
 //}}}
@@ -6866,7 +6813,7 @@ function dlinear(x) {
 
 function netRandom() {
 
-  return normalRandomScaled(0.0,1.0) * Math.sqrt(2/neti.length);
+  return (Math.random() - Math.random()) / 10.0;
 
 }
 
@@ -7386,12 +7333,13 @@ for (var i=0; i < 20; i++) {
 
 
 //}}}
+*/
 //{{{  test 3
 
-var batchSize = 5;
-var positions = 100;
+var batchSize = 50;
+var positions = 1000;
 var lr        = 0.001;
-var runTime   = 100; // seconds
+var runTime   = 100000; // seconds
 
 console.log('test 3')
 
@@ -7595,7 +7543,9 @@ for (var i=0; i < 20; i++) {
 }
 
 //}}}
-*/
+
+process.exit();
+
 //{{{  test 4
 
 var batchSize = 200;
@@ -7619,8 +7569,9 @@ while(1) {
     break;
 
   batchNum++;
-  netResetGradientSums();
   var loss = 0;
+
+  netResetGradientSums();
 
   //{{{  do the batch
   
