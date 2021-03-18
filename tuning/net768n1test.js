@@ -6724,7 +6724,7 @@ for (var i=0; i < epds.length; i++) {
 //{{{  create net
 
 var netInputSize   = 768;  // input layer.
-var netHiddenSize  = 32;   // hidden later.
+var netHiddenSize  = 8;   // hidden later.
 
 //{{{  data structures
 
@@ -6966,6 +6966,8 @@ var epochsPerReport = 100;
 var batchesPerEpoch = Math.round(numPositions / batchSize) | 0;
 
 console.log('training positions =', numPositions);
+console.log('input layer size =', netInputSize);
+console.log('hidden layer size =', netHiddenSize);
 console.log('batch size =', batchSize);
 console.log('learning rate =', learningRate);
 console.log('scaleFactor =', scaleFactor);
