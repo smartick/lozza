@@ -6977,11 +6977,11 @@ function netSave () {
 
 //}}}
 
-var scaleFactor     = 1000.0;
+var scaleFactor     = 1.0;
 var numPositions    = 1000;
 var numEpochs       = 100000;
 var batchSize       = 10;
-var learningRate    = 0.001;
+var learningRate    = 0.000001;
 var epochsPerReport = 100;
 
 var batchesPerEpoch = Math.round(numPositions / batchSize) | 0;
