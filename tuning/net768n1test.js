@@ -6724,7 +6724,7 @@ for (var i=0; i < epds.length; i++) {
 //{{{  create net
 
 var netInputSize   = 768;  // input layer.
-var netHiddenSize  = 8;   // hidden later.
+var netHiddenSize  = 32 ;   // hidden later.
 
 //{{{  data structures
 
@@ -6953,6 +6953,27 @@ function netAddBlack(p,sq) {
 }
 
 //}}}
+//{{{  netSave
+
+function netSave () {
+
+  var d   = new Date();
+  var out = '';
+
+  out = out + '\r\n';
+  out = out + '// last update ' + d;
+  out = out + '\r\n\r\n';
+
+  out = out + 'neto[NETWEIGHTS] = ' + neto[NETWEIGHTS].toString() + '\r\n\r\n' ;
+
+  for (var h=0; h < netHiddenSize; h++) {
+    out = out + 'neth[' + h + '][NETWEIGHTS] = ' + neth[h][NETWEIGHTS].toString() + '\r\n\r\n';
+  }
+
+  lozfs.writeFileSync('net' + netInputSize + 'x' + netHiddenSize + '.txt', out);
+}
+
+//}}}
 
 //}}}
 
@@ -7071,6 +7092,7 @@ while(1) {
   
     if (isNaN(netEval)) {
       console.log('net eval nan');
+      netSave();
       process.exit();
     }
   
@@ -7094,24 +7116,7 @@ while(1) {
       console.log('epoch =',thisEpoch,'diff (cp) =',aveDiff);
       thisReport = 0;
       loss       = 0;
-      //{{{  save the weights
-      
-      var d   = new Date();
-      var out = '';
-      
-      out = out + '\r\n';
-      out = out + '// last update ' + d;
-      out = out + '\r\n\r\n';
-      
-      out = out + 'neto[NETWEIGHTS] = ' + neto[NETWEIGHTS].toString() + '\r\n\r\n';
-      
-      for (var h=0; h < netHiddenSize; h++) {
-        out = out + 'neth[' + h + '][NETWEIGHTS] = ' + neth[h][NETWEIGHTS].toString() + '\r\n\r\n';
-      }
-      
-      lozfs.writeFileSync('net' + netInputSize + 'x' + netHiddenSize + '.txt', out);
-      
-      //}}}
+      netSave();
     }
     if (thisEpoch >= numEpochs)
       break;
