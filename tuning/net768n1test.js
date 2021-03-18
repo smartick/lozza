@@ -1119,7 +1119,7 @@ var WOUTPOST = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 
 var BOUTPOST = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,18,21,21,18,26,22,0,0,0,0,0,0,12,19,28,17,36,46,0,0,0,0,0,0,17,17,14,23,23,23,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
 
-var EV = [5,-1,7,2,4,2,2,4,1,1,4,3,21,5,10,13,13,9,9,-3,-1,49,99,23,7,26,18,-1,-3,20,42,7,3,14,56,102,91,793,40,26,1,-1,0,0,0,0,61,21,21,2];
+var EV = [5,-1,7,2,4,2,2,4,1,1,4,3,21,5,10,13,13,9,9,-3,-1,49,99,23,7,26,18,-1,-3,20,42,7,3,14,56,102,91,793,40,26,0,0,0,0,0,0,61,21,21,2];
 
 var imbalN_S = [-91,1,1,-2,2,-1,0,8,22];
 
@@ -2273,6 +2273,7 @@ lozChess.prototype.perftSearch = function (node, depth, turn, inner) {
 
 function lozBoard () {
 
+  this.mat          = 0;
   this.lozza        = null;
   this.verbose      = false;
   this.mvFmt        = 0;
@@ -5225,6 +5226,10 @@ lozBoard.prototype.evaluate = function (turn) {
   var evalS = this.runningEvalS;
   var evalE = this.runningEvalE;
   
+  var e = (evalS * (TPHASE - phase) + evalE * phase) / TPHASE;
+  
+  this.mat = myround(e) | 0;
+  
   evalS += mobS;
   evalE += mobE;
   
@@ -6635,8 +6640,6 @@ var SQ64 =   [0, 0, 0,  0,  0,  0,  0,  0,  0,  0,  0, 0,
 
 //}}}
 
-console.log('hello world! wait...');
-
 //{{{  get the epds
 //
 // quiet-labeled.epd
@@ -6668,6 +6671,7 @@ for (var i=0; i < lines.length; i++) {
   var parts = line.split(' ');
 
   epds.push({eval:   0,
+             mat:    0,
              board:  parts[0],
              turn:   parts[1],
              rights: parts[2],
@@ -6678,10 +6682,10 @@ for (var i=0; i < lines.length; i++) {
 
 lines = []; // release
 
-console.log('positions =',epds.length);
+console.log('available positions =',epds.length);
 
 //}}}
-//{{{  calc eval
+//{{{  get eval and mat
 
 lozza.newGameInit();
 
@@ -6710,17 +6714,17 @@ for (var i=0; i < epds.length; i++) {
     process.exit();
   }
 
-  epd.eval = e / 1000.0;
-}
+  epd.eval = e;
+  epd.mat  = lozb.mat;
 
-console.log('added evals');
+  //console.log(epd.eval,epd.mat);
+}
 
 //}}}
 //{{{  create net
 
 var netInputSize   = 768;  // input layer.
-var netHiddenSize  = 16;   // hidden later.
-var netOutputSize  = 1;    // output layer.
+var netHiddenSize  = 32;   // hidden later.
 
 //{{{  data structures
 
@@ -6731,13 +6735,11 @@ var NETGOUT        = 3;
 var NETWEIGHTS     = 4;
 var NETGWEIGHTS    = 5;
 var NETGWEIGHTSSUM = 6;
-var MOM1           = 7
-var MOM2           = 8
-var NETNODESIZE    = 9;
+var NETNODESIZE    = 7;
 
 var neti = Array(netInputSize);
+
 var neth = Array(netHiddenSize);
-var neto = Array(netOutputSize);
 
 for (var h=0; h < netHiddenSize; h++) {
   neth[h]                 = Array(NETNODESIZE);
@@ -6748,22 +6750,17 @@ for (var h=0; h < netHiddenSize; h++) {
   neth[h][NETWEIGHTS]     = Array(netInputSize);
   neth[h][NETGWEIGHTS]    = Array(netInputSize);
   neth[h][NETGWEIGHTSSUM] = Array(netInputSize);
-  neth[h][MOM1]           = Array(netInputSize);
-  neth[h][MOM2]           = Array(netInputSize);
 }
 
-for (var o=0; o < netOutputSize; o++) {
-  neto[o]                 = Array(NETNODESIZE);
-  neto[o][NETIN]          = 0;
-  neto[o][NETGIN]         = 0;
-  neto[o][NETOUT]         = 0;
-  neto[o][NETGOUT]        = 0;
-  neto[o][NETWEIGHTS]     = Array(netInputSize);
-  neto[o][NETGWEIGHTS]    = Array(netInputSize);
-  neto[o][NETGWEIGHTSSUM] = Array(netInputSize);
-  neth[o][MOM1]           = Array(netInputSize);
-  neth[o][MOM2]           = Array(netInputSize);
-}
+var neto = Array(NETNODESIZE);
+
+neto[NETIN]          = 0;
+neto[NETGIN]         = 0;
+neto[NETOUT]         = 0;
+neto[NETGOUT]        = 0;
+neto[NETWEIGHTS]     = Array(netHiddenSize);
+neto[NETGWEIGHTS]    = Array(netHiddenSize);
+neto[NETGWEIGHTSSUM] = Array(netHiddenSize);
 
 //}}}
 //{{{  sigmoid
@@ -6818,34 +6815,6 @@ function netRandom() {
 }
 
 //}}}
-//{{{  netDiff
-
-function netDiff(target) {
-
-  var x = 0.0;
-
-  for (var o=0; o < netOutputSize; o++) {
-    x += Math.abs((target[o] - neto[o][NETOUT]));
-  }
-
-  return x;
-}
-
-//}}}
-//{{{  netLoss
-
-function netLoss(target) {
-
-  var x = 0.0;
-
-  for (var o=0; o < netOutputSize; o++) {
-    x += (target[o] - neto[o][NETOUT]) * (target[o] - neto[o][NETOUT]);
-  }
-
-  return x;
-}
-
-//}}}
 //{{{  netForward()
 
 function netForward() {
@@ -6856,59 +6825,33 @@ function netForward() {
     for (var i=0; i < netInputSize; i++) {
       hidden[NETIN] += hidden[NETWEIGHTS][i] * neti[i];
     }
-    hidden[NETOUT] = relu(neth[h][NETIN]);
+    hidden[NETOUT] = relu(hidden[NETIN]);
   }
 
-  //for (var o=0; o < netOutputSize; o++) {
-    //var output = neto[o];
-    var output = neto[0];
-    output[NETIN] = 0;
-    for (var h=0; h < netHiddenSize; h++) {
-      output[NETIN] += output[NETWEIGHTS][h] * neth[h][NETOUT];
-    }
-    //output[NETOUT] = linear(output[NETIN]);
-    output[NETOUT] = output[NETIN];
-  //}
+  neto[NETIN] = 0;
+  for (var h=0; h < netHiddenSize; h++) {
+    neto[NETIN] += neto[NETWEIGHTS][h] * neth[h][NETOUT];
+  }
+  neto[NETOUT] = neto[NETIN];
 }
 
 //}}}
 //{{{  netCalcGradients()
 
-function netCalcGradients(targets) {
+function netCalcGradients(target) {
 
-  if (targets.length != netOutputSize) {
-    console.log('netCallGradients','output vector length must be',netOutputSize,'your length is',targets.length);
-    process.exit;
-  }
-
-  //for (var o=0; o < netOutputSize; o++) {
-    //var output = neto[o];
-    var output = neto[0];
-    //output[NETGOUT] = 2 * (output[NETOUT] - targets[o]);
-    output[NETGOUT] = 2 * (output[NETOUT] - targets[0]);
-    //output[NETGIN]  = dlinear(output[NETIN]) * output[NETGOUT];
-    output[NETGIN]  = output[NETGOUT];
-  //}
-
-  //for (var o=0; o < netOutputSize; o++) {
-    //var output = neto[o];
-    var output = neto[0];
-    for (var h=0; h < netHiddenSize; h++) {
-      var hidden = neth[h];
-      output[NETGWEIGHTS][h] = output[NETGIN] * hidden[NETOUT];
-    }
-  //}
+  neto[NETGOUT]  = 2 *(neto[NETOUT] - target);
+  neto[NETGIN]   = neto[NETGOUT];
 
   for (var h=0; h < netHiddenSize; h++) {
     var hidden = neth[h];
-    hidden[NETGOUT] = 0;
-    //for (var o=0; o < netOutputSize; o++) {
-      //var output = neto[o];
-      var output = neto[0];
-      hidden[NETGOUT] += output[NETGIN] * output[NETWEIGHTS][h];
-    //}
-    //neth[h][NETGIN] = drelu(neth[h][NETIN]) * neth[h][NETGOUT];
-    neth[h][NETGIN] = neth[h][NETGOUT];
+    neto[NETGWEIGHTS][h] = neto[NETGIN] * hidden[NETOUT];
+  }
+
+  for (var h=0; h < netHiddenSize; h++) {
+    var hidden = neth[h];
+    hidden[NETGOUT]  = neto[NETGIN] * neto[NETWEIGHTS][h];
+    hidden[NETGIN]   = hidden[NETGOUT];
   }
 
   for (var h=0; h < netHiddenSize; h++) {
@@ -6924,13 +6867,9 @@ function netCalcGradients(targets) {
 
 function netResetGradientSums() {
 
-  //for (var o=0; o < netOutputSize; o++) {
-    //var output = neto[o];
-    var output = neto[0];
-    for (var h=0; h < netHiddenSize; h++) {
-      output[NETGWEIGHTSSUM][h] = 0.0;
-    }
-  //}
+  for (var h=0; h < netHiddenSize; h++) {
+    neto[NETGWEIGHTSSUM][h] = 0.0;
+  }
 
   for (var h=0; h < netHiddenSize; h++) {
     var hidden = neth[h];
@@ -6945,13 +6884,9 @@ function netResetGradientSums() {
 
 function netAccumulateGradients() {
 
-  //for (var o=0; o < netOutputSize; o++) {
-    //var output = neto[o];
-    var output = neto[0];
-    for (var h=0; h < netHiddenSize; h++) {
-      output[NETGWEIGHTSSUM][h] += output[NETGWEIGHTS][h];
-    }
-  //}
+  for (var h=0; h < netHiddenSize; h++) {
+    neto[NETGWEIGHTSSUM][h] += neto[NETGWEIGHTS][h];
+  }
 
   for (var h=0; h < netHiddenSize; h++) {
     var hidden = neth[h];
@@ -6966,13 +6901,9 @@ function netAccumulateGradients() {
 
 function netApplyGradients(b,alpha) {
 
-  //for (var o=0; o < netOutputSize; o++) {
-    //var output = neto[o];
-    var output = neto[0];
-    for (var h=0; h < netHiddenSize; h++) {
-      output[NETWEIGHTS][h] = output[NETWEIGHTS][h] - alpha * (output[NETGWEIGHTSSUM][h] / b);
-    }
-  //}
+  for (var h=0; h < netHiddenSize; h++) {
+    neto[NETWEIGHTS][h] = neto[NETWEIGHTS][h] - alpha * (neto[NETGWEIGHTSSUM][h] / b);
+  }
 
   for (var h=0; h < netHiddenSize; h++) {
     var hidden = neth[h];
@@ -6987,10 +6918,8 @@ function netApplyGradients(b,alpha) {
 
 function netInitRandom() {
 
-  for (var o=0; o < netOutputSize; o++) {
-    for (var h=0; h < netHiddenSize; h++) {
-      neto[o][NETWEIGHTS][h] = netRandom();
-    }
+  for (var h=0; h < netHiddenSize; h++) {
+    neto[NETWEIGHTS][h] = netRandom();
   }
 
   for (var h=0; h < netHiddenSize; h++) {
@@ -7027,6 +6956,7 @@ function netAddBlack(p,sq) {
 
 //}}}
 
+var scaleFactor     = 1000.0;
 var numPositions    = 1000;
 var numEpochs       = 100000;
 var batchSize       = 10;
@@ -7035,7 +6965,10 @@ var epochsPerReport = 100;
 
 var batchesPerEpoch = Math.round(numPositions / batchSize) | 0;
 
-console.log('batches per epoch =', batchesPerEpoch);
+console.log('training positions =', numPositions);
+console.log('batch size =', batchSize);
+console.log('learning rate =', learningRate);
+console.log('scaleFactor =', scaleFactor);
 
 lozza.newGameInit();
 netInitRandom();
@@ -7128,11 +7061,11 @@ while(1) {
     
     //}}}
   
-    var myEval = epd.eval;
+    var myEval = epd.eval / scaleFactor;
   
     netForward();
   
-    var netEval = neto[0][NETOUT];
+    var netEval = neto[NETOUT];
   
     if (isNaN(netEval)) {
       console.log('net eval nan');
@@ -7141,7 +7074,7 @@ while(1) {
   
     loss += Math.abs(myEval - netEval);
   
-    netCalcGradients([myEval]);
+    netCalcGradients(myEval);
     netAccumulateGradients();
   }
   
@@ -7155,12 +7088,31 @@ while(1) {
     thisEpoch++;
     thisReport++;
     if (thisReport >= epochsPerReport) {
-      console.log('epoch =',thisEpoch,'diff (cp) =',(loss/numPositions)*1000.0);
+      var aveDiff = Math.round((loss/numPositions/epochsPerReport) * scaleFactor) | 0; // in cp
+      console.log('epoch =',thisEpoch,'diff (cp) =',aveDiff);
       thisReport = 0;
+      loss       = 0;
+      //{{{  save the weights
+      
+      var d   = new Date();
+      var out = '';
+      
+      out = out + '\r\n';
+      out = out + '// last update ' + d;
+      out = out + '\r\n\r\n';
+      
+      out = out + 'neto[NETWEIGHTS] = ' + neto[NETWEIGHTS].toString() + '\r\n\r\n';
+      
+      for (var h=0; h < netHiddenSize; h++) {
+        out = out + 'neth[' + h + '][NETWEIGHTS] = ' + neth[h][NETWEIGHTS].toString() + '\r\n\r\n';
+      }
+      
+      lozfs.writeFileSync('net' + netInputSize + 'x' + netHiddenSize + '.txt', out);
+      
+      //}}}
     }
     if (thisEpoch >= numEpochs)
       break;
-    loss      = 0;
     thisBatch = 0;
   }
 }
