@@ -6761,8 +6761,8 @@ for (var o=0; o < netOutputSize; o++) {
   neto[o][NETWEIGHTS]     = Array(netInputSize);
   neto[o][NETGWEIGHTS]    = Array(netInputSize);
   neto[o][NETGWEIGHTSSUM] = Array(netInputSize);
-  neth[h][MOM1]           = Array(netInputSize);
-  neth[h][MOM2]           = Array(netInputSize);
+  neth[o][MOM1]           = Array(netInputSize);
+  neth[o][MOM2]           = Array(netInputSize);
 }
 
 //}}}
@@ -6813,7 +6813,7 @@ function dlinear(x) {
 
 function netRandom() {
 
-  return (Math.random() - Math.random()) / 10.0;
+  return (Math.random() - 0.5) / 10.0;
 
 }
 
@@ -7027,346 +7027,34 @@ function netAddBlack(p,sq) {
 
 //}}}
 
-/*
-//{{{  test 1
+var numPositions    = 1000;
+var numEpochs       = 100000;
+var batchSize       = 10;
+var learningRate    = 0.001;
+var epochsPerReport = 100;
 
-var batchSize = 20;
-var lr        = 0.001;
-var epochs    = 5000;
+var batchesPerEpoch = Math.round(numPositions / batchSize) | 0;
 
-console.log('test 1')
-
-lozza.newGameInit();
-
-for (var i=0; i < batchSize; i++) {
-
-  var epd = epds[i];
-
-  //{{{  input = epd
-  
-  lozuci.spec.board    = epd.board;
-  lozuci.spec.turn     = epd.turn;
-  lozuci.spec.rights   = epd.rights;
-  lozuci.spec.ep       = epd.ep;
-  lozuci.spec.fmc      = epd.fmvn;
-  lozuci.spec.hmc      = epd.hmvc;
-  lozuci.spec.moves    = [];
-  
-  lozza.position();
-  
-  netClearInput();
-  
-  //{{{  add white pieces
-  
-  var pList   = lozb.wList;
-  var pCount  = lozb.wCount;
-  
-  var next    = 0;
-  var count   = 0;
-  var fr      = 0;
-  var frPiece = 0;
-  var count   = 0;
-  
-  while (count < pCount) {
-  
-    fr = pList[next++];
-    if (!fr)
-      continue;
-  
-    count++;
-  
-    frPiece = lozb.b[fr] & PIECE_MASK;
-  
-    netAddWhite(frPiece-1,SQ64[fr]);
-  }
-  
-  //}}}
-  //{{{  add black pieces
-  
-  var pList  = lozb.bList;
-  var pCount = lozb.bCount;
-  
-  var next    = 0;
-  var count   = 0;
-  var fr      = 0;
-  var frPiece = 0;
-  var count   = 0;
-  
-  while (count < pCount) {
-  
-    fr = pList[next++];
-    if (!fr)
-      continue;
-  
-    count++;
-  
-    frPiece = lozb.b[fr] & PIECE_MASK;
-  
-    netAddBlack(frPiece-1,SQ64[fr]);
-  }
-  
-  //}}}
-  
-  //}}}
-
-  var myEval = epd.eval;
-
-  netInitRandom();
-
-  for (var j=0; j < epochs; j++) {
-
-    netForward();
-
-    var netEval = neto[0][NETOUT];
-
-    if (isNaN(netEval)) {
-      console.log('test net eval nan',myEval,netEval);
-      process.exit();
-    }
-
-    netResetGradientSums();
-    netCalcGradients([myEval]);
-    netAccumulateGradients();
-    netApplyGradients(1,lr);
-  }
-
-  var netEval = neto[0][NETOUT];
-
-  console.log('lozza',myEval*1000,'net',Math.round(netEval*1000)|0);
-}
-
-
-//}}}
-//{{{  test 2
-
-var epochs = 20000;
-
-console.log('test 2')
+console.log('batches per epoch =', batchesPerEpoch);
 
 lozza.newGameInit();
-
 netInitRandom();
 
-var batchNum = 0;
-var time1    = Date.now();
-
-for (var e=0; e < epochs; e++) {
-
-  batchNum++;
-  netResetGradientSums();
-  var loss = 0;
-
-  //{{{  do the batch
-  
-  for (var i=0; i < batchSize; i++) {
-  
-    var epd = epds[i];
-  
-    //{{{  input = epd
-    
-    lozuci.spec.board    = epd.board;
-    lozuci.spec.turn     = epd.turn;
-    lozuci.spec.rights   = epd.rights;
-    lozuci.spec.ep       = epd.ep;
-    lozuci.spec.fmc      = epd.fmvn;
-    lozuci.spec.hmc      = epd.hmvc;
-    lozuci.spec.moves    = [];
-    
-    lozza.position();
-    
-    netClearInput();
-    
-    //{{{  add white pieces
-    
-    var pList   = lozb.wList;
-    var pCount  = lozb.wCount;
-    
-    var next    = 0;
-    var count   = 0;
-    var fr      = 0;
-    var frPiece = 0;
-    var count   = 0;
-    
-    while (count < pCount) {
-    
-      fr = pList[next++];
-      if (!fr)
-        continue;
-    
-      count++;
-    
-      frPiece = lozb.b[fr] & PIECE_MASK;
-    
-      netAddWhite(frPiece-1,SQ64[fr]);
-    }
-    
-    //}}}
-    //{{{  add black pieces
-    
-    var pList  = lozb.bList;
-    var pCount = lozb.bCount;
-    
-    var next    = 0;
-    var count   = 0;
-    var fr      = 0;
-    var frPiece = 0;
-    var count   = 0;
-    
-    while (count < pCount) {
-    
-      fr = pList[next++];
-      if (!fr)
-        continue;
-    
-      count++;
-    
-      frPiece = lozb.b[fr] & PIECE_MASK;
-    
-      netAddBlack(frPiece-1,SQ64[fr]);
-    }
-    
-    //}}}
-    
-    //}}}
-  
-    var myEval = epd.eval;
-  
-    netForward();
-    var netEval = neto[0][NETOUT];
-  
-    if (isNaN(netEval)) {
-      console.log('net eval nan',myEval,netEval);
-      process.exit();
-    }
-  
-    loss += netDiff([myEval]);
-  
-    netCalcGradients([myEval]);
-    netAccumulateGradients();
-  }
-  
-  //}}}
-
-  netApplyGradients(batchSize,lr);
-
-  if ((Date.now() - time1) > 10*1000) {
-    console.log('batch =',batchNum,'mean abs diff per position in cp =',(loss/batchSize)*1000.0);
-    time1 = Date.now();
-  }
-}
-
-// see how it did
-
-for (var i=0; i < 20; i++) {
-  var epd = epds[i];
-  //{{{  input = epd
-  
-  lozuci.spec.board    = epd.board;
-  lozuci.spec.turn     = epd.turn;
-  lozuci.spec.rights   = epd.rights;
-  lozuci.spec.ep       = epd.ep;
-  lozuci.spec.fmc      = epd.fmvn;
-  lozuci.spec.hmc      = epd.hmvc;
-  lozuci.spec.moves    = [];
-  
-  lozza.position();
-  
-  netClearInput();
-  
-  //{{{  add white pieces
-  
-  var pList   = lozb.wList;
-  var pCount  = lozb.wCount;
-  
-  var next    = 0;
-  var count   = 0;
-  var fr      = 0;
-  var frPiece = 0;
-  var count   = 0;
-  
-  while (count < pCount) {
-  
-    fr = pList[next++];
-    if (!fr)
-      continue;
-  
-    count++;
-  
-    frPiece = lozb.b[fr] & PIECE_MASK;
-  
-    netAddWhite(frPiece-1,SQ64[fr]);
-  }
-  
-  //}}}
-  //{{{  add black pieces
-  
-  var pList  = lozb.bList;
-  var pCount = lozb.bCount;
-  
-  var next    = 0;
-  var count   = 0;
-  var fr      = 0;
-  var frPiece = 0;
-  var count   = 0;
-  
-  while (count < pCount) {
-  
-    fr = pList[next++];
-    if (!fr)
-      continue;
-  
-    count++;
-  
-    frPiece = lozb.b[fr] & PIECE_MASK;
-  
-    netAddBlack(frPiece-1,SQ64[fr]);
-  }
-  
-  //}}}
-  
-  //}}}
-  var myEval = epd.eval;
-  netForward();
-  var netEval = neto[0][NETOUT];
-  console.log('lozza',myEval*1000,'net',Math.round(netEval*1000)|0);
-}
-
-
-//}}}
-*/
-//{{{  test 3
-
-var batchSize = 50;
-var positions = 1000;
-var lr        = 0.001;
-var runTime   = 100000; // seconds
-
-console.log('test 3')
-
-lozza.newGameInit();
-
-netInitRandom();
-
-var batchNum = 0;
-var time1    = Date.now();
-var time2    = Date.now();
-
+var thisReport = 0;
+var thisBatch  = 0;
+var thisEpoch  = 0;
+var loss       = 0;
 
 while(1) {
 
-  if (time2 + runTime * 1000 < Date.now())
-    break;
-
-  batchNum++;
   netResetGradientSums();
-  var loss = 0;
 
   //{{{  do the batch
   
   var batches = [];
   
   for (var i=0; i < batchSize; i++) {
-    batches[i] = Math.random() * positions | 0;
+    batches[i] = Math.random() * numPositions | 0;
   }
   
   for (var i=0; i < batchSize; i++) {
@@ -7443,14 +7131,15 @@ while(1) {
     var myEval = epd.eval;
   
     netForward();
+  
     var netEval = neto[0][NETOUT];
   
     if (isNaN(netEval)) {
-      console.log('net eval nan',myEval,netEval);
+      console.log('net eval nan');
       process.exit();
     }
   
-    loss += netDiff([myEval]);
+    loss += Math.abs(myEval - netEval);
   
     netCalcGradients([myEval]);
     netAccumulateGradients();
@@ -7458,227 +7147,23 @@ while(1) {
   
   //}}}
 
-  netApplyGradients(batchSize,lr);
+  netApplyGradients(batchSize,learningRate);
 
-  if ((Date.now() - time1) > 5*1000) {
-    console.log('batch =',batchNum,'mean abs diff per position in cp =',(loss/batchSize)*1000.0);
-    time1 = Date.now();
+  thisBatch++;
+
+  if (thisBatch >= batchesPerEpoch) {
+    thisEpoch++;
+    thisReport++;
+    if (thisReport >= epochsPerReport) {
+      console.log('epoch =',thisEpoch,'diff (cp) =',(loss/numPositions)*1000.0);
+      thisReport = 0;
+    }
+    if (thisEpoch >= numEpochs)
+      break;
+    loss      = 0;
+    thisBatch = 0;
   }
 }
-
-// see how it did
-
-for (var i=0; i < 20; i++) {
-  var epd = epds[i];
-  //{{{  input = epd
-  
-  lozuci.spec.board    = epd.board;
-  lozuci.spec.turn     = epd.turn;
-  lozuci.spec.rights   = epd.rights;
-  lozuci.spec.ep       = epd.ep;
-  lozuci.spec.fmc      = epd.fmvn;
-  lozuci.spec.hmc      = epd.hmvc;
-  lozuci.spec.moves    = [];
-  
-  lozza.position();
-  
-  netClearInput();
-  
-  //{{{  add white pieces
-  
-  var pList   = lozb.wList;
-  var pCount  = lozb.wCount;
-  
-  var next    = 0;
-  var count   = 0;
-  var fr      = 0;
-  var frPiece = 0;
-  var count   = 0;
-  
-  while (count < pCount) {
-  
-    fr = pList[next++];
-    if (!fr)
-      continue;
-  
-    count++;
-  
-    frPiece = lozb.b[fr] & PIECE_MASK;
-  
-    netAddWhite(frPiece-1,SQ64[fr]);
-  }
-  
-  //}}}
-  //{{{  add black pieces
-  
-  var pList  = lozb.bList;
-  var pCount = lozb.bCount;
-  
-  var next    = 0;
-  var count   = 0;
-  var fr      = 0;
-  var frPiece = 0;
-  var count   = 0;
-  
-  while (count < pCount) {
-  
-    fr = pList[next++];
-    if (!fr)
-      continue;
-  
-    count++;
-  
-    frPiece = lozb.b[fr] & PIECE_MASK;
-  
-    netAddBlack(frPiece-1,SQ64[fr]);
-  }
-  
-  //}}}
-  
-  //}}}
-  var myEval = epd.eval;
-  netForward();
-  var netEval = neto[0][NETOUT];
-  console.log('lozza',myEval*1000,'net',Math.round(netEval*1000)|0);
-}
-
-//}}}
-
-process.exit();
-
-//{{{  test 4
-
-var batchSize = 200;
-var positions = epds.length;
-var lr        = 0.001;
-var runTime   = 10000000; // seconds
-
-console.log('test 4')
-
-lozza.newGameInit();
-
-netInitRandom();
-
-var batchNum = 0;
-var time1    = Date.now();
-var time2    = Date.now();
-
-while(1) {
-
-  if (time2 + runTime * 1000 < Date.now())
-    break;
-
-  batchNum++;
-  var loss = 0;
-
-  netResetGradientSums();
-
-  //{{{  do the batch
-  
-  var batches = [];
-  
-  for (var i=0; i < batchSize; i++) {
-    batches[i] = Math.random() * positions | 0;
-  }
-  
-  for (var i=0; i < batchSize; i++) {
-  
-    var epd = epds[batches[i]];
-  
-    //{{{  input = epd
-    
-    lozuci.spec.board    = epd.board;
-    lozuci.spec.turn     = epd.turn;
-    lozuci.spec.rights   = epd.rights;
-    lozuci.spec.ep       = epd.ep;
-    lozuci.spec.fmc      = epd.fmvn;
-    lozuci.spec.hmc      = epd.hmvc;
-    lozuci.spec.moves    = [];
-    
-    lozza.position();
-    
-    netClearInput();
-    
-    //{{{  add white pieces
-    
-    var pList   = lozb.wList;
-    var pCount  = lozb.wCount;
-    
-    var next    = 0;
-    var count   = 0;
-    var fr      = 0;
-    var frPiece = 0;
-    var count   = 0;
-    
-    while (count < pCount) {
-    
-      fr = pList[next++];
-      if (!fr)
-        continue;
-    
-      count++;
-    
-      frPiece = lozb.b[fr] & PIECE_MASK;
-    
-      netAddWhite(frPiece-1,SQ64[fr]);
-    }
-    
-    //}}}
-    //{{{  add black pieces
-    
-    var pList  = lozb.bList;
-    var pCount = lozb.bCount;
-    
-    var next    = 0;
-    var count   = 0;
-    var fr      = 0;
-    var frPiece = 0;
-    var count   = 0;
-    
-    while (count < pCount) {
-    
-      fr = pList[next++];
-      if (!fr)
-        continue;
-    
-      count++;
-    
-      frPiece = lozb.b[fr] & PIECE_MASK;
-    
-      netAddBlack(frPiece-1,SQ64[fr]);
-    }
-    
-    //}}}
-    
-    //}}}
-  
-    var myEval = epd.eval;
-  
-    netForward();
-    var netEval = neto[0][NETOUT];
-  
-    if (isNaN(netEval)) {
-      console.log('net eval nan',myEval,netEval);
-      process.exit();
-    }
-  
-    loss += netDiff([myEval]);
-  
-    netCalcGradients([myEval]);
-    netAccumulateGradients();
-  }
-  
-  //}}}
-
-  netApplyGradients(batchSize,lr);
-
-  if ((Date.now() - time1) > 60*1000) {
-    console.log('batch =',batchNum,'mean abs diff per position in cp =',(loss/batchSize)*1000.0);
-    time1 = Date.now();
-  }
-}
-
-//}}}
 
 process.exit();
 
