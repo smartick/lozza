@@ -6964,10 +6964,10 @@ function netSave () {
   out = out + '// last update ' + d;
   out = out + '\r\n\r\n';
 
-  out = out + 'neto[NETWEIGHTS] = ' + neto[NETWEIGHTS].toString() + '\r\n\r\n' ;
+  out = out + 'neto[NETWEIGHTS] = [' + neto[NETWEIGHTS].toString() + ']\r\n\r\n' ;
 
   for (var h=0; h < netHiddenSize; h++) {
-    out = out + 'neth[' + h + '][NETWEIGHTS] = ' + neth[h][NETWEIGHTS].toString() + '\r\n\r\n';
+    out = out + 'neth[' + h + '][NETWEIGHTS] = [' + neth[h][NETWEIGHTS].toString() + ']\r\n\r\n';
   }
 
   lozfs.writeFileSync('net' + netInputSize + 'x' + netHiddenSize + '.txt', out);
@@ -6981,7 +6981,7 @@ var scaleFactor     = 1.0;
 var numPositions    = 1000;
 var numEpochs       = 100000;
 var batchSize       = 10;
-var learningRate    = 0.000001;
+var learningRate    = 0.0001;
 var epochsPerReport = 100;
 
 var batchesPerEpoch = Math.round(numPositions / batchSize) | 0;
