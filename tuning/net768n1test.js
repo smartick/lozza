@@ -6983,7 +6983,7 @@ var scaleFactor     = 100;
 var numPositions    = epds.length;
 var numEpochs       = 1000000;
 var batchSize       = 100;
-var learningRate    = 0.01;
+var learningRate    = 0.001;
 var epochsPerReport = 1;
 
 var batchesPerEpoch = Math.round(numPositions / batchSize) | 0;
