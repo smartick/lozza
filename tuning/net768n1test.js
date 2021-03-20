@@ -6726,7 +6726,7 @@ for (var i=0; i < epds.length; i++) {
 //{{{  create net
 
 var netInputSize   = 768;  // input layer.
-var netHiddenSize  = 32 ;   // hidden later.
+var netHiddenSize  = 16;    // hidden later.
 
 //{{{  data structures
 

@@ -1057,7 +1057,8 @@ var randoms = [
 
 //}}}
 
-//{{{  tuned params
+//{{{  tuned params Sat Mar 20 2021 13:35:06 GMT+0000 (Greenwich Mean Time), err=0.055823882907832835
+
 var VALUE_VECTOR = [0,100,348,353,540,1054,10000];
 
 var WPAWN_PSTS = [
@@ -1452,22 +1453,21 @@ var BOUTPOST = [
 
 var EV = [5,-1,7,2,4,2,2,4,1,1,4,3,21,5,10,13,13,9,9,-3,-1,49,99,23,7,26,18,-1,-3,20,42,7,3,14,56,102,91,793,40,26,61,21,21,2];
 
-var WSHELTER = [0,0,0,7,12,12,33,7,0,28];
+var WSHELTER = [0,0,0,7,12,12,33,3,0,28];
 
 var WSTORM = [0,0,0,35,5,4,-8,-1,0,5];
 
-var imbalN_S = [-91,18,12,-1,-1,-2,3,10,20];
+var imbalN_S = [-91,42,18,-1,-1,-2,3,10,20];
 
-var imbalN_E = [-94,-36,-24,-14,-6,2,18,31,29];
+var imbalN_E = [-94,-42,-24,-14,-6,2,18,31,33];
 
-var imbalB_S = [-35,-2,3,2,5,5,5,10,11];
+var imbalB_S = [-79,-2,3,2,5,7,5,10,11];
 
-var imbalB_E = [15,-18,-14,-11,-14,-8,-4,1,27];
+var imbalB_E = [21,-18,-14,-11,-14,-10,-4,1,31];
 
 // K=1.603
-// bestErr=0.055826949502539074
-// last update Sat Mar 20 2021 09:57:03 GMT+0000 (Greenwich Mean Time)
-
+// bestErr=0.055823882907832835
+// last update Sat Mar 20 2021 13:35:06 GMT+0000 (Greenwich Mean Time)
 
 //}}}
 //{{{  ev assignments
@@ -6917,6 +6917,13 @@ if (lozzaHost == HOST_NODEJS) {
 
 //}}}
 
+if (process.argv[2])
+  var globalInc = parseInt(process.argv[2]);
+else
+  var globalInc = 1;
+
+console.log('increment =', globalInc);
+
 //
 // 2.1
 // copy lozza.js above here.
@@ -7074,7 +7081,7 @@ function logpst (p,s) {
 function saveparams () {
 
   var d   = new Date();
-  var out = '';
+  var out = '//{{{  tuned params ' + d + ', err=' + bestErr + '\r\n\r\n';
 
   out = out + 'var VALUE_VECTOR = [' + VALUE_VECTOR.toString() + '];';
   out = out + '\r\n\r\n';
@@ -7135,6 +7142,7 @@ function saveparams () {
   out = out + '\r\n';
   out = out + '// last update '+d;
   out = out + '\r\n\r\n';
+  out = out + '//}}}\r\n';
 
   fs.writeFileSync('texeltune2.1.txt',out);
 }
@@ -7339,16 +7347,19 @@ iter     = 1;          // num full iters (trying all params)
 iter2    = 1;          // num of outer iters
 thisErr  = 0;
 better2  = 1;
-better   = 1;
 changes  = 0;          // num changes made in this iter
 tries    = 0;          // num calls to calcErr() made in this iter
 
 while (better2) {
+
   for (var i=0; i < params.length; i++) {
      params[i].inc  = 0;
      params[i].skip = 0;
   }
+
   better2 = 0;
+  better  = 1;
+
   while (better) {
 
     var t1 = Date.now();
@@ -7393,9 +7404,9 @@ while (better2) {
       }
     
       else {
-        //{{{  try 1
+        //{{{  try inc
         
-        p.inc = 2;
+        p.inc = globalInc;
         
         p.a[p.i] = p.a[p.i] + p.inc;
         
@@ -7412,9 +7423,9 @@ while (better2) {
         p.a[p.i] = p.a[p.i] - p.inc;
         
         //}}}
-        //{{{  try -1
+        //{{{  try -inc
         
-        p.inc = -2;
+        p.inc = -globalInc;
         
         p.a[p.i] = p.a[p.i] + p.inc;
         
@@ -7453,6 +7464,7 @@ while (better2) {
     changes = 0;
     iter++;
   }
+
   iter2++;
 }
 
