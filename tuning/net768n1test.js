@@ -5226,18 +5226,14 @@ lozBoard.prototype.evaluate = function (turn) {
   var evalS = this.runningEvalS;
   var evalE = this.runningEvalE;
   
-  var e = (evalS * (TPHASE - phase) + evalE * phase) / TPHASE;
-  
-  this.mat = myround(e) | 0;
-  
   evalS += mobS;
   evalE += mobE;
   
   evalS += trappedS;
   evalE += trappedE;
   
-  evalS += tempoS;
-  evalE += tempoE;
+  //evalS += tempoS;
+  //evalE += tempoE;
   
   evalS += attS;
   evalE += attE;
@@ -5265,31 +5261,8 @@ lozBoard.prototype.evaluate = function (turn) {
   e = myround(e) | 0;
   
   //}}}
-  //{{{  verbose
-  
-  if (this.verbose) {
-    uci.send('info string','phased eval =',e);
-    uci.send('info string','phase =',phase);
-    uci.send('info string','evaluation =',evalS,evalE);
-    uci.send('info string','trapped =',trappedS,trappedE);
-    uci.send('info string','mobility =',mobS,mobE);
-    uci.send('info string','attacks =',attS,attE);
-    uci.send('info string','material =',this.runningEvalS,this.runningEvalE);
-    uci.send('info string','kings =',kingS,kingE);
-    uci.send('info string','queens =',queensS,queensE);
-    uci.send('info string','rooks =',rooksS,rooksE);
-    uci.send('info string','bishops =',bishopsS,bishopsE);
-    uci.send('info string','knights =',knightsS,knightsE);
-    uci.send('info string','pawns =',pawnsS,pawnsE);
-    uci.send('info string','tempo =',tempoS,tempoE);
-  }
-  
-  //}}}
 
-  //if (turn == WHITE)
-    return e;
-  //else
-    //return -e;
+  return e;
 }
 
 //}}}
@@ -6684,7 +6657,7 @@ lines = []; // release
 console.log('available positions =',epds.length);
 
 //}}}
-//{{{  get eval and mat
+//{{{  get eval
 
 lozza.newGameInit();
 
@@ -6716,7 +6689,6 @@ for (var i=0; i < epds.length; i++) {
   }
 
   epd.eval = e;
-  epd.mat  = lozb.mat;
 
   if (Math.abs(e) > max)
     max = Math.abs(e);
@@ -6726,43 +6698,28 @@ for (var i=0; i < epds.length; i++) {
 //{{{  create net
 
 var netInputSize   = 768;  // input layer.
-var netHiddenSize  = 16;    // hidden later.
+var netHiddenSize  = 64;    // hidden later.
 
 //{{{  data structures
 
-var NETIN          = 0;
-var NETGIN         = 1;
-var NETOUT         = 2;
-var NETGOUT        = 3;
-var NETWEIGHTS     = 4;
-var NETGWEIGHTS    = 5;
-var NETGWEIGHTSSUM = 6;
-var NETNODESIZE    = 7;
+function netNode (weightsSize) {
+  this.in          = 0;
+  this.gin         = 0;
+  this.out         = 0;
+  this.gout        = 0;
+  this.weights     = Array(weightsSize);
+  this.gweights    = Array(weightsSize);
+  this.gweightssum = Array(weightsSize);
+}
 
 var neti = Array(netInputSize);
 
 var neth = Array(netHiddenSize);
-
 for (var h=0; h < netHiddenSize; h++) {
-  neth[h]                 = Array(NETNODESIZE);
-  neth[h][NETIN]          = 0;
-  neth[h][NETGIN]         = 0;
-  neth[h][NETOUT]         = 0;
-  neth[h][NETGOUT]        = 0;
-  neth[h][NETWEIGHTS]     = Array(netInputSize);
-  neth[h][NETGWEIGHTS]    = Array(netInputSize);
-  neth[h][NETGWEIGHTSSUM] = Array(netInputSize);
+  neth[h] = new netNode(netInputSize);
 }
 
-var neto = Array(NETNODESIZE);
-
-neto[NETIN]          = 0;
-neto[NETGIN]         = 0;
-neto[NETOUT]         = 0;
-neto[NETGOUT]        = 0;
-neto[NETWEIGHTS]     = Array(netHiddenSize);
-neto[NETGWEIGHTS]    = Array(netHiddenSize);
-neto[NETGWEIGHTSSUM] = Array(netHiddenSize);
+var neto = new netNode(netHiddenSize);
 
 //}}}
 //{{{  sigmoid
@@ -6823,18 +6780,18 @@ function netForward() {
 
   for (var h=0; h < netHiddenSize; h++) {
     var hidden = neth[h];
-    hidden[NETIN] = 0;
+    hidden.in = 0;
     for (var i=0; i < netInputSize; i++) {
-      hidden[NETIN] += hidden[NETWEIGHTS][i] * neti[i];
+      hidden.in += hidden.weights[i] * neti[i];
     }
-    hidden[NETOUT] = relu(hidden[NETIN]);
+    hidden.out = relu(hidden.in);
   }
 
-  neto[NETIN] = 0;
+  neto.in = 0;
   for (var h=0; h < netHiddenSize; h++) {
-    neto[NETIN] += neto[NETWEIGHTS][h] * neth[h][NETOUT];
+    neto.in += neto.weights[h] * neth[h].out;
   }
-  neto[NETOUT] = neto[NETIN];
+  neto.out = neto.in;
 }
 
 //}}}
@@ -6842,24 +6799,24 @@ function netForward() {
 
 function netCalcGradients(target) {
 
-  neto[NETGOUT]  = 2 *(neto[NETOUT] - target);
-  neto[NETGIN]   = neto[NETGOUT];
+  neto.gout  = 2 *(neto.out - target);
+  neto.gin   = neto.gout;
 
   for (var h=0; h < netHiddenSize; h++) {
     var hidden = neth[h];
-    neto[NETGWEIGHTS][h] = neto[NETGIN] * hidden[NETOUT];
+    neto.gweights[h] = neto.gin * hidden.out;
   }
 
   for (var h=0; h < netHiddenSize; h++) {
     var hidden = neth[h];
-    hidden[NETGOUT]  = neto[NETGIN] * neto[NETWEIGHTS][h];
-    hidden[NETGIN]   = hidden[NETGOUT];
+    hidden.gout = neto.gin * neto.weights[h];
+    hidden.gin  = hidden.gout;
   }
 
   for (var h=0; h < netHiddenSize; h++) {
     var hidden = neth[h];
     for (var i=0; i < netInputSize; i++) {
-      hidden[NETGWEIGHTS][i] = hidden[NETGIN] * neti[i];
+      hidden.gweights[i] = hidden.gin * neti[i];
     }
   }
 }
@@ -6870,13 +6827,13 @@ function netCalcGradients(target) {
 function netResetGradientSums() {
 
   for (var h=0; h < netHiddenSize; h++) {
-    neto[NETGWEIGHTSSUM][h] = 0.0;
+    neto.gweightssum[h] = 0.0;
   }
 
   for (var h=0; h < netHiddenSize; h++) {
     var hidden = neth[h];
     for (var i=0; i < netInputSize; i++) {
-      hidden[NETGWEIGHTSSUM][i] = 0.0;
+      hidden.gweightssum[i] = 0.0;
     }
   }
 }
@@ -6887,13 +6844,13 @@ function netResetGradientSums() {
 function netAccumulateGradients() {
 
   for (var h=0; h < netHiddenSize; h++) {
-    neto[NETGWEIGHTSSUM][h] += neto[NETGWEIGHTS][h];
+    neto.gweightssum[h] += neto.gweights[h];
   }
 
   for (var h=0; h < netHiddenSize; h++) {
     var hidden = neth[h];
     for (var i=0; i < netInputSize; i++) {
-      hidden[NETGWEIGHTSSUM][i] += hidden[NETGWEIGHTS][i];
+      hidden.gweightssum[i] += hidden.gweights[i];
     }
   }
 }
@@ -6904,13 +6861,13 @@ function netAccumulateGradients() {
 function netApplyGradients(b,alpha) {
 
   for (var h=0; h < netHiddenSize; h++) {
-    neto[NETWEIGHTS][h] = neto[NETWEIGHTS][h] - alpha * (neto[NETGWEIGHTSSUM][h] / b);
+    neto.weights[h] = neto.weights[h] - alpha * (neto.gweightssum[h] / b);
   }
 
   for (var h=0; h < netHiddenSize; h++) {
     var hidden = neth[h];
     for (var i=0; i < netInputSize; i++) {
-      hidden[NETWEIGHTS][i] = hidden[NETWEIGHTS][i] - alpha * (hidden[NETGWEIGHTSSUM][i] / b);
+      hidden.weights[i] = hidden.weights[i] - alpha * (hidden.gweightssum[i] / b);
     }
   }
 }
@@ -6921,12 +6878,12 @@ function netApplyGradients(b,alpha) {
 function netInitRandom() {
 
   for (var h=0; h < netHiddenSize; h++) {
-    neto[NETWEIGHTS][h] = netRandom();
+    neto.weights[h] = netRandom();
   }
 
   for (var h=0; h < netHiddenSize; h++) {
     for (var i=0; i < netInputSize; i++) {
-      neth[h][NETWEIGHTS][i] = netRandom();
+      neth[h].weights[i] = netRandom();
     }
   }
 }
@@ -6966,10 +6923,10 @@ function netSave () {
   out = out + '// last update ' + d;
   out = out + '\r\n\r\n';
 
-  out = out + 'neto[NETWEIGHTS] = [' + neto[NETWEIGHTS].toString() + ']\r\n\r\n' ;
+  out = out + 'neto.weights = [' + neto.weights.toString() + ']\r\n\r\n' ;
 
   for (var h=0; h < netHiddenSize; h++) {
-    out = out + 'neth[' + h + '][NETWEIGHTS] = [' + neth[h][NETWEIGHTS].toString() + ']\r\n\r\n';
+    out = out + 'neth[' + h + '].weights = [' + neth[h].weights.toString() + ']\r\n\r\n';
   }
 
   lozfs.writeFileSync('net' + netInputSize + 'x' + netHiddenSize + '.txt', out);
@@ -7090,7 +7047,7 @@ while(1) {
   
     netForward();
   
-    var netEval = neto[NETOUT];
+    var netEval = neto.out;
   
     if (isNaN(netEval)) {
       console.log('net eval nan');

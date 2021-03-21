@@ -12,7 +12,7 @@ set r=-resign movecount=3 score=400
 
 set d=-draw movenumber=40 movecount=8 score=10
 
-set o=-repeat -srand %@Random[0,99999999] -openings file=4moves_noob.pgn format=pgn order=random plies=16
+set o=-repeat -srand %@Random[0,99999999] -openings file=c:\projects\chessdata\4moves_noob.pgn format=pgn order=random plies=16
 
 set f=-pgnout cctry.pgn fi
 
