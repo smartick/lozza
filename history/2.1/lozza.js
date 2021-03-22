@@ -285,6 +285,7 @@ var iTWOBISHOPS_E         = 40;
 var iTEMPO_S              = 41;
 var iTEMPO_E              = 42;
 var iSHELTERM             = 43;
+var iOUTPOSTPAWN          = 45;
 
 //}}}
 
@@ -1112,7 +1113,7 @@ var WOUTPOST = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 
 var BOUTPOST = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,18,21,21,18,26,22,0,0,0,0,0,0,12,19,28,17,36,46,0,0,0,0,0,0,17,17,14,23,23,23,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
 
-var EV = [5,-1,7,2,4,2,2,4,1,1,4,3,21,5,10,13,13,9,9,-3,-1,49,99,23,7,26,18,-1,-3,20,42,7,3,14,56,102,91,793,40,26,61,21,21,2];
+var EV = [5,-1,7,2,4,2,2,4,1,1,4,3,21,5,10,13,13,9,9,-3,-1,49,99,23,7,26,18,-1,-3,20,42,7,3,14,56,102,91,793,40,26,61,21,21,2,20];
 
 var imbalN_S = [-91,1,1,-2,2,-1,0,8,22];
 
@@ -1177,6 +1178,7 @@ var TWOBISHOPS_E         = EV[iTWOBISHOPS_E];
 var TEMPO_S              = EV[iTEMPO_S];
 var TEMPO_E              = EV[iTEMPO_E];
 var SHELTERM             = EV[iSHELTERM];
+var OUTPOSTPAWN          = EV[iOUTPOSTPAWN];
 
 //}}}
 //{{{  pst lists
@@ -4705,8 +4707,8 @@ lozBoard.prototype.evaluate = function (turn) {
       
         if (((bLeastR & frMask) >>> frBits) <= frRank && ((bLeastL & frMask) >>> frBits) <= frRank) {
           knightsS += outpost;
-          knightsS += outpost * IS_WP[b[fr+11]];
-          knightsS += outpost * IS_WP[b[fr+13]];
+          if (IS_WP[b[fr+11]] || IS_WP[b[fr+13]])
+            knights += OUTPOSTPAWN;
         }
       }
       
@@ -4927,8 +4929,8 @@ lozBoard.prototype.evaluate = function (turn) {
       
         if (((wLeastR & frMask) >>> frBits) >= frRank && ((wLeastL & frMask) >>> frBits) >= frRank) {
           knightsS -= outpost;
-          knightsS -= outpost * IS_BP[b[fr-11]];
-          knightsS -= outpost * IS_BP[b[fr-13]];
+          if (IS_WP[b[fr-11]] || IS_WP[b[fr-13]])
+            knights -= OUTPOSTPAWN;
         }
       }
       

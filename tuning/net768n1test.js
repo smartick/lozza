@@ -6698,7 +6698,7 @@ for (var i=0; i < epds.length; i++) {
 //{{{  create net
 
 var netInputSize   = 768;  // input layer.
-var netHiddenSize  = 64;    // hidden later.
+var netHiddenSize  = 512;    // hidden later.
 
 //{{{  data structures
 
@@ -6917,17 +6917,22 @@ function netAddBlack(p,sq) {
 function netSave () {
 
   var d   = new Date();
-  var out = '';
+  var out = '//{{{  net data';
 
   out = out + '\r\n';
   out = out + '// last update ' + d;
   out = out + '\r\n\r\n';
 
-  out = out + 'neto.weights = [' + neto.weights.toString() + ']\r\n\r\n' ;
+  for (var h=0; h< netHiddenSize; h++)
+    out = out + 'neto.weights[' + h + '] = ' + neto.weights[h].toString() + ';\r\n' ;
 
   for (var h=0; h < netHiddenSize; h++) {
-    out = out + 'neth[' + h + '].weights = [' + neth[h].weights.toString() + ']\r\n\r\n';
+    for (var i=0; i < netInputSize; i++) {
+      out = out + 'neth[' + h + '].weights[' + i + '] = ' + neth[h].weights[i].toString() + ';\r\n' ;
+    }
   }
+
+  out += '//}}}';
 
   lozfs.writeFileSync('net' + netInputSize + 'x' + netHiddenSize + '.txt', out);
 }
@@ -7076,6 +7081,89 @@ while(1) {
       thisReport = 0;
       loss       = 0;
       netSave();
+      //{{{  test
+      
+      for (var i=0; i < 10; i++) {
+      
+        var epd = epds[Math.random() * epds.length | 0];
+      
+        //{{{  input = epd
+        
+        lozuci.spec.board    = epd.board;
+        lozuci.spec.turn     = epd.turn;
+        lozuci.spec.rights   = epd.rights;
+        lozuci.spec.ep       = epd.ep;
+        lozuci.spec.fmc      = epd.fmvn;
+        lozuci.spec.hmc      = epd.hmvc;
+        lozuci.spec.moves    = [];
+        
+        lozza.position();
+        
+        netClearInput();
+        
+        //{{{  add white pieces
+        
+        var pList   = lozb.wList;
+        var pCount  = lozb.wCount;
+        
+        var next    = 0;
+        var count   = 0;
+        var fr      = 0;
+        var frPiece = 0;
+        var count   = 0;
+        
+        while (count < pCount) {
+        
+          fr = pList[next++];
+          if (!fr)
+            continue;
+        
+          count++;
+        
+          frPiece = lozb.b[fr] & PIECE_MASK;
+        
+          netAddWhite(frPiece-1,SQ64[fr]);
+        }
+        
+        //}}}
+        //{{{  add black pieces
+        
+        var pList  = lozb.bList;
+        var pCount = lozb.bCount;
+        
+        var next    = 0;
+        var count   = 0;
+        var fr      = 0;
+        var frPiece = 0;
+        var count   = 0;
+        
+        while (count < pCount) {
+        
+          fr = pList[next++];
+          if (!fr)
+            continue;
+        
+          count++;
+        
+          frPiece = lozb.b[fr] & PIECE_MASK;
+        
+          netAddBlack(frPiece-1,SQ64[fr]);
+        }
+        
+        //}}}
+        
+        //}}}
+      
+        var myEval = epd.eval;
+      
+        netForward();
+      
+        var netEval = neto.out;
+      
+        console.log(epd.board,epd.turn,epd.rights,'eva',myEval,'net',netEval*100)
+      }
+      
+      //}}}
     }
     if (thisEpoch >= numEpochs)
       break;

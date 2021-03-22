@@ -6894,17 +6894,22 @@ function netAddBlack(p,sq) {
 function netSave () {
 
   var d   = new Date();
-  var out = '';
+  var out = '//{{{  net data';
 
   out = out + '\r\n';
   out = out + '// last update ' + d;
   out = out + '\r\n\r\n';
 
-  out = out + 'neto.weights = [' + neto.weights.toString() + ']\r\n\r\n' ;
+  for (var h=0; h< netHiddenSize; h++)
+    out = out + 'neto.weights[' + h + '] = ' + neto.weights[h].toString() + ';\r\n' ;
 
   for (var h=0; h < netHiddenSize; h++) {
-    out = out + 'neth[' + h + '].weights = [' + neth[h].weights.toString() + ']\r\n\r\n';
+    for (var i=0; i < netInputSize; i++) {
+      out = out + 'neth[' + h + '].weights[' + i + '] = ' + neth[h].weights[i].toString() + ';\r\n' ;
+    }
   }
+
+  out += '//}}}';
 
   lozfs.writeFileSync('net' + netInputSize + 'x' + netHiddenSize + '.txt', out);
 }
