@@ -6628,13 +6628,6 @@ if (lozzaHost == HOST_NODEJS) {
 
 //}}}
 
-if (process.argv[2])
-  var globalInc = parseInt(process.argv[2]);
-else
-  var globalInc = 1;
-
-console.log('increment =', globalInc);
-
 //
 // 2.1
 // copy lozza.js above here.
@@ -6644,6 +6637,13 @@ console.log('increment =', globalInc);
 //   1. TURN OFF PAWN TT
 //   2. COPY EV ASSIGNS TO EVALUATE.
 //
+
+if (process.argv[2])
+  var globalInc = parseInt(process.argv[2]);
+else
+  var globalInc = 1;
+
+console.log('increment =', globalInc);
 
 //{{{  lozza globals
 
@@ -6683,7 +6683,10 @@ function sigmoid (qs) {
 //}}}
 //{{{  calcErr
 
-function calcErr () {
+function calcErr (param) {
+
+  var ctype = param.ctype;
+  var cdata = param.cdata;
 
   for (var i=0; i < 144; i++) {
     BPAWN_PSTS[wbmap(i)]   = WPAWN_PSTS[i];
@@ -6705,8 +6708,9 @@ function calcErr () {
 
   process.stdout.write(tries+'\r');
 
-  var err = 0;
-  var num = epds.length;
+  var err   = 0;
+  var num   = epds.length;
+  var using = 0;
 
   for (var i=0; i < num; i++) {
 
@@ -6723,6 +6727,65 @@ function calcErr () {
 
     lozza.position();
 
+    var skip = false;
+
+    //{{{  skip this one?
+    
+    var numPieces = board.wCount + this.bCount;
+    
+    var wNumQueens  = board.wCounts[QUEEN];
+    var wNumRooks   = board.wCounts[ROOK];
+    var wNumBishops = board.wCounts[BISHOP];
+    var wNumKnights = board.wCounts[KNIGHT];
+    var wNumPawns   = board.wCounts[PAWN];
+    
+    var bNumQueens  = board.bCounts[QUEEN];
+    var bNumRooks   = board.bCounts[ROOK];
+    var bNumBishops = board.bCounts[BISHOP];
+    var bNumKnights = board.bCounts[KNIGHT];
+    var bNumPawns   = board.bCounts[PAWN];
+    
+    var wCanBeAttacked = bNumQueens && (bNumRooks || bNumBishops || bNumKnights);
+    var bCanBeAttacked = wNumQueens && (wNumRooks || wNumBishops || wNumKnights);
+    
+    if (ctype == COND_PST) {
+      skip = true;
+      for (var k=0; k<cdata.length; k++) {
+        var thisCond = cdata[k];
+        if (board.b[thisCond[1]] == thisCond[0]) {
+          skip = false;
+          break;
+        }
+      }
+    }
+    
+    else if (ctype == COND_IMBAL) {
+      var numPawns = cdata[0];
+      if (board.wNumPawns == numPawns || board.bNumPawns == numPawns) {
+        skip = false
+      }
+    }
+    
+    else if (ctype == COND_KING) {
+      if (wCanBeAttacked || bCanBeAttacked) {
+        skip = false
+      }
+    }
+    
+    else if (ctype == COND_PIECE) {
+      var piece = cdata[0]
+      if (board.wCounts[piece] || board.bCounts[piece]) {
+        skip = false
+      }
+    }
+    
+    //}}}
+
+    if (skip)
+      continue;
+
+    using++;
+
     var p = epd.prob;
     var e = board.evaluate(board.turn);
 
@@ -6736,7 +6799,7 @@ function calcErr () {
       process.exit();
    }
 
-    err += ((p-s)*(p-s))/num;
+    err += ((p-s)*(p-s))/using;
   }
 
   return err;
@@ -6871,20 +6934,64 @@ console.log('hello world! wait...');
 //}
 
 //}}}
+/*
 //{{{  get the epds
 //
-// quiet-labeled.epd
-// rnb1kbnr/pp1pppp1/7p/2q5/5P2/N1P1P3/P2P2PP/R1BQKBNR w KQkq - c9 "1/2-1/2"
-// 0                                                   1 2    3 4  5
+// rnb2rk1/1pq2ppp/p3pn2/8/1bPN4/2N3P1/PB2PPBP/R2QK2R w KQ - 1 11; e1g1 - pgn=0.5 len=162
+// 0                                                  1 2  3 4  5  6    7     8
 
-var data  = fs.readFileSync('c:/projects/chessdata/quiet-labeled.epd', 'utf8');
+var data  = fs.readFileSync('c:/projects/chessdata/rebel.epd', 'utf8');
 var lines = data.split('\n');
 var epds  = [];
 
 data = '';  //release.
 
 for (var i=0; i < lines.length; i++) {
-//for (var i=0; i < 100000; i++) {
+
+  if (i % 100000 == 0)
+    process.stdout.write(i+'\r');
+
+  var line = lines[i];
+
+  line = line.replace(/(pgn=|;|\r\n|\n|\r)/gm,'');
+  line = line.trim();
+
+  if (!line)
+    continue;
+
+  //console.log(line);
+
+  var parts = line.split(' ');
+
+  epds.push({eval:   0,
+             board:  parts[0],
+             turn:   parts[1],
+             rights: parts[2],
+             ep:     parts[3],
+             fmvn:   0,
+             hmvc:   0,
+             prob:   parseFloat(parts[8])});
+}
+
+lines = []; // release
+
+console.log('positions =',epds.length);
+
+//}}}
+*/
+//{{{  get the epds
+//
+// quiet-labeled.epd
+// rnb1kbnr/pp1pppp1/7p/2q5/5P2/N1P1P3/P2P2PP/R1BQKBNR w KQkq - c9 "1/2-1/2"
+// 0                                                   1 2    3 4  5
+
+var data  = fs.readFileSync('../testing/quiet-labeled.epd', 'utf8');
+var lines = data.split('\n');
+var epds  = [];
+
+data = '';  //release.
+
+for (var i=0; i < lines.length; i++) {
 
   if (i % 100000 == 0)
     process.stdout.write(i+'\r');
@@ -6974,8 +7081,8 @@ function log(p,i) {
   console.log(p.id.padStart(15,' '),p.val.toString().padStart(5,' '),p.a[p.i].toString().padStart(5,' '),(i+1).toString().padStart(6,' '),'    ',bestErr);
 }
 
-function addp (id,a,i) {
-  params.push({his: '', id: id+i, a: a, i: i, inc: 0, skip: 0, val: a[i]});
+function addp (id,a,i,ctype,cdata) {
+  params.push({his: '', id: id+i, a: a, i: i, inc: 0, skip: 0, val: a[i], ctype: ctype, cdata: cdata});
 }
 
 var nosq =[51,52,53,54,55,56,63,64,65,66,67,68,75,76,77,78,79,80];  // w knight outpost squares
@@ -7010,44 +7117,85 @@ console.log('**************');
 
 params = [];
 
-/*
 for (var i=KNIGHT; i<=QUEEN; i++) {
-  addp('piece',VALUE_VECTOR,i);
+  addp('piece', VALUE_VECTOR, i, COND_PIECE, [i]);
 }
 
 for (var i=0; i < B88.length; i++) {
-  addp('ppsts',WPAWN_PSTS,  B88[i]);
-  addp('ppste',WPAWN_PSTE,  B88[i]);
-  addp('npsts',WKNIGHT_PSTS,B88[i]);
-  addp('npste',WKNIGHT_PSTE,B88[i]);
-  addp('bpsts',WBISHOP_PSTS,B88[i]);
-  addp('bpste',WBISHOP_PSTE,B88[i]);
-  addp('rpsts',WROOK_PSTS,  B88[i]);
-  addp('rpste',WROOK_PSTE,  B88[i]);
-  addp('qpsts',WQUEEN_PSTS, B88[i]);
-  addp('qpste',WQUEEN_PSTE, B88[i]);
-  addp('kpsts',WKING_PSTS,  B88[i]);
-  addp('kpste',WKING_PSTE,  B88[i]);
+
+  var wi = B88[i];
+  var bi = wbmap(wi);
+
+  addp('ppsts', WPAWN_PSTS,   wi, COND_PST, [[WPAWN,  wi], [BPAWN,  bi]]);
+  addp('ppste', WPAWN_PSTE,   wi, COND_PST, [[WPAWN,  wi], [BPAWN,  bi]]);
+  addp('npsts', WKNIGHT_PSTS, wi, COND_PST, [[WKNIGHT,wi], [BKNIGHT,bi]]);
+  addp('npste', WKNIGHT_PSTE, wi, COND_PST, [[WKNIGHT,wi], [BKNIGHT,bi]]);
+  addp('bpsts', WBISHOP_PSTS, wi, COND_PST, [[WBISHOP,wi], [BBISHOP,bi]]);
+  addp('bpste', WBISHOP_PSTE, wi, COND_PST, [[WBISHOP,wi], [BBISHOP,bi]]);
+  addp('rpsts', WROOK_PSTS,   wi, COND_PST, [[WROOK,  wi], [BROOK,  bi]]);
+  addp('rpste', WROOK_PSTE,   wi, COND_PST, [[WROOK,  wi], [BROOK,  bi]]);
+  addp('qpsts', WQUEEN_PSTS,  wi, COND_PST, [[WQUEEN, wi], [BQUEEN, bi]]);
+  addp('qpste', WQUEEN_PSTE,  wi, COND_PST, [[WQUEEN, wi], [BQUEEN, bi]]);
+  addp('kpsts', WKING_PSTS,   wi, COND_PST, [[WKING,  wi], [BKING,  bi]]);
+  addp('kpste', WKING_PSTE,   wi, COND_PST, [[WKING,  wi], [BKING,  bi]]);
 }
 
 for (var i=0; i < imbalN_S.length; i++) {
-  addp('imbalns',imbalN_S,i);
-  addp('imbalne',imbalN_E,i);
-  addp('imbalbs',imbalB_S,i);
-  addp('imbalbe',imbalB_E,i);
+  addp('imbalns', imbalN_S, i, COND_IMBAL, [i]);
+  addp('imbalne', imbalN_E, i, COND_IMBAL, [i]);
+  addp('imbalbs', imbalB_S, i, COND_IMBAL, [i]);
+  addp('imbalbe', imbalB_E, i, COND_IMBAL, [i]);
 }
 
 for (var i=3; i <= 9; i++) {
-  addp('shelter',WSHELTER,i);
-  addp('storm',  WSTORM,i);
+  addp('shelter', WSHELTER,i, COND_KING, []);
+  addp('storm',   WSTORM,  i, COND_KING, []);
 }
 
-for (var i=0; i < EV.length; i++) {
-  addp('ev',EV,i);
-}
-*/
-
-addp('outpostpawn',EV,44);
+addp('mobns',    EV, iMOB_NS,               COND_PIECE,  [KNIGHT]);
+addp('mobne',    EV, iMOB_NE,               COND_PIECE,  [KNIGHT]);
+addp('mobbs',    EV, iMOB_BS,               COND_PIECE,  [BISHOP]);
+addp('mobbe',    EV, iMOB_BE,               COND_PIECE,  [BISHOP]);
+addp('mobrs',    EV, iMOB_RS,               COND_PIECE,  [ROOK]);
+addp('mobre',    EV, iMOB_RE,               COND_PIECE,  [ROOK]);
+addp('mobqs',    EV, iMOB_QS,               COND_PIECE,  [QUEEN]);
+addp('mobqe',    EV, iMOB_QE,               COND_PIECE,  [QUEEN]);
+addp('attn',     EV, iATT_N,                COND_ATT,    [KNIGHT]);
+addp('attb',     EV, iATT_B,                COND_ATT,    [BISHOP]);
+addp('attr',     EV, iATT_R,                COND_ATT,    [ROOK]);
+addp('attq',     EV, iATT_Q,                COND_ATT,    [QUEEN]);
+addp('attm',     EV, iATT_M,                COND_KING,   []);
+addp('p2s',      EV, iPAWN_DOUBLED_S,       COND_PIECE,  [PAWN]);
+addp('p2e',      EV, iPAWN_DOUBLED_E,       COND_PIECE,  [PAWN]);
+addp('pisos',    EV, iPAWN_ISOLATED_S,      COND_PIECE,  [PAWN]);
+addp('pisoe',    EV, iPAWN_ISOLATED_E,      COND_PIECE,  [PAWN]);
+addp('pbacks',   EV, iPAWN_BACKWARD_S,      COND_PIECE,  [PAWN]);
+addp('pbacke',   EV, iPAWN_BACKWARD_E,      COND_PIECE,  [PAWN]);
+addp('ppassos',  EV, iPAWN_PASSED_OFFSET_S, COND_PIECE,  [PAWN]);
+addp('ppassoe',  EV, iPAWN_PASSED_OFFSET_E, COND_PIECE,  [PAWN]);
+addp('ppassms',  EV, iPAWN_PASSED_MULT_S,   COND_PIECE,  [PAWN]);
+addp('ppassme',  EV, iPAWN_PASSED_MULT_E,   COND_PIECE,  [PAWN]);
+addp('2bishs',   EV, iTWOBISHOPS_S,         COND_PIECE,  [BISHOP]);
+addp('r7s',      EV, iROOK7TH_S,            COND_PIECE,  [ROOK]);
+addp('r7e',      EV, iROOK7TH_E,            COND_PIECE,  [ROOK]);
+addp('ropens',   EV, iROOKOPEN_S,           COND_PIECE,  [ROOK]);
+addp('ropene',   EV, iROOKOPEN_E,           COND_PIECE,  [ROOK]);
+addp('q7s',      EV, iQUEEN7TH_S,           COND_PIECE,  [QUEEN]);
+addp('q7e',      EV, iQUEEN7TH_E,           COND_PIECE,  [QUEEN]);
+addp('trap',     EV, iTRAPPED,              COND_PIECES, [KNIGHT,BISHOP]);
+addp('kpen',     EV, iKING_PENALTY,         COND_KING,   []);
+addp('poffs',    EV, iPAWN_OFFSET_S,        COND_PIECE,  [PAWN]);
+addp('poffe',    EV, iPAWN_OFFSET_E,        COND_PIECE,  [PAWN]);
+addp('pmults',   EV, iPAWN_MULT_S,          COND_PIECE,  [PAWN]);
+addp('pmulte',   EV, iPAWN_MULT_E,          COND_PIECE,  [PAWN]);
+addp('pfree',    EV, iPAWN_PASS_FREE,       COND_PIECE,  [PAWN]);
+addp('punstop',  EV, iPAWN_PASS_UNSTOP,     COND_PIECE,  [PAWN]);
+addp('ppassk1',  EV, iPAWN_PASS_KING1,      COND_PIECE,  [PAWN]);
+addp('ppassk2',  EV, iPAWN_PASS_KING2,      COND_PIECE,  [PAWN]);
+addp('2bishe',   EV, iTWOBISHOPS_E,         COND_PIECE,  [BISHOP]);
+addp('tempos',   EV, iTEMPO_S,              COND_NONE,   []);
+addp('tempoe',   EV, iTEMPO_E,              COND_NONE,   []);
+addp('shelter',  EV, iSHELTERM,             COND_KING,   []);
 
 console.log('number of params =', params.length);
 
@@ -7098,7 +7246,7 @@ while (better2) {
         
         p.a[p.i] = p.a[p.i] + p.inc;
         
-        thisErr = calcErr();
+        thisErr = calcErr(p);
         
         if (thisErr < bestErr) {
           bestErr = thisErr;
@@ -7123,7 +7271,7 @@ while (better2) {
         
         p.a[p.i] = p.a[p.i] + p.inc;
         
-        thisErr = calcErr();
+        thisErr = calcErr(p);
         
         if (thisErr < bestErr) {
           bestErr = thisErr;
@@ -7142,7 +7290,7 @@ while (better2) {
         
         p.a[p.i] = p.a[p.i] + p.inc;
         
-        thisErr = calcErr();
+        thisErr = calcErr(p);
         
         if (thisErr < bestErr) {
           changes++;
