@@ -4,15 +4,10 @@
 // testing and tuning results in testing/testing.log
 //
 
-var BUILD = "2.1";
+var BUILD = "2.0";
 
 //{{{  history
-
 /*
-
-2.1 22/03/21 Don't extend until depth < 4.
-2.1 22/03/21 Don't tune attack an passed pawn curves.
-2.1 22/03/21 Remove mobility imbalance.
 
 2.0 19/02/21 Add imbalance terms when no pawns.
 2.0 17/02/21 Tune all eval params.
@@ -286,10 +281,16 @@ var iPAWN_PASS_FREE       = 36;
 var iPAWN_PASS_UNSTOP     = 37;
 var iPAWN_PASS_KING1      = 38;
 var iPAWN_PASS_KING2      = 39;
-var iTWOBISHOPS_E         = 40;
-var iTEMPO_S              = 41;
-var iTEMPO_E              = 42;
-var iSHELTERM             = 43;
+var iMOBOFF_NS            = 40;
+var iMOBOFF_NE            = 41;
+var iMOBOFF_BS            = 42;
+var iMOBOFF_BE            = 43;
+var iMOBOFF_RS            = 44;
+var iMOBOFF_RE            = 45;
+var iTWOBISHOPS_E         = 46;
+var iTEMPO_S              = 47;
+var iTEMPO_E              = 48;
+var iSHELTERM             = 49;
 
 //}}}
 
@@ -1117,7 +1118,7 @@ var WOUTPOST = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 
 var BOUTPOST = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,18,21,21,18,26,22,0,0,0,0,0,0,12,19,28,17,36,46,0,0,0,0,0,0,17,17,14,23,23,23,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
 
-var EV = [5,-1,7,2,4,2,2,4,1,1,4,3,21,5,10,13,13,9,9,-3,-1,49,99,23,7,26,18,-1,-3,20,42,7,3,14,56,102,91,793,40,26,61,21,21,2];
+var EV = [5,-1,7,2,4,2,2,4,1,1,4,3,21,5,10,13,13,9,9,-3,-1,49,99,23,7,26,18,-1,-3,20,42,7,3,14,56,102,91,793,40,26,1,-1,0,0,0,0,61,21,21,2];
 
 var imbalN_S = [-91,1,1,-2,2,-1,0,8,22];
 
@@ -1138,6 +1139,10 @@ var imbalQ_E = [-16,-13,-1,-3,-7,-5,0,-4,-7];
 var WSHELTER = [0,0,0,7,12,13,36,9,0,28];
 
 var WSTORM = [0,0,0,35,7,4,-8,-1,0,5];
+
+var ATT_W = [0,0.01,0.41999999999999993,0.78,1.11,1.5200000000000005,0.97,0.99];
+
+var PAWN_PASSED = [0,0,0,0,0.1,0.30000000000000004,0.6999999999999998,1.2000000000000126,0];
 
 // bestErr=0.05580612020741582
 
@@ -1186,6 +1191,12 @@ var PAWN_PASS_FREE       = EV[iPAWN_PASS_FREE];
 var PAWN_PASS_UNSTOP     = EV[iPAWN_PASS_UNSTOP];
 var PAWN_PASS_KING1      = EV[iPAWN_PASS_KING1];
 var PAWN_PASS_KING2      = EV[iPAWN_PASS_KING2];
+var MOBOFF_NS            = EV[iMOBOFF_NS];
+var MOBOFF_NE            = EV[iMOBOFF_NE];
+var MOBOFF_BS            = EV[iMOBOFF_BS];
+var MOBOFF_BE            = EV[iMOBOFF_BE];
+var MOBOFF_RS            = EV[iMOBOFF_RS];
+var MOBOFF_RE            = EV[iMOBOFF_RE];
 var TWOBISHOPS_E         = EV[iTWOBISHOPS_E];
 var TEMPO_S              = EV[iTEMPO_S];
 var TEMPO_E              = EV[iTEMPO_E];
@@ -1946,7 +1957,7 @@ lozChess.prototype.alphabeta = function (node, depth, turn, alpha, beta, nullOK,
     E          = 0;
     R          = 0;
     
-    if (inCheck && (pvNode || depth < 4)) {
+    if (inCheck && (pvNode || depth < 5)) {
       E = 1;
     }
     
@@ -3962,10 +3973,7 @@ var MOB_BIS = IS_NBRQKE;
 var MOB_RIS = IS_RQKE;
 var MOB_QIS = IS_QKE;
 
-var ATT_L       = 7;
-var ATT_W       = [0,0.01,0.42,0.78,1.11,1.52,1.52,1.52];
-var PAWN_PASSED = [0,0,0,0,0.1,0.3,0.7,1.2,0];
-
+var ATT_L = 7;
 
 lozBoard.prototype.evaluate = function (turn) {
 
@@ -4704,8 +4712,8 @@ lozBoard.prototype.evaluate = function (turn) {
       to = fr+25; mob += MOB_NIS[b[to]]; att += BKZ[to] * MOB_NIS[b[to]];
       to = fr-25; mob += MOB_NIS[b[to]]; att += BKZ[to] * MOB_NIS[b[to]];
       
-      mobS += mob * MOB_NS;
-      mobE += mob * MOB_NE;
+      mobS += mob * MOB_NS - MOBOFF_NS;
+      mobE += mob * MOB_NE - MOBOFF_NE;
       
       if (att) {
         attackN++;
@@ -4744,8 +4752,8 @@ lozBoard.prototype.evaluate = function (turn) {
       to = fr + 13;  while (!b[to]) {att += BKZ[to]; to += 13; mob++;} mob += MOB_BIS[b[to]]; att += BKZ[to] * MOB_BIS[b[to]];
       to = fr - 13;  while (!b[to]) {att += BKZ[to]; to -= 13; mob++;} mob += MOB_BIS[b[to]]; att += BKZ[to] * MOB_BIS[b[to]];
       
-      mobS += mob * MOB_BS;
-      mobE += mob * MOB_BE;
+      mobS += mob * MOB_BS - MOBOFF_BS;
+      mobE += mob * MOB_BE - MOBOFF_BE;
       
       if (att) {
         attackN++;
@@ -4772,8 +4780,8 @@ lozBoard.prototype.evaluate = function (turn) {
       to = fr + 12;  while (!b[to]) {att += BKZ[to]; to += 12; mob++;} mob += MOB_RIS[b[to]]; att += BKZ[to] * MOB_RIS[b[to]];
       to = fr - 12;  while (!b[to]) {att += BKZ[to]; to -= 12; mob++;} mob += MOB_RIS[b[to]]; att += BKZ[to] * MOB_RIS[b[to]];
       
-      mobS += mob * MOB_RS;
-      mobE += mob * MOB_RE;
+      mobS += mob * MOB_RS - MOBOFF_RS;
+      mobE += mob * MOB_RE - MOBOFF_RE;
       
       if (att) {
         attackN++;
@@ -4932,8 +4940,8 @@ lozBoard.prototype.evaluate = function (turn) {
       to = fr+25; mob += MOB_NIS[b[to]]; att += WKZ[to] * MOB_NIS[b[to]];
       to = fr-25; mob += MOB_NIS[b[to]]; att += WKZ[to] * MOB_NIS[b[to]];
       
-      mobS -= mob * MOB_NS;
-      mobE -= mob * MOB_NE;
+      mobS -= mob * MOB_NS + MOBOFF_NS;
+      mobE -= mob * MOB_NE + MOBOFF_NE;
       
       if (att) {
         attackN++;
@@ -4972,8 +4980,8 @@ lozBoard.prototype.evaluate = function (turn) {
       to = fr + 13;  while (!b[to]) {att += WKZ[to]; to += 13; mob++;} mob += MOB_BIS[b[to]]; att += WKZ[to] * MOB_BIS[b[to]];
       to = fr - 13;  while (!b[to]) {att += WKZ[to]; to -= 13; mob++;} mob += MOB_BIS[b[to]]; att += WKZ[to] * MOB_BIS[b[to]];
       
-      mobS -= mob * MOB_BS;
-      mobE -= mob * MOB_BE;
+      mobS -= mob * MOB_BS + MOBOFF_BS;
+      mobE -= mob * MOB_BE + MOBOFF_BE;
       
       if (att) {
         attackN++;
@@ -5000,8 +5008,8 @@ lozBoard.prototype.evaluate = function (turn) {
       to = fr + 12;  while (!b[to]) {att += WKZ[to]; to += 12; mob++;} mob += MOB_RIS[b[to]]; att += WKZ[to] * MOB_RIS[b[to]];
       to = fr - 12;  while (!b[to]) {att += WKZ[to]; to -= 12; mob++;} mob += MOB_RIS[b[to]]; att += WKZ[to] * MOB_RIS[b[to]];
       
-      mobS -= mob * MOB_RS;
-      mobE -= mob * MOB_RE;
+      mobS -= mob * MOB_RS + MOBOFF_RS;
+      mobE -= mob * MOB_RE + MOBOFF_RE;
       
       if (att) {
         attackN++;
