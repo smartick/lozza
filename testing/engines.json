@@ -16,7 +16,7 @@
 },
 {
   "name": "ethereal",
-  "command": "c:\\projects\\lozza\\trunk\\testing\\engines\\ethereal.exe",
+  "command": "c:\\projects\\chessdata\\engines\\ethereal.exe",
   "protocol": "uci"
 }
 ]

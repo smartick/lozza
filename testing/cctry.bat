@@ -1,7 +1,7 @@
 
 del cctry.pgn
 
-set tc=tc=0/10+0.1
+set tc=tc=0/20+0.2
 
 set e1=-engine conf=coalface %tc
 set e2=-engine conf=released %tc
@@ -16,7 +16,7 @@ set o=-repeat -srand %@Random[0,99999999] -openings file=c:\projects\chessdata\4
 
 set f=-pgnout cctry.pgn fi
 
-set s=-sprt elo0=0 elo1=5 alpha=0.05 beta=0.05 -ratinginterval 10
+set s=-sprt elo0=0 elo1=0 alpha=0.05 beta=0.05 -ratinginterval 10
 
 set m=-recover -concurrency 4
 
