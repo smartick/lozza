@@ -4,10 +4,12 @@
 // testing and tuning results in testing/testing.log
 //
 
-var BUILD = "3";
+var BUILD = "3a";
 
 //{{{  history
 /*
+
+3.0 31/03/21 New basic eval.
 
 2.0 19/02/21 Add imbalance terms when no pawns.
 2.0 17/02/21 Tune all eval params.
