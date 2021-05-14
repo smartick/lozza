@@ -2,10 +2,9 @@
 //"use strict"
 //
 // https://github.com/op12no2
-// testing and tuning results in testing/testing.log
 //
 
-var BUILD = "2.0";
+var BUILD = "2.1";
 
 //{{{  history
 /*
@@ -3979,60 +3978,60 @@ var ATT_L = 7;
 lozBoard.prototype.evaluate = function (turn) {
 
   //this.hashCheck(turn);
-  //{{{  ev assignments
-  
-  var MOB_NS               = EV[iMOB_NS];
-  var MOB_NE               = EV[iMOB_NE];
-  var MOB_BS               = EV[iMOB_BS];
-  var MOB_BE               = EV[iMOB_BE];
-  var MOB_RS               = EV[iMOB_RS];
-  var MOB_RE               = EV[iMOB_RE];
-  var MOB_QS               = EV[iMOB_QS];
-  var MOB_QE               = EV[iMOB_QE];
-  var ATT_N                = EV[iATT_N];
-  var ATT_B                = EV[iATT_B];
-  var ATT_R                = EV[iATT_R];
-  var ATT_Q                = EV[iATT_Q];
-  var ATT_M                = EV[iATT_M];
-  var PAWN_DOUBLED_S       = EV[iPAWN_DOUBLED_S];
-  var PAWN_DOUBLED_E       = EV[iPAWN_DOUBLED_E];
-  var PAWN_ISOLATED_S      = EV[iPAWN_ISOLATED_S];
-  var PAWN_ISOLATED_E      = EV[iPAWN_ISOLATED_E];
-  var PAWN_BACKWARD_S      = EV[iPAWN_BACKWARD_S];
-  var PAWN_BACKWARD_E      = EV[iPAWN_BACKWARD_E];
-  var PAWN_PASSED_OFFSET_S = EV[iPAWN_PASSED_OFFSET_S];
-  var PAWN_PASSED_OFFSET_E = EV[iPAWN_PASSED_OFFSET_E];
-  var PAWN_PASSED_MULT_S   = EV[iPAWN_PASSED_MULT_S];
-  var PAWN_PASSED_MULT_E   = EV[iPAWN_PASSED_MULT_E];
-  var TWOBISHOPS_S         = EV[iTWOBISHOPS_S];
-  var ROOK7TH_S            = EV[iROOK7TH_S];
-  var ROOK7TH_E            = EV[iROOK7TH_E];
-  var ROOKOPEN_S           = EV[iROOKOPEN_S];
-  var ROOKOPEN_E           = EV[iROOKOPEN_E];
-  var QUEEN7TH_S           = EV[iQUEEN7TH_S];
-  var QUEEN7TH_E           = EV[iQUEEN7TH_E];
-  var TRAPPED              = EV[iTRAPPED];
-  var KING_PENALTY         = EV[iKING_PENALTY];
-  var PAWN_OFFSET_S        = EV[iPAWN_OFFSET_S];
-  var PAWN_OFFSET_E        = EV[iPAWN_OFFSET_E];
-  var PAWN_MULT_S          = EV[iPAWN_MULT_S];
-  var PAWN_MULT_E          = EV[iPAWN_MULT_E];
-  var PAWN_PASS_FREE       = EV[iPAWN_PASS_FREE];
-  var PAWN_PASS_UNSTOP     = EV[iPAWN_PASS_UNSTOP];
-  var PAWN_PASS_KING1      = EV[iPAWN_PASS_KING1];
-  var PAWN_PASS_KING2      = EV[iPAWN_PASS_KING2];
-  var MOBOFF_NS            = EV[iMOBOFF_NS];
-  var MOBOFF_NE            = EV[iMOBOFF_NE];
-  var MOBOFF_BS            = EV[iMOBOFF_BS];
-  var MOBOFF_BE            = EV[iMOBOFF_BE];
-  var MOBOFF_RS            = EV[iMOBOFF_RS];
-  var MOBOFF_RE            = EV[iMOBOFF_RE];
-  var TWOBISHOPS_E         = EV[iTWOBISHOPS_E];
-  var TEMPO_S              = EV[iTEMPO_S];
-  var TEMPO_E              = EV[iTEMPO_E];
-  var SHELTERM             = EV[iSHELTERM];
-  
-  //}}}
+//{{{  ev assignments
+
+var MOB_NS               = EV[iMOB_NS];
+var MOB_NE               = EV[iMOB_NE];
+var MOB_BS               = EV[iMOB_BS];
+var MOB_BE               = EV[iMOB_BE];
+var MOB_RS               = EV[iMOB_RS];
+var MOB_RE               = EV[iMOB_RE];
+var MOB_QS               = EV[iMOB_QS];
+var MOB_QE               = EV[iMOB_QE];
+var ATT_N                = EV[iATT_N];
+var ATT_B                = EV[iATT_B];
+var ATT_R                = EV[iATT_R];
+var ATT_Q                = EV[iATT_Q];
+var ATT_M                = EV[iATT_M];
+var PAWN_DOUBLED_S       = EV[iPAWN_DOUBLED_S];
+var PAWN_DOUBLED_E       = EV[iPAWN_DOUBLED_E];
+var PAWN_ISOLATED_S      = EV[iPAWN_ISOLATED_S];
+var PAWN_ISOLATED_E      = EV[iPAWN_ISOLATED_E];
+var PAWN_BACKWARD_S      = EV[iPAWN_BACKWARD_S];
+var PAWN_BACKWARD_E      = EV[iPAWN_BACKWARD_E];
+var PAWN_PASSED_OFFSET_S = EV[iPAWN_PASSED_OFFSET_S];
+var PAWN_PASSED_OFFSET_E = EV[iPAWN_PASSED_OFFSET_E];
+var PAWN_PASSED_MULT_S   = EV[iPAWN_PASSED_MULT_S];
+var PAWN_PASSED_MULT_E   = EV[iPAWN_PASSED_MULT_E];
+var TWOBISHOPS_S         = EV[iTWOBISHOPS_S];
+var ROOK7TH_S            = EV[iROOK7TH_S];
+var ROOK7TH_E            = EV[iROOK7TH_E];
+var ROOKOPEN_S           = EV[iROOKOPEN_S];
+var ROOKOPEN_E           = EV[iROOKOPEN_E];
+var QUEEN7TH_S           = EV[iQUEEN7TH_S];
+var QUEEN7TH_E           = EV[iQUEEN7TH_E];
+var TRAPPED              = EV[iTRAPPED];
+var KING_PENALTY         = EV[iKING_PENALTY];
+var PAWN_OFFSET_S        = EV[iPAWN_OFFSET_S];
+var PAWN_OFFSET_E        = EV[iPAWN_OFFSET_E];
+var PAWN_MULT_S          = EV[iPAWN_MULT_S];
+var PAWN_MULT_E          = EV[iPAWN_MULT_E];
+var PAWN_PASS_FREE       = EV[iPAWN_PASS_FREE];
+var PAWN_PASS_UNSTOP     = EV[iPAWN_PASS_UNSTOP];
+var PAWN_PASS_KING1      = EV[iPAWN_PASS_KING1];
+var PAWN_PASS_KING2      = EV[iPAWN_PASS_KING2];
+var MOBOFF_NS            = EV[iMOBOFF_NS];
+var MOBOFF_NE            = EV[iMOBOFF_NE];
+var MOBOFF_BS            = EV[iMOBOFF_BS];
+var MOBOFF_BE            = EV[iMOBOFF_BE];
+var MOBOFF_RS            = EV[iMOBOFF_RS];
+var MOBOFF_RE            = EV[iMOBOFF_RE];
+var TWOBISHOPS_E         = EV[iTWOBISHOPS_E];
+var TEMPO_S              = EV[iTEMPO_S];
+var TEMPO_E              = EV[iTEMPO_E];
+var SHELTERM             = EV[iSHELTERM];
+
+//}}}
 
   //{{{  init
   
@@ -4995,8 +4994,8 @@ lozBoard.prototype.evaluate = function (turn) {
       to = fr+25; mob += MOB_NIS[b[to]]; att += WKZ[to] * MOB_NIS[b[to]];
       to = fr-25; mob += MOB_NIS[b[to]]; att += WKZ[to] * MOB_NIS[b[to]];
       
-      mobS -= mob * MOB_NS + MOBOFF_NS;
-      mobE -= mob * MOB_NE + MOBOFF_NE;
+      mobS -= mob * MOB_NS - MOBOFF_NS;
+      mobE -= mob * MOB_NE - MOBOFF_NE;
       
       if (att) {
         attackN++;
@@ -5035,8 +5034,8 @@ lozBoard.prototype.evaluate = function (turn) {
       to = fr + 13;  while (!b[to]) {att += WKZ[to]; to += 13; mob++;} mob += MOB_BIS[b[to]]; att += WKZ[to] * MOB_BIS[b[to]];
       to = fr - 13;  while (!b[to]) {att += WKZ[to]; to -= 13; mob++;} mob += MOB_BIS[b[to]]; att += WKZ[to] * MOB_BIS[b[to]];
       
-      mobS -= mob * MOB_BS + MOBOFF_BS;
-      mobE -= mob * MOB_BE + MOBOFF_BE;
+      mobS -= mob * MOB_BS - MOBOFF_BS;
+      mobE -= mob * MOB_BE - MOBOFF_BE;
       
       if (att) {
         attackN++;
@@ -5063,8 +5062,8 @@ lozBoard.prototype.evaluate = function (turn) {
       to = fr + 12;  while (!b[to]) {att += WKZ[to]; to += 12; mob++;} mob += MOB_RIS[b[to]]; att += WKZ[to] * MOB_RIS[b[to]];
       to = fr - 12;  while (!b[to]) {att += WKZ[to]; to -= 12; mob++;} mob += MOB_RIS[b[to]]; att += WKZ[to] * MOB_RIS[b[to]];
       
-      mobS -= mob * MOB_RS + MOBOFF_RS;
-      mobE -= mob * MOB_RE + MOBOFF_RE;
+      mobS -= mob * MOB_RS - MOBOFF_RS;
+      mobE -= mob * MOB_RE - MOBOFF_RE;
       
       if (att) {
         attackN++;
@@ -6935,7 +6934,7 @@ console.log('hello world! wait...');
 // rnb1kbnr/pp1pppp1/7p/2q5/5P2/N1P1P3/P2P2PP/R1BQKBNR w KQkq - c9 "1/2-1/2"
 // 0                                                   1 2    3 4  5
 
-var data  = fs.readFileSync('../testing/quiet-labeled.epd', 'utf8');
+var data  = fs.readFileSync('/projects/chessdata/quiet-labeled.epd', 'utf8');
 var lines = data.split('\n');
 var epds  = [];
 
@@ -7067,40 +7066,41 @@ while (better) {
 
   //{{{  try each param
   
-  tryarrayslice(VALUE_VECTOR,KNIGHT,QUEEN,1);
+  //tryarrayslice(VALUE_VECTOR,KNIGHT,QUEEN,1);
   
-  trypst(WPAWN_PSTS,  BPAWN_PSTS,  8,55,1);
-  trypst(WPAWN_PSTE,  BPAWN_PSTE,  8,55,1);
-  trypst(WKNIGHT_PSTS,BKNIGHT_PSTS,0,63,1);
-  trypst(WKNIGHT_PSTE,BKNIGHT_PSTE,0,63,1);
-  trypst(WBISHOP_PSTS,BBISHOP_PSTS,0,63,1);
-  trypst(WBISHOP_PSTE,BBISHOP_PSTE,0,63,1);
-  trypst(WROOK_PSTS,  BROOK_PSTS,  0,63,1);
-  trypst(WROOK_PSTE,  BROOK_PSTE,  0,63,1);
-  trypst(WQUEEN_PSTS, BQUEEN_PSTS, 0,63,1);
-  trypst(WQUEEN_PSTE, BQUEEN_PSTE, 0,63,1);
-  trypst(WKING_PSTS,  BKING_PSTS,  0,63,1);
-  trypst(WKING_PSTE,  BKING_PSTE,  0,63,1);
+  //trypst(WPAWN_PSTS,  BPAWN_PSTS,  8,55,1);
+  //trypst(WPAWN_PSTE,  BPAWN_PSTE,  8,55,1);
+  //trypst(WKNIGHT_PSTS,BKNIGHT_PSTS,0,63,1);
+  //trypst(WKNIGHT_PSTE,BKNIGHT_PSTE,0,63,1);
+  //trypst(WBISHOP_PSTS,BBISHOP_PSTS,0,63,1);
+  //trypst(WBISHOP_PSTE,BBISHOP_PSTE,0,63,1);
+  //trypst(WROOK_PSTS,  BROOK_PSTS,  0,63,1);
+  //trypst(WROOK_PSTE,  BROOK_PSTE,  0,63,1);
+  //trypst(WQUEEN_PSTS, BQUEEN_PSTS, 0,63,1);
+  //trypst(WQUEEN_PSTE, BQUEEN_PSTE, 0,63,1);
+  //trypst(WKING_PSTS,  BKING_PSTS,  0,63,1);
+  //trypst(WKING_PSTE,  BKING_PSTE,  0,63,1);
   
-  trypst2(WOUTPOST,BOUTPOST,nosq,1);
+  //trypst2(WOUTPOST,BOUTPOST,nosq,1);
   
-  tryarray(imbalN_S,1);
-  tryarray(imbalN_E,1);
-  tryarray(imbalB_S,1);
-  tryarray(imbalB_E,1);
-  tryarray(imbalR_S,1);
-  tryarray(imbalR_E,1);
-  tryarray(imbalQ_S,1);
-  tryarray(imbalQ_E,1);
+  //tryarray(imbalN_S,1);
+  //tryarray(imbalN_E,1);
+  //tryarray(imbalB_S,1);
+  //tryarray(imbalB_E,1);
+  //tryarray(imbalR_S,1);
+  //tryarray(imbalR_E,1);
+  //tryarray(imbalQ_S,1);
+  //tryarray(imbalQ_E,1);
   
-  tryarray(EV,1);
+  //tryarray(EV,1);
+  tryarrayslice(EV,40,45,1);
   
-  tryarrayslice(PAWN_PASSED,1,7,0.1);
+  //tryarrayslice(PAWN_PASSED,1,7,0.1);
   
-  tryarrayslice(ATT_W,1,7,0.01);
+  //tryarrayslice(ATT_W,1,7,0.01);
   
-  tryarrayslice(WSHELTER,3,9,1);
-  tryarrayslice(WSTORM,  3,9,1);
+  //tryarrayslice(WSHELTER,3,9,1);
+  //tryarrayslice(WSTORM,  3,9,1);
   
   //}}}
   //{{{  save to file

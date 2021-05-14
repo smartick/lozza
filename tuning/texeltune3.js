@@ -6425,7 +6425,6 @@ if (lozzaHost == HOST_NODEJS) {
 
 //}}}
 //
-// 2.1
 // copy lozza.js above here.
 //
 // REMEMBER TO:-
@@ -6460,7 +6459,8 @@ function wbmap (sq) {
 //}}}
 //{{{  sigmoid
 
-var kkk = 1.603; //for quiet-labeled.epd
+//var kkk = 1.603; //for quiet-labeled.epd using e
+var kkk = 1.62;  //for quiet-labeled.epd using q
 
 console.log('k =',kkk);
 
@@ -6516,17 +6516,18 @@ function calcErr (param) {
     lozza.position();
 
     var p = epd.prob;
-    var e = board.evaluate(board.turn);
+    //var e = board.evaluate(board.turn);
+    var e = lozza.qSearch(lozza.rootNode,0,board.turn,-INFINITY,INFINITY);
 
     if (board.turn == BLACK)
       e = -e;  // undo negamax.
 
     var s = sigmoid(e);
 
-    if (isNaN(p) || isNaN(s) || s > 1.0 || p > 1.0 || s < 0.0 || p < 0.0) {
-      console.log('eek',p,s);
+    if (isNaN(e) || isNaN(p) || isNaN(s) || s > 1.0 || p > 1.0 || s < 0.0 || p < 0.0) {
+      console.log('nan eek',p,s,e);
       process.exit();
-   }
+    }
 
     err += ((p-s)*(p-s));
   }
@@ -6576,7 +6577,16 @@ function logpst (p,s) {
 function saveparams () {
 
   var d   = new Date();
-  var out = '//{{{  tuned params ' + d + ', err=' + bestErr + '\r\n\r\n';
+  var out = '//{{{  tuned params\r\n\r\n';
+
+  out = out + '// data=quiet_labelled.epd';
+  out = out + '\r\n';
+  out = out + '// k='+kkk;
+  out = out + '\r\n';
+  out = out + '// err='+bestErr;
+  out = out + '\r\n';
+  out = out + '// last update '+d;
+  out = out + '\r\n\r\n';
 
   out = out + 'var VALUE_VECTOR_S = [' + VALUE_VECTOR_S.toString() + '];';
   out = out + '\r\n\r\n';
@@ -6627,12 +6637,6 @@ function saveparams () {
   out = out + 'var imbalB_E = [' + imbalB_E.toString() + '];';
   out = out + '\r\n\r\n';
 
-  out = out + '// K='+kkk;
-  out = out + '\r\n';
-  out = out + '// bestErr='+bestErr;
-  out = out + '\r\n';
-  out = out + '// last update '+d;
-  out = out + '\r\n\r\n';
   out = out + '//}}}\r\n\r\n';
 
   fs.writeFileSync('texeltune3.txt',out);
@@ -6651,50 +6655,6 @@ console.log('hello world! wait...');
 //}
 
 //}}}
-//{{{  get the epds
-//
-// rnb2rk1/1pq2ppp/p3pn2/8/1bPN4/2N3P1/PB2PPBP/R2QK2R w KQ - 1 11; e1g1 - pgn=0.5 len=162
-// 0                                                  1 2  3 4  5  6    7     8
-
-var data  = fs.readFileSync('c:/projects/chessdata/rebel.epd', 'utf8');
-var lines = data.split('\n');
-var epds  = [];
-
-data = '';  //release.
-
-for (var i=0; i < lines.length; i++) {
-
-  if (i % 100000 == 0)
-    process.stdout.write(i+'\r');
-
-  var line = lines[i];
-
-  line = line.replace(/(pgn=|;|\r\n|\n|\r)/gm,'');
-  line = line.trim();
-
-  if (!line)
-    continue;
-
-  //console.log(line);
-
-  var parts = line.split(' ');
-
-  epds.push({eval:   0,
-             board:  parts[0],
-             turn:   parts[1],
-             rights: parts[2],
-             ep:     parts[3],
-             fmvn:   0,
-             hmvc:   0,
-             prob:   parseFloat(parts[8])});
-}
-
-lines = []; // release
-
-console.log('positions =',epds.length);
-
-//}}}
-/*
 //{{{  get the epds
 //
 // quiet-labeled.epd
@@ -6737,7 +6697,6 @@ lines = []; // release
 console.log('positions =',epds.length);
 
 //}}}
-*/
 //{{{  count win, lose, draw
 //
 // Just to make sure the file has been parsed OK.
@@ -6774,17 +6733,25 @@ console.log('error check =',epds.length - wins - draw - loss,'(should be 0)');
 //}}}
 //{{{  find k
 /*
-var min = 100.0;
+var min  = INFINITY;
+var step = 0.1;
+var x    = 1.0;
 
-for (var x=1.59;x<1.62;x+=0.001) {
+while (1) {
   kkk = x;
-  var err = calcErr({id: 'calck'});
+  var err = calcErr({id: 'calc k'});
   if (err <  min) {
-    console.log(kkk,err);
+    console.log('k',kkk,'err',err,'step',step);
     min = err;
+    x += step;
   }
-  else
-    console.log('found min');
+  else {
+    min = 10000000;
+    x -= step;
+    step = step / 10;
+    x += step;
+    console.log('new step',step);
+  }
 }
 
 process.exit();
@@ -6795,7 +6762,7 @@ process.exit();
 var params = [];
 
 function log(p,i) {
-  console.log(p.id.padStart(15,' '),p.val.toString().padStart(5,' '),p.a[p.i].toString().padStart(5,' '),(i+1).toString().padStart(6,' '),'    ',bestErr);
+  console.log(p.id.padStart(15,' '),p.val.toString().padStart(5,' '),p.a[p.i].toString().padStart(5,' '),(i+1).toString().padStart(6,' '),'    ',bestErr,p.inc);
 }
 
 function addp (id,a,i) {
@@ -6940,6 +6907,7 @@ while (better2) {
         thisErr = calcErr(p);
         
         if (thisErr < bestErr) {
+          p.inc = p.inc * 2 | 0;
           bestErr = thisErr;
           better = 1;
           changes++;
@@ -6949,14 +6917,20 @@ while (better2) {
         
         p.a[p.i] = p.a[p.i] - p.inc;
         
-        p.skip = 1;
+        p.inc = p.inc / 2 | 0;
+        
+        if (p.inc == 0)
+          p.skip = 1;
+        
         continue;
         
         //}}}
       }
     
+      // 0 and not skipping
+    
       else {
-        //{{{  try inc
+        //{{{  try 1
         
         p.inc = 1;
         
@@ -6975,7 +6949,7 @@ while (better2) {
         p.a[p.i] = p.a[p.i] - p.inc;
         
         //}}}
-        //{{{  try -inc
+        //{{{  try -1
         
         p.inc = -1;
         
