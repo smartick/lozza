@@ -3,9 +3,10 @@
 //
 // In development - no point testing on CCRL etc.
 //
-// project: https://github.com/op12no2/lozza
-// use:     /path/to/node.exe /path/to/lozza.js
-// twitter: @colintomjenkins
+// project:  https://github.com/op12no2/lozza
+// use:      /path/to/node.exe /path/to/lozza.js
+// protocol: UCI
+// twitter:  @colintomjenkins
 //
 // Note: Hash is fixed at 256Mb - does not respond to hash change requests.
 //
