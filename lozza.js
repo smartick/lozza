@@ -4480,7 +4480,7 @@ lozBoard.prototype.evaluate = function (turn) {
   var pList        = this.wList;
   var pCount       = this.wCount;
   
-  //{{{  generic loop
+  //{{{  generic loop - copy to black fold after tweaking
   
   var mob   = 0;
   var next  = 0;
