@@ -2324,7 +2324,7 @@ lozChess.prototype.perftSearch = function (node, depth, turn, inner) {
 
 //{{{  lozBoard
 
-const TTSIZE = 1 << 22;
+const TTSIZE = 1 << 24;
 const TTMASK = TTSIZE - 1;
 
 const PTTSIZE = 1 << 14;
