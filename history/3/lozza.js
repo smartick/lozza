@@ -4430,18 +4430,12 @@ lozBoard.prototype.evaluate = function (turn) {
   
   var positionS   = 0;
   var positionE   = 0;
-  var posS        = 0;
-  var posE        = 0;
   
   var imbalanceS  = 0;
   var imbalanceE  = 0;
-  var imbS        = 0;
-  var imbE        = 0;
   
   var mobilityS   = 0;
   var mobilityE   = 0;
-  var mobS        = 0;
-  var mobE        = 0;
   
   //}}}
   //{{{  draw?
@@ -4493,7 +4487,6 @@ lozBoard.prototype.evaluate = function (turn) {
   var count = 0;
   var to    = 0;
   var fr    = 0;
-  
   var frObj = 0;
   var pstS  = 0;
   var pstE  = 0;
