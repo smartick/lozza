@@ -4789,7 +4789,6 @@ lozBoard.prototype.evaluate = function (turn) {
   var count = 0;
   var to    = 0;
   var fr    = 0;
-  
   var frObj = 0;
   var pstS  = 0;
   var pstE  = 0;
