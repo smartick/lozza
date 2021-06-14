@@ -3,7 +3,7 @@ del cctry.pgn
 
 set tc=tc=0/20+0.2
 
-set e1=-engine conf=coalface %tc
+set e1=-engine conf=coalface  %tc
 set e2=-engine conf=released %tc
 
 set t=-event soaktest -tournament round-robin -games 100000
@@ -18,7 +18,7 @@ set f=-pgnout cctry.pgn fi
 
 set s=-sprt elo0=0 elo1=0 alpha=0.05 beta=0.05 -ratinginterval 10
 
-set m=-recover -concurrency 2
+set m=-recover -concurrency 4
 
 "C:\Program Files (x86)\Cute Chess\cutechess-cli" %e1 %e2 %t %r %d %o %f %s %m
 
