@@ -16,6 +16,7 @@ var BUILD = "3";
 //{{{  history
 /*
 
+3   18/06/21 Add cwtch term to eval.
 3   16/06/21 Add reach term to eval.
 3   31/03/21 New basic eval of just Material, PST, mobility and BN imbalance WRT pawns.
 
@@ -518,6 +519,34 @@ const FILE =   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
+const DIAG1 =  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 8, 9,10,11,12,13,14,15, 0, 0,
+                0, 0, 7, 8, 9,10,11,12,13,14, 0, 0,
+                0, 0, 6, 7, 8, 9,10,11,12,13, 0, 0,
+                0, 0, 5, 6, 7, 8, 9,10,11,12, 0, 0,
+                0, 0, 4, 5, 6, 7, 8, 9,10,11, 0, 0,
+                0, 0, 3, 4, 5, 6, 7, 8, 9,10,11, 0,
+                0, 0, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0,
+                0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+
+const DIAG2 =  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 15,14,13,12,11,10,9, 8, 0, 0,
+                0, 0, 14,13,12,11,10,9, 8, 7, 0, 0,
+                0, 0, 13,12,11,10,9, 8, 7, 6, 0, 0,
+                0, 0, 12,11,10,9, 8, 7, 6, 5, 0, 0,
+                0, 0, 11,10,9, 8, 7, 6, 5, 4, 0, 0,
+                0, 0, 10,9, 8, 7, 6, 5, 4, 3, 0, 0,
+                0, 0, 9, 8, 7, 6, 5, 4, 3, 2, 0, 0,
+                0, 0, 8, 7, 6, 5, 4, 3, 2, 1, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+
 const NULL_PST =      [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
                        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
@@ -990,8 +1019,8 @@ var randoms = [
 
 // data=quiet_labelled.epd
 // k=1.62
-// err=0.05794364859381229
-// last update Fri Jun 18 2021 05:51:59 GMT+0100 (British Summer Time)
+// err=0.057874453181401414
+// last update Fri Jun 18 2021 15:45:47 GMT+0100 (British Summer Time)
 
 var VALUE_VECTOR_S = [0,100,341,352,488,1142,10000];
 var VALUE_VECTOR_E = [0,102,339,346,513,885,10000];
@@ -1048,7 +1077,9 @@ var reachBR_E      = [0,9,9,15,0,-21,-81,0,0,0,7,5,12,21,-3];
 var reachBQ_S      = [0,0,2,3,-3,0,136,0,0,-1,2,3,-1,-134,-6];
 var reachBQ_E      = [0,-2,-3,24,9,0,309,0,0,0,8,-11,15,-305,-2];
 var reachBK_S      = [0,-5,-20,-49,-76,-118,0,0,0,4,-5,3,-14,-3,0];
-var reachBK_E      = [0,24,11,28,30,-125,-1,0,0,-1,3,-1,-4,-4,0];
+var reachBK_E      = [0,24,11,28,30,-125,0,0,0,-1,3,-1,-4,-4,0];
+var cwtch_S        = [0,0,1,1,3,3,0];
+var cwtch_E        = [0,-1,0,0,-2,5,0];
 
 //}}}
 //{{{  pst lists
@@ -4106,6 +4137,9 @@ lozBoard.prototype.evaluate = function (turn) {
   var bNumKnights = this.bCounts[KNIGHT];
   var bNumPawns   = this.bCounts[PAWN];
   
+  var wKingSq     = this.wList[0];
+  var bKingSq     = this.bList[0];
+  
   var tempo       = 0;
   
   var materialS   = 0;
@@ -4122,6 +4156,9 @@ lozBoard.prototype.evaluate = function (turn) {
   
   var reachS      = 0;
   var reachE      = 0;
+  
+  var cwtchS      = 0;
+  var cwtchE      = 0;
   
   //}}}
   //{{{  draw?
@@ -4180,14 +4217,11 @@ lozBoard.prototype.evaluate = function (turn) {
   var pList        = this.wList;
   var pCount       = this.wCount;
   
-  //{{{  generic loop - copy to black fold after tweaking
+  var homeKingSq   = wKingSq;
+  var awayKingSq   = bKingSq;
   
-  var mob   = 0;
-  var next  = 0;
-  var count = 0;
-  var to    = 0;
-  var fr    = 0;
-  var frObj = 0;
+  //{{{  generic loop
+  
   var pstS  = 0;
   var pstE  = 0;
   var mobS  = 0;
@@ -4196,14 +4230,22 @@ lozBoard.prototype.evaluate = function (turn) {
   var imbE  = 0;
   var rchS  = 0;
   var rchE  = 0;
+  var cthS  = 0;
+  var cthE  = 0;
+  
+  var mob   = 0;
+  var to    = 0;
+  var next  = 0;
+  var count = 0;
   
   while (count < pCount) {
   
-    fr = pList[next++];
+    var fr = pList[next++];
     if (!fr)
       continue;
   
-    frObj = b[fr];
+    var frObj        = b[fr];
+    var awayKingDist = 8-DIST[fr][awayKingSq];
   
     if (frObj == myPawn) {
       //{{{  P
@@ -4220,6 +4262,9 @@ lozBoard.prototype.evaluate = function (turn) {
       
       rchE += myReachP_E[b[fr+offsetPawnNW]];
       rchE += myReachP_E[b[fr+offsetPawnNE]];
+      
+      cthS += awayKingDist * cwtch_S[PAWN];
+      cthE += awayKingDist * cwtch_E[PAWN];
       
       //}}}
     }
@@ -4266,17 +4311,20 @@ lozBoard.prototype.evaluate = function (turn) {
       
       toObj = b[fr-25];
       mob  += IS_E[toObj];
+      rchS += myReachN_S[toObj];
+      rchE += myReachN_E[toObj];
       
       mobS += mob * mobil_S[KNIGHT];
       mobE += mob * mobil_E[KNIGHT];
-      rchS += myReachN_S[toObj];
-      rchE += myReachN_E[toObj];
       
       pstS += myKnightPSTS[fr];
       pstE += myKnightPSTE[fr];
       
       imbS += imbalN_S[myNumPawns];
       imbE += imbalN_E[myNumPawns];
+      
+      cthS += awayKingDist * cwtch_S[KNIGHT];
+      cthE += awayKingDist * cwtch_E[KNIGHT];
       
       //}}}
     }
@@ -4327,6 +4375,9 @@ lozBoard.prototype.evaluate = function (turn) {
       imbS += imbalB_S[myNumPawns];
       imbE += imbalB_E[myNumPawns];
       
+      cthS += awayKingDist * cwtch_S[BISHOP];
+      cthE += awayKingDist * cwtch_E[BISHOP];
+      
       //}}}
     }
   
@@ -4372,6 +4423,9 @@ lozBoard.prototype.evaluate = function (turn) {
       
       pstS += myRookPSTS[fr];
       pstE += myRookPSTE[fr];
+      
+      cthS += awayKingDist * cwtch_S[ROOK];
+      cthE += awayKingDist * cwtch_E[ROOK];
       
       //}}}
     }
@@ -4451,6 +4505,9 @@ lozBoard.prototype.evaluate = function (turn) {
       pstS += myQueenPSTS[fr];
       pstE += myQueenPSTE[fr];
       
+      cthS += awayKingDist * cwtch_S[QUEEN];
+      cthE += awayKingDist * cwtch_E[QUEEN];
+      
       //}}}
     }
   
@@ -4505,6 +4562,9 @@ lozBoard.prototype.evaluate = function (turn) {
       pstS  += myKingPSTS[fr];
       pstE  += myKingPSTE[fr];
       
+      cthS += awayKingDist * cwtch_S[KING];
+      cthE += awayKingDist * cwtch_E[KING];
+      
       //}}}
     }
   
@@ -4524,6 +4584,9 @@ lozBoard.prototype.evaluate = function (turn) {
   
   reachS     += rchS;
   reachE     += rchE;
+  
+  cwtchS     += cthS;
+  cwtchE     += cthE;
   
   //}}}
   //{{{  black
@@ -4571,7 +4634,13 @@ lozBoard.prototype.evaluate = function (turn) {
   var pList        = this.bList;
   var pCount       = this.bCount;
   
+  var homeKingSq   = bKingSq;
+  var awayKingSq   = wKingSq;
+  
   //{{{  generic loop
+  
+  var homeKingDist = 0;
+  var awayKingDist = 0;
   
   var mob   = 0;
   var next  = 0;
@@ -4587,6 +4656,8 @@ lozBoard.prototype.evaluate = function (turn) {
   var imbE  = 0;
   var rchS  = 0;
   var rchE  = 0;
+  var cthS  = 0;
+  var cthE  = 0;
   
   while (count < pCount) {
   
@@ -4595,6 +4666,9 @@ lozBoard.prototype.evaluate = function (turn) {
       continue;
   
     frObj = b[fr];
+  
+    homeKingDist = 8-DIST[fr][homeKingSq];
+    awayKingDist = 8-DIST[fr][awayKingSq];
   
     if (frObj == myPawn) {
       //{{{  P
@@ -4611,6 +4685,9 @@ lozBoard.prototype.evaluate = function (turn) {
       
       rchE += myReachP_E[b[fr+offsetPawnNW]];
       rchE += myReachP_E[b[fr+offsetPawnNE]];
+      
+      cthS += awayKingDist * cwtch_S[PAWN];
+      cthE += awayKingDist * cwtch_E[PAWN];
       
       //}}}
     }
@@ -4657,17 +4734,20 @@ lozBoard.prototype.evaluate = function (turn) {
       
       toObj = b[fr-25];
       mob  += IS_E[toObj];
+      rchS += myReachN_S[toObj];
+      rchE += myReachN_E[toObj];
       
       mobS += mob * mobil_S[KNIGHT];
       mobE += mob * mobil_E[KNIGHT];
-      rchS += myReachN_S[toObj];
-      rchE += myReachN_E[toObj];
       
       pstS += myKnightPSTS[fr];
       pstE += myKnightPSTE[fr];
       
       imbS += imbalN_S[myNumPawns];
       imbE += imbalN_E[myNumPawns];
+      
+      cthS += awayKingDist * cwtch_S[KNIGHT];
+      cthE += awayKingDist * cwtch_E[KNIGHT];
       
       //}}}
     }
@@ -4718,6 +4798,9 @@ lozBoard.prototype.evaluate = function (turn) {
       imbS += imbalB_S[myNumPawns];
       imbE += imbalB_E[myNumPawns];
       
+      cthS += awayKingDist * cwtch_S[BISHOP];
+      cthE += awayKingDist * cwtch_E[BISHOP];
+      
       //}}}
     }
   
@@ -4763,6 +4846,9 @@ lozBoard.prototype.evaluate = function (turn) {
       
       pstS += myRookPSTS[fr];
       pstE += myRookPSTE[fr];
+      
+      cthS += awayKingDist * cwtch_S[ROOK];
+      cthE += awayKingDist * cwtch_E[ROOK];
       
       //}}}
     }
@@ -4842,6 +4928,9 @@ lozBoard.prototype.evaluate = function (turn) {
       pstS += myQueenPSTS[fr];
       pstE += myQueenPSTE[fr];
       
+      cthS += awayKingDist * cwtch_S[QUEEN];
+      cthE += awayKingDist * cwtch_E[QUEEN];
+      
       //}}}
     }
   
@@ -4896,6 +4985,9 @@ lozBoard.prototype.evaluate = function (turn) {
       pstS  += myKingPSTS[fr];
       pstE  += myKingPSTE[fr];
       
+      cthS += awayKingDist * cwtch_S[KING];
+      cthE += awayKingDist * cwtch_E[KING];
+      
       //}}}
     }
   
@@ -4915,6 +5007,9 @@ lozBoard.prototype.evaluate = function (turn) {
   
   reachS     -= rchS;
   reachE     -= rchE;
+  
+  cwtchS     -= cthS;
+  cwtchE     -= cthE;
   
   //}}}
   
@@ -4938,8 +5033,8 @@ lozBoard.prototype.evaluate = function (turn) {
               (wNumRooks   - bNumRooks)   * VALUE_VECTOR_E[ROOK]   +
               (wNumQueens  - bNumQueens)  * VALUE_VECTOR_E[QUEEN];
   
-  var evalS = materialS + positionS + imbalanceS + mobilityS + reachS;
-  var evalE = materialE + positionE + imbalanceE + mobilityE + reachE;
+  var evalS = materialS + positionS + imbalanceS + mobilityS + reachS + cwtchS;
+  var evalE = materialE + positionE + imbalanceE + mobilityE + reachE + cwtchE;
   
   evalS += tempo;
   
@@ -4954,6 +5049,7 @@ lozBoard.prototype.evaluate = function (turn) {
     uci.send('info string','phased eval =',        e);
     uci.send('info string','phase =',              phase);
     uci.send('info string','evaluation =',         evalS,      evalE);
+    uci.send('info string','cwtch =',              cwtchS,     cwtchE);
     uci.send('info string','reach =',              reachS,     reachE);
     uci.send('info string','imbalance =',          imbalanceS, imbalanceE);
     uci.send('info string','mobility =',           mobilityS,  mobilityE);
