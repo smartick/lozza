@@ -1,4 +1,6 @@
 
+var maxPositions = 10000000;
+
 //{{{  file formats
 //
 // quiet-labeled.epd
@@ -73,9 +75,10 @@ chStm['b'] = BLACK;
 //}}}
 //{{{  functions
 
-var epds   = [];
-var inputs = [];
-var debug  = 1;
+var epds    = [];
+var inputs  = [];
+var outputs = [];
+var debug   = 1;
 
 //{{{  getprob
 
@@ -86,7 +89,7 @@ function getprob (r) {
     return 1.0;
   else if (r == '[0.0]')
     return 0.0;
-  else if (r == '"1/2-1/2";')
+  else if (r == '"12-12";')
     return 0.5;
   else if (r == '"1-0";')
     return 1.0;
@@ -104,7 +107,7 @@ function decodeFEN(board, stmStr, arr) {
   //{{{  init arr
   
   for (var i=0; i<768; i++)
-    arr[i] = 0;
+    arr[i] = 0.0;
   
   //}}}
 
@@ -118,100 +121,309 @@ function decodeFEN(board, stmStr, arr) {
     var col = 0;
 
     if (typeof(num) == 'undefined') {
-      if (ch != '/') {
-        //{{{  decode ch
-        
-        pce = chPce[ch];
-        col = chCol[ch];
-        
-        //}}}
-        //{{{  check stuff
-        
-        if (debug) {
-        
-          if (sq < 0) {
-            console.log('sq<0',sq);
-            process.exit();
-          }
-          else if (sq > 63) {
-            console.log('sq>63',sq);
-            process.exit();
-          }
-          else if (pce < 0) {
-            console.log('pce<0',pce);
-            process.exit();
-          }
-          else if (pce > 5) {
-            console.log('pce>5',pce);
-            process.exit();
-          }
-          else if (typeof(pce) == 'undefined') {
-            console.log('pceundef',pce);
-            process.exit();
-          }
-          else if (col < 0) {
-            console.log('col<0',col);
-            process.exit();
-          }
-          else if (col > 1) {
-            console.log('col>1',col);
-            process.exit();
-          }
-          else if (typeof(col) == 'undefined') {
-            console.log('colundef',col);
-            process.exit();
-          }
-          else if (stm < 0) {
-            console.log('stm<0',stm);
-            process.exit();
-          }
-          else if (stm > 1) {
-            console.log('stm>1',stm);
-            process.exit();
-          }
-          else if (typeof(stm) == 'undefined') {
-            console.log('stmundef',stm);
-            process.exit();
-          }
+      //{{{  decode ch
+      
+      pce = chPce[ch];
+      col = chCol[ch];
+      
+      //}}}
+      //{{{  check stuff
+      
+      if (debug) {
+      
+        if (sq < 0) {
+          console.log('sq<0',sq);
+          process.exit();
         }
-        
-        //}}}
-        //{{{  map to model
-        
-        if (col == stm)
-          var off = 0;
-        else
-          var off = 384;
-        
-        var x = off + pce * 64 + sq;
-        
-        if (debug) {
-        
-          if (isNaN(x)) {
-            console.log('xnan',x);
-            process.exit();
-          }
-          if (x >= 768) {
-            console.log('x>768',x);
-            process.exit();
-          }
-          if (x < 0) {
-            console.log('x-ve',x);
-            process.exit();
-          }
+        else if (sq > 63) {
+          console.log('sq>63',sq);
+          process.exit();
         }
-        
-        
-        //}}}
-        arr[x] = 1;
-        sq++;
+        else if (pce < 0) {
+          console.log('pce<0',pce);
+          process.exit();
+        }
+        else if (pce > 5) {
+          console.log('pce>5',pce);
+          process.exit();
+        }
+        else if (typeof(pce) == 'undefined') {
+          console.log('pceundef',pce);
+          process.exit();
+        }
+        else if (col < 0) {
+          console.log('col<0',col);
+          process.exit();
+        }
+        else if (col > 1) {
+          console.log('col>1',col);
+          process.exit();
+        }
+        else if (typeof(col) == 'undefined') {
+          console.log('colundef',col);
+          process.exit();
+        }
+        else if (stm < 0) {
+          console.log('stm<0',stm);
+          process.exit();
+        }
+        else if (stm > 1) {
+          console.log('stm>1',stm);
+          process.exit();
+        }
+        else if (typeof(stm) == 'undefined') {
+          console.log('stmundef',stm);
+          process.exit();
+        }
       }
+      
+      //}}}
+      //{{{  map to model
+      //
+      // stm pieces are first.
+      //
+      
+      var off = Math.abs(col - stm) * 384;
+      
+      var x = off + pce * 64 + sq;
+      
+      //if (debug) {
+      //  if (isNaN(x)) {
+      //    console.log('xnan',x);
+      //    process.exit();
+      //  }
+      //  if (x >= 768) {
+      //    console.log('x>768',x);
+      //    process.exit();
+      //  }
+      //  if (x < 0) {
+      //    console.log('x-ve',x);
+      //    process.exit();
+      //  }
+      //}
+      
+      //}}}
+      arr[x] = 1.0;
+      sq++;
     }
     else {
       sq += num;
     }
   }
 }
+
+//}}}
+//{{{  network
+
+var netInputSize   = 768;  // input layer.
+var netHiddenSize  = 256;  // hidden later.
+var netOutputSize  = 1;    // output layer.
+
+//{{{  build net
+
+function netNode (weightsSize) {
+  this.in          = 0;
+  this.gin         = 0;
+  this.out         = 0;
+  this.gout        = 0;
+  this.weights     = Array(weightsSize);
+  this.gweights    = Array(weightsSize);
+  this.gweightssum = Array(weightsSize);
+}
+
+var neti = Array(netInputSize);
+
+var neth = Array(netHiddenSize);
+for (var h=0; h < netHiddenSize; h++) {
+  neth[h] = new netNode(netInputSize);
+}
+
+var neto = Array(netOutputSize);
+for (var o=0; o < netOutputSize; o++) {
+  neto[o] = new netNode(netHiddenSize);
+}
+
+//}}}
+
+//{{{  sigmoid
+
+function sigmoid(x) {
+  return (1.0 / (1.0 + Math.exp(-x)));
+}
+
+function dsigmoid(x) {
+  return sigmoid(x) * (1.0 - sigmoid(x));
+}
+
+//}}}
+//{{{  netLoss
+
+function netLoss(target) {
+
+  var x = 0.0;
+
+  for (var o=0; o < netOutputSize; o++) {
+    x += (target[o] - neto[o].out) * (target[o] - neto[o].out);
+  }
+
+  return x;
+}
+
+//}}}
+//{{{  netForward()
+
+function netForward(inputs) {
+
+  if (inputs.length != netInputSize) {
+    console.log('netForward','input vector length must be',netInputSize,'your length is',input.length);
+    process.exit;
+  }
+
+  for (var i=0; i < netInputSize; i++)
+    neti[i] = inputs[i];
+
+  for (var h=0; h < netHiddenSize; h++) {
+    var hidden = neth[h];
+    hidden.in = 0;
+    for (var i=0; i < netInputSize; i++) {
+      hidden.in += hidden.weights[i] * neti[i];
+    }
+    hidden.out = sigmoid(hidden.in);
+  }
+
+  for (var o=0; o < netOutputSize; o++) {
+    var output = neto[o];
+    output.in = 0;
+    for (var h=0; h < netHiddenSize; h++) {
+      output.in += output.weights[h] * neth[h].out;
+    }
+    output.out = sigmoid(output.in);
+  }
+}
+
+//}}}
+//{{{  netInitWeights()
+
+function netInitWeights() {
+
+  for (var h=0; h < netHiddenSize; h++) {
+    var hidden = neth[h];
+    for (var i=0; i < netInputSize; i++) {
+      hidden.weights[i] = Math.random() * 2 - 1;
+    }
+  }
+
+  for (var o=0; o < netOutputSize; o++) {
+    var output = neto[o];
+    for (var h=0; h < netHiddenSize; h++) {
+      output.weights[h] = Math.random() * 2 - 1;
+    }
+  }
+}
+
+//}}}
+//{{{  netCalcGradients()
+
+function netCalcGradients(targets) {
+
+  if (targets.length != netOutputSize) {
+    console.log('netCallGradients','output vector length must be',netOutputSize,'your length is',targets.length);
+    process.exit;
+  }
+
+  for (var o=0; o < netOutputSize; o++) {
+    var output = neto[o];
+    output.gout = 2 * (output.out - targets[o]);
+    output.gin  = dsigmoid(output.in) * output.gout;
+  }
+
+  for (var o=0; o < netOutputSize; o++) {
+    var output = neto[o];
+    for (var h=0; h < netHiddenSize; h++) {
+      var hidden = neth[h];
+      output.gweights[h] = output.gin * hidden.out;
+    }
+  }
+
+  for (var h=0; h < netHiddenSize; h++) {
+    var hidden = neth[h];
+    hidden.gout = 0;
+    for (var o=0; o < netOutputSize; o++) {
+      var output = neto[o];
+      hidden.gout += output.gin * output.weights[h];
+    }
+    hidden.gin = dsigmoid(hidden.in) * hidden.gout;
+  }
+
+  for (var h=0; h < netHiddenSize; h++) {
+    var hidden = neth[h];
+    for (var i=0; i < netInputSize; i++) {
+      hidden.gweights[i] = hidden.gin * neti[i];
+    }
+  }
+}
+
+//}}}
+//{{{  netResetGradientSums()
+
+function netResetGradientSums() {
+
+  for (var o=0; o < netOutputSize; o++) {
+    var output = neto[o];
+    for (var h=0; h < netHiddenSize; h++) {
+      output.gweightssum[h] = 0.0;
+    }
+  }
+
+  for (var h=0; h < netHiddenSize; h++) {
+    var hidden = neth[h];
+    for (var i=0; i < netInputSize; i++) {
+      hidden.gweightssum[i] = 0.0;
+    }
+  }
+}
+
+//}}}
+//{{{  netAccumulateGradients()
+
+function netAccumulateGradients() {
+
+  for (var o=0; o < netOutputSize; o++) {
+    var output = neto[o];
+    for (var h=0; h < netHiddenSize; h++) {
+      output.gweightssum[h] += output.gweights[h];
+    }
+  }
+
+  for (var h=0; h < netHiddenSize; h++) {
+    var hidden = neth[h];
+    for (var i=0; i < netInputSize; i++) {
+      hidden.gweightssum[i] += hidden.gweights[i];
+    }
+  }
+}
+
+//}}}
+//{{{  netApplyGradients()
+
+function netApplyGradients(b,alpha) {
+
+  for (var o=0; o < netOutputSize; o++) {
+    var output = neto[o];
+    for (var h=0; h < netHiddenSize; h++) {
+      output.weights[h] = output.weights[h] - alpha * (output.gweightssum[h] / b);
+    }
+  }
+
+  for (var h=0; h < netHiddenSize; h++) {
+    var hidden = neth[h];
+    for (var i=0; i < netInputSize; i++) {
+      hidden.weights[i] = hidden.weights[i] - alpha * (hidden.gweightssum[i] / b);
+    }
+  }
+}
+
+//}}}
 
 //}}}
 //{{{  grunt
@@ -271,7 +483,7 @@ function grunt () {
   
   var t2 = Date.now();
   
-  decodeFEN('1P2kK2/Q7/8/8/8/8/8/7n', 'w', inputs);
+  decodeFEN('1P2kK2Q7888887n', 'w', inputs);
   if (!inputs[321] || !inputs[388] || !inputs[5] || !inputs[72] || !inputs[703]) {
     console.log('decode pos');
     process.exit();
@@ -282,6 +494,73 @@ function grunt () {
   console.log('decoding ok',(t2-t1),'ms');
   
   //}}}
+  //{{{  tune
+  
+  var batchSize     = 100;
+  var numBatches    = epds.length / batchSize | 0;
+  var testPositions = epds.length * 0.2 | 0;
+  var numEpochs     = 10000;
+  
+  console.log('hidden layer size =',netHiddenSize);
+  console.log('batch size =',batchSize);
+  console.log('batches per epoch =',numBatches);
+  console.log('test positions =',testPositions);
+  
+  netInitWeights();
+  
+  for (var epoch=1; epoch < numEpochs; epoch++) {
+    //{{{  batched epoch
+    
+    for (var batch=0; batch < numBatches; batch++) {
+    
+      if (batch % 10 == 0)
+        process.stdout.write('epoch ' + epoch + ', batch ' + batch+'\r');
+    
+      netResetGradientSums();
+    
+      for (var i=0; i < batchSize; i++) {
+    
+        var epd = epds[(Math.random()*epds.length)|0];
+    
+        decodeFEN(epd.board, epd.stm, inputs);
+    
+        netForward(inputs)
+    
+        var targets = [epd.prob];
+    
+        netCalcGradients(targets);
+        netAccumulateGradients();
+      }
+    
+      netApplyGradients(1,0.001);
+    }
+    
+    //}}}
+    //{{{  test
+    
+    var loss = 0;
+    
+    for (var i=0; i < testPositions; i++) {
+    
+      var epd = epds[i];
+    
+      decodeFEN(epd.board, epd.stm, inputs);
+    
+      netForward(inputs)
+    
+      var targets = [epd.prob];
+    
+      loss += netLoss(targets);
+    }
+    
+    console.log ('epoch',epoch,', loss',loss/testPositions);
+    
+    //}}}
+  }
+  
+  console.log('done');
+  
+  //}}}
 }
 
 //}}}
@@ -289,13 +568,12 @@ function grunt () {
 //}}}
 //{{{  kick it off
 
-var epdfile     = 'c:/projects/chessdata/E13.04-Filtered.fens';
-var resultparam = 6;
+//var epdfile     = 'c:/projects/chessdata/E13.04-Filtered.fens';
+//var resultparam = 6;
 
-//var epdfile     = 'c:/projects/chessdata/quiet-labeled.epd';
-//var resultparam = 5;
+var epdfile     = 'c:/projects/chessdata/quiet-labeled.epd';
+var resultparam = 5;
 
-var maxPositions = 1000000;
 var thisPosition = 0;
 
 const readline = require('readline');
@@ -317,7 +595,9 @@ rl.on('line', function (line) {
 
   if (thisPosition <= maxPositions) {
 
-    line = line.replace(/(\r\n|\n|\r)/gm,'');
+    line = line.replace(/(\/|\r\n|\n|\r)/gm,'');  // (inc removing / from fens)
+
+    //console.log(line);
 
     const parts = line.split(' ');
 
