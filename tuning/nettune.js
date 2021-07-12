@@ -1,6 +1,6 @@
 
 var maxPositions   = 1000000000;
-var netHiddenSize  = 64;
+var netHiddenSize  = 256;
 var learningRate   = 0.001;
 var batchSize      = 100;
 
@@ -542,34 +542,7 @@ function grunt () {
   
   netInitWeights();
   
-  for (var epoch=1; epoch < numEpochs; epoch++) {
-    //{{{  batched epoch
-    
-    for (var batch=0; batch < numBatches; batch++) {
-    
-      if (batch % 10 == 0)
-        process.stdout.write('epoch =' + epoch + 'batch =' + batch+'\r');
-    
-      netResetGradientSums();
-    
-      for (var i=0; i < batchSize; i++) {
-    
-        var epd = epds[(Math.random()*epds.length)|0];
-    
-        decodeFEN(epd.board, epd.stm);
-    
-        netForward()
-    
-        var targets = [epd.prob];
-    
-        netCalcGradients(targets);
-        netAccumulateGradients();
-      }
-    
-      netApplyGradients(1,learningRate);
-    }
-    
-    //}}}
+  for (var epoch=0; epoch < numEpochs; epoch++) {
     //{{{  test
     
     var loss = 0;
@@ -591,6 +564,33 @@ function grunt () {
     }
     
     console.log ('epoch =',epoch,'loss =',loss/testPositions);
+    
+    //}}}
+    //{{{  batched epoch
+    
+    for (var batch=0; batch < numBatches; batch++) {
+    
+      if (batch % 10 == 0)
+        process.stdout.write('epoch = ' + epoch + ' batch = ' + batch+'\r');
+    
+      netResetGradientSums();
+    
+      for (var i=0; i < batchSize; i++) {
+    
+        var epd = epds[(Math.random()*epds.length)|0];
+    
+        decodeFEN(epd.board, epd.stm);
+    
+        netForward()
+    
+        var targets = [epd.prob];
+    
+        netCalcGradients(targets);
+        netAccumulateGradients();
+      }
+    
+      netApplyGradients(1,learningRate);
+    }
     
     //}}}
     netSaveWeights();
