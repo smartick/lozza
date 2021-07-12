@@ -1,5 +1,8 @@
 
-var maxPositions = 10000000;
+var maxPositions   = 100;
+var netHiddenSize  = 16;
+var learningRate   = 0.1;
+var batchSize      = 10;
 
 //{{{  file formats
 //
@@ -76,7 +79,6 @@ chStm['b'] = BLACK;
 //{{{  functions
 
 var epds    = [];
-var inputs  = [];
 var outputs = [];
 var debug   = 1;
 
@@ -102,12 +104,12 @@ function getprob (r) {
 //}}}
 //{{{  decodeFEN
 
-function decodeFEN(board, stmStr, arr) {
+function decodeFEN(board, stmStr) {
 
   //{{{  init arr
   
-  for (var i=0; i<768; i++)
-    arr[i] = 0.0;
+  for (var i=0; i<netInputSize; i++)
+    neti[i] = 0.0;
   
   //}}}
 
@@ -203,7 +205,7 @@ function decodeFEN(board, stmStr, arr) {
       //}
       
       //}}}
-      arr[x] = 1.0;
+      neti[x] = 1.0;
       sq++;
     }
     else {
@@ -215,9 +217,8 @@ function decodeFEN(board, stmStr, arr) {
 //}}}
 //{{{  network
 
-var netInputSize   = 768;  // input layer.
-var netHiddenSize  = 256;  // hidden later.
-var netOutputSize  = 1;    // output layer.
+var netInputSize   = 768; // input layer.
+var netOutputSize  = 1;   // output layer.
 
 //{{{  build net
 
@@ -256,6 +257,17 @@ function dsigmoid(x) {
 }
 
 //}}}
+//{{{  relu
+
+function relu(x) {
+  return Math.max(0.0,x);
+}
+
+function drelu(x) {
+  return 1.0;
+}
+
+//}}}
 //{{{  netLoss
 
 function netLoss(target) {
@@ -272,15 +284,7 @@ function netLoss(target) {
 //}}}
 //{{{  netForward()
 
-function netForward(inputs) {
-
-  if (inputs.length != netInputSize) {
-    console.log('netForward','input vector length must be',netInputSize,'your length is',input.length);
-    process.exit;
-  }
-
-  for (var i=0; i < netInputSize; i++)
-    neti[i] = inputs[i];
+function netForward() {
 
   for (var h=0; h < netHiddenSize; h++) {
     var hidden = neth[h];
@@ -288,7 +292,7 @@ function netForward(inputs) {
     for (var i=0; i < netInputSize; i++) {
       hidden.in += hidden.weights[i] * neti[i];
     }
-    hidden.out = sigmoid(hidden.in);
+    hidden.out = relu(hidden.in);
   }
 
   for (var o=0; o < netOutputSize; o++) {
@@ -352,7 +356,7 @@ function netCalcGradients(targets) {
       var output = neto[o];
       hidden.gout += output.gin * output.weights[h];
     }
-    hidden.gin = dsigmoid(hidden.in) * hidden.gout;
+    hidden.gin = drelu(hidden.in) * hidden.gout;
   }
 
   for (var h=0; h < netHiddenSize; h++) {
@@ -424,6 +428,36 @@ function netApplyGradients(b,alpha) {
 }
 
 //}}}
+//{{{  netSaveWeights
+
+function netSaveWeights () {
+
+  var d   = new Date();
+  var out = '//{{{  net weights\r\n\r\n';
+
+  out += '// data=quiet_labelled.epd';
+  out += '\r\n';
+  out += '// last update '+d;
+  out += '\r\n\r\n';
+
+  for (var h=0; h < netHiddenSize; h++) {
+    out = out + 'neth['+h+'] = [' + neth[h].weights.toString();
+    out = out + '];\r\n';
+    out = out + '\r\n';
+  }
+
+  for (var o=0; o < netOutputSize; o++) {
+    out = out + 'neto['+o+'] = [' + neto[o].weights.toString();
+    out = out + '];\r\n';
+    out = out + '\r\n';
+  }
+
+  out = out + '\r\n//}}}\r\n\r\n';
+
+  fs.writeFileSync('nettune.txt',out);
+}
+
+//}}}
 
 //}}}
 //{{{  grunt
@@ -478,13 +512,13 @@ function grunt () {
   
     var epd = epds[i];
   
-    decodeFEN(epd.board, epd.stm, inputs);
+    decodeFEN(epd.board, epd.stm);
   }
   
   var t2 = Date.now();
   
-  decodeFEN('1P2kK2Q7888887n', 'w', inputs);
-  if (!inputs[321] || !inputs[388] || !inputs[5] || !inputs[72] || !inputs[703]) {
+  decodeFEN('1P2kK2Q7888887n', 'w');
+  if (!neti[321] || !neti[388] || !neti[5] || !neti[72] || !neti[703]) {
     console.log('decode pos');
     process.exit();
   }
@@ -496,15 +530,15 @@ function grunt () {
   //}}}
   //{{{  tune
   
-  var batchSize     = 100;
   var numBatches    = epds.length / batchSize | 0;
   var testPositions = epds.length * 0.2 | 0;
-  var numEpochs     = 10000;
+  var numEpochs     = 100000;
   
   console.log('hidden layer size =',netHiddenSize);
   console.log('batch size =',batchSize);
   console.log('batches per epoch =',numBatches);
   console.log('test positions =',testPositions);
+  console.log('learning rate =',learningRate);
   
   netInitWeights();
   
@@ -514,7 +548,7 @@ function grunt () {
     for (var batch=0; batch < numBatches; batch++) {
     
       if (batch % 10 == 0)
-        process.stdout.write('epoch ' + epoch + ', batch ' + batch+'\r');
+        process.stdout.write('epoch =' + epoch + 'batch =' + batch+'\r');
     
       netResetGradientSums();
     
@@ -522,9 +556,9 @@ function grunt () {
     
         var epd = epds[(Math.random()*epds.length)|0];
     
-        decodeFEN(epd.board, epd.stm, inputs);
+        decodeFEN(epd.board, epd.stm);
     
-        netForward(inputs)
+        netForward()
     
         var targets = [epd.prob];
     
@@ -532,7 +566,7 @@ function grunt () {
         netAccumulateGradients();
       }
     
-      netApplyGradients(1,0.001);
+      netApplyGradients(1,learningRate);
     }
     
     //}}}
@@ -542,20 +576,24 @@ function grunt () {
     
     for (var i=0; i < testPositions; i++) {
     
+      if (i % 10000 == 0)
+        process.stdout.write(i+'\r');
+    
       var epd = epds[i];
     
-      decodeFEN(epd.board, epd.stm, inputs);
+      decodeFEN(epd.board, epd.stm);
     
-      netForward(inputs)
+      netForward()
     
       var targets = [epd.prob];
     
       loss += netLoss(targets);
     }
     
-    console.log ('epoch',epoch,', loss',loss/testPositions);
+    console.log ('epoch =',epoch,'loss =',loss/testPositions);
     
     //}}}
+    netSaveWeights();
   }
   
   console.log('done');
