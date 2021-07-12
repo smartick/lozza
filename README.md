@@ -2,13 +2,11 @@ _To run Lozza in a chess UI like Arena, Winboard etc. or the command line, downl
 
 # Lozza
 
-A UCI compliant Javascript chess engine. Lozza is a traditional mailbox engine with PVS search. It's easy to embed Lozza into your web project or use her offline in client user interfaces like Arena and Winboard. A sister project also allows Lozza to be played online in your web browser via PC/laptop/tablet/phone etc. 
+A somewhat quirky UCI compliant Javascript chess engine. It's easy to embed Lozza into your web project or use her offline in client user interfaces like Arena and Winboard. A sister project also allows Lozza to be played online in your web browser via PC/laptop/tablet/phone etc. 
 
 ## Why Javascript?
 
 Mostly I was curious if a Javascript engine could compete with more traditional engines in the engine rating lists like CCRL, as at the time there were none listed. There were Javascript engines with their own user interfaces on the internet (like Gary Linscott's Garbochess), but none that used the UCI (or Winboard) protocol - needed to be included in the testing platforms. The Javascript development cycle is very quick because there is no build process. Javascript effectively makes the engine platform-independent - running online in any browser/device and offline on any OS that supports Nodejs (pretty much everything). Not least, Javascript is a lot of fun! 
-
-One downside is a hit in performance compared to traditionally compiled languages like C etc; but the JIT compiler in Google's V8 Javascript engine (that sits in Nodejs and the Chrome browser) is quite extraordinary. Another is that there are no native 64 bit integer values (there are 53 usable bits in the native Javascript Number type). Recently-ish however the concept of a BigInt was introduced - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt - which may suffice depending on performance; I have not tried them. Lozza uses Typed-Arrays and 2 32bit values for it's hash - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays.  
 
 ## Example use in a web  project
 
@@ -44,4 +42,4 @@ lozza.js is folded using {{{ and }}} (emacs convention) and most easily read usi
 
 ## Acknowledgements
 
-Lozza was initially based on intuition (hence the 12x12 board) and the Shannon paper.  Then I discovered the Chess Programming Wiki edited by Gerd Isenberg, which has been and still is, invaluable. Harm Geert Muller was very generous with his time on the computer chess discussion forums. Lozza was tested by Graham Banks and Gabor Szots et al. at CCRL - and included in their rating lists. Before using Nodejs, Lozza ran in Edmund Moshammer's jsUCI stdin/stdout V8 container. I use a PGN/EPD utility called pgn-extract written by David J. Barnes. Lozza soak testing is performed using the freely available and totally amazing Cutechess command-line and UI applications written by Ilari Pihlajisto and Arto Jonsson. Lozza was initially tuned using Peter Österlund's method ("Texel tuning") and quiet-labeled.epd published by Alexandru Moșoi, the Zurichess author. 
+The Chess Programming Wiki edited by Gerd Isenberg has been, and still is, invaluable. Harm Geert Muller was very generous with his time on the computer chess discussion forums. Lozza was tested by Graham Banks and Gabor Szots et al. at CCRL - and included in their rating lists. Before using Nodejs, Lozza ran in Edmund Moshammer's jsUCI stdin/stdout V8 container. I use a PGN/EPD utility called pgn-extract written by David J. Barnes. Lozza soak testing is performed using the freely available and totally amazing Cutechess command-line and UI applications written by Ilari Pihlajisto and Arto Jonsson. Lozza was initially tuned using Peter Österlund's method ("Texel tuning") and quiet-labeled.epd published by Alexandru Moșoi, the Zurichess author. 
