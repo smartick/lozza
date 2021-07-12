@@ -1,8 +1,8 @@
 
-var maxPositions   = 100;
-var netHiddenSize  = 16;
-var learningRate   = 0.1;
-var batchSize      = 10;
+var maxPositions   = 1000000000;
+var netHiddenSize  = 64;
+var learningRate   = 0.001;
+var batchSize      = 100;
 
 //{{{  file formats
 //
