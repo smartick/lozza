@@ -2,7 +2,7 @@ _To run Lozza in a chess UI like Arena, Winboard etc. or the command line, downl
 
 # Lozza
 
-A somewhat quirky UCI compliant Javascript chess engine. It's easy to embed Lozza into your web project or use her offline in client user interfaces like Arena and Winboard. A sister project also allows Lozza to be played online in your web browser via PC/laptop/tablet/phone etc. 
+A UCI compliant Javascript chess engine. It's easy to embed Lozza into your web project or use her offline in client user interfaces like Arena and Winboard. A sister project also allows Lozza to be played online in your web browser via PC/laptop/tablet/phone etc. 
 
 ## Why Javascript?
 
