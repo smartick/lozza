@@ -1,6 +1,6 @@
 
 var maxPositions   = 1000000000;
-var netHiddenSize  = 256;
+var netHiddenSize  = 16;
 var learningRate   = 0.001;
 var batchSize      = 100;
 
@@ -570,7 +570,7 @@ function grunt () {
     
     for (var batch=0; batch < numBatches; batch++) {
     
-      if (batch % 10 == 0)
+      if (batch % 100 == 0)
         process.stdout.write('epoch = ' + epoch + ' batch = ' + batch+'\r');
     
       netResetGradientSums();
@@ -589,7 +589,7 @@ function grunt () {
         netAccumulateGradients();
       }
     
-      netApplyGradients(1,learningRate);
+      netApplyGradients(batchSize,learningRate);
     }
     
     //}}}
