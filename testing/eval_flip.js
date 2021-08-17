@@ -84,7 +84,7 @@ const M_BLACK = -1;                 // +1/-1 colour multiplier, compute with: (-
 const PIECE_MASK = 0x7;
 const COLOR_MASK = 0x8;
 
-const TTSIZE = 1 << 24;
+const TTSIZE = 1 << 22;
 const TTMASK = TTSIZE - 1;
 
 //const PTTSIZE = 1 << 14;
@@ -1215,6 +1215,8 @@ lozChess.prototype.go = function() {
       //movTime *= 2;
     //}
   
+    movTime = movTime * 0.95;
+  
     if (movTime > 0)
       this.stats.moveTime = movTime | 0;
   
@@ -2000,6 +2002,7 @@ function lozBoard () {
   this.verbose      = false;
   this.mvFmt        = 0;
   this.hashUsed     = 0;
+  this.elx          = {};
 
   this.b = new Uint16Array(144);    // pieces.
   this.z = new Uint16Array(144);    // indexes to w|bList.
@@ -4073,870 +4076,168 @@ lozBoard.prototype.evaluate = function (turn) {
     return CONTEMPT;
   
   //}}}
-  //{{{  iterate
+  //{{{  white loop
   
-  //{{{  white
+  this.elx.myPawnPSTS   = WPAWN_PSTS;
+  this.elx.myPawnPSTE   = WPAWN_PSTE;
+  this.elx.myKnightPSTS = WKNIGHT_PSTS;
+  this.elx.myKnightPSTE = WKNIGHT_PSTE;
+  this.elx.myBishopPSTS = WBISHOP_PSTS;
+  this.elx.myBishopPSTE = WBISHOP_PSTE;
+  this.elx.myRookPSTS   = WROOK_PSTS;
+  this.elx.myRookPSTE   = WROOK_PSTE;
+  this.elx.myQueenPSTS  = WQUEEN_PSTS;
+  this.elx.myQueenPSTE  = WQUEEN_PSTE;
+  this.elx.myKingPSTS   = WKING_PSTS;
+  this.elx.myKingPSTE   = WKING_PSTE;
   
-  var myPawnPSTS   = WPAWN_PSTS;
-  var myPawnPSTE   = WPAWN_PSTE;
-  var myKnightPSTS = WKNIGHT_PSTS;
-  var myKnightPSTE = WKNIGHT_PSTE;
-  var myBishopPSTS = WBISHOP_PSTS;
-  var myBishopPSTE = WBISHOP_PSTE;
-  var myRookPSTS   = WROOK_PSTS;
-  var myRookPSTE   = WROOK_PSTE;
-  var myQueenPSTS  = WQUEEN_PSTS;
-  var myQueenPSTE  = WQUEEN_PSTE;
-  var myKingPSTS   = WKING_PSTS;
-  var myKingPSTE   = WKING_PSTE;
+  this.elx.myPawn       = W_PAWN;
+  this.elx.myKnight     = W_KNIGHT;
+  this.elx.myBishop     = W_BISHOP;
+  this.elx.myRook       = W_ROOK;
+  this.elx.myQueen      = W_QUEEN;
+  this.elx.myKing       = W_KING;
   
-  var myPawn       = W_PAWN;
-  var myKnight     = W_KNIGHT;
-  var myBishop     = W_BISHOP;
-  var myRook       = W_ROOK;
-  var myQueen      = W_QUEEN;
-  var myKing       = W_KING;
+  this.elx.myReachP_S   = reachWP_S;
+  this.elx.myReachN_S   = reachWN_S;
+  this.elx.myReachB_S   = reachWB_S;
+  this.elx.myReachR_S   = reachWR_S;
+  this.elx.myReachQ_S   = reachWQ_S;
+  this.elx.myReachK_S   = reachWK_S;
   
-  var myReachP_S   = reachWP_S;
-  var myReachN_S   = reachWN_S;
-  var myReachB_S   = reachWB_S;
-  var myReachR_S   = reachWR_S;
-  var myReachQ_S   = reachWQ_S;
-  var myReachK_S   = reachWK_S;
+  this.elx.myReachP_E   = reachWP_E;
+  this.elx.myReachN_E   = reachWN_E;
+  this.elx.myReachB_E   = reachWB_E;
+  this.elx.myReachR_E   = reachWR_E;
+  this.elx.myReachQ_E   = reachWQ_E;
+  this.elx.myReachK_E   = reachWK_E;
   
-  var myReachP_E   = reachWP_E;
-  var myReachN_E   = reachWN_E;
-  var myReachB_E   = reachWB_E;
-  var myReachR_E   = reachWR_E;
-  var myReachQ_E   = reachWQ_E;
-  var myReachK_E   = reachWK_E;
+  this.elx.myNumPawns   = wNumPawns
   
-  var myNumPawns   = wNumPawns
+  this.elx.offsetPawnN  = -12;
+  this.elx.offsetPawnNE = -13;
+  this.elx.offsetPawnNW = -11;
   
-  var offsetPawnN  = -12;
-  var offsetPawnNE = -13;
-  var offsetPawnNW = -11;
+  this.elx.pList        = this.wList;
+  this.elx.pCount       = this.wCount;
   
-  var pList        = this.wList;
-  var pCount       = this.wCount;
+  this.elx.homeKingSq   = wKingSq;
+  this.elx.awayKingSq   = bKingSq;
   
-  var homeKingSq   = wKingSq;
-  var awayKingSq   = bKingSq;
+  this.elx.pstS         = 0;
+  this.elx.pstE         = 0;
+  this.elx.mobS         = 0;
+  this.elx.mobE         = 0;
+  this.elx.imbS         = 0;
+  this.elx.imbE         = 0;
+  this.elx.rchS         = 0;
+  this.elx.rchE         = 0;
+  this.elx.cthS         = 0;
+  this.elx.cthE         = 0;
+  this.elx.xryS         = 0;
+  this.elx.xryE         = 0;
   
-  //{{{  generic loop
+  this.eloop();
   
-  var pstS  = 0;
-  var pstE  = 0;
-  var mobS  = 0;
-  var mobE  = 0;
-  var imbS  = 0;
-  var imbE  = 0;
-  var rchS  = 0;
-  var rchE  = 0;
-  var cthS  = 0;
-  var cthE  = 0;
-  var xryS  = 0;
-  var xryE  = 0;
+  positionS  += this.elx.pstS;
+  positionE  += this.elx.pstE;
   
-  var mob   = 0;
-  var to    = 0;
-  var next  = 0;
-  var count = 0;
+  mobilityS  += this.elx.mobS;
+  mobilityE  += this.elx.mobE;
   
-  while (count < pCount) {
+  imbalanceS += this.elx.imbS;
+  imbalanceE += this.elx.imbE;
   
-    var fr = pList[next++];
-    if (!fr)
-      continue;
+  reachS     += this.elx.rchS;
+  reachE     += this.elx.rchE;
   
-    var frObj        = b[fr];
-    var awayKingDist = 8-DIST[fr][awayKingSq];
+  cwtchS     += this.elx.cthS;
+  cwtchE     += this.elx.cthE;
   
-    if (frObj == myPawn) {
-      //{{{  P
-      
-      pstS += myPawnPSTS[fr];
-      pstE += myPawnPSTE[fr];
-      
-      mob   = IS_E[b[fr+offsetPawnN]];
-      mobS += mob * mobil_S[PAWN];
-      mobE += mob * mobil_E[PAWN];
-      
-      rchS += myReachP_S[b[fr+offsetPawnNW]];
-      rchS += myReachP_S[b[fr+offsetPawnNE]];
-      
-      rchE += myReachP_E[b[fr+offsetPawnNW]];
-      rchE += myReachP_E[b[fr+offsetPawnNE]];
-      
-      cthS += awayKingDist * cwtch_S[PAWN];
-      cthE += awayKingDist * cwtch_E[PAWN];
-      
-      //}}}
-    }
-  
-    else if (frObj == myKnight) {
-      //{{{  N
-      
-      pstS += myKnightPSTS[fr];
-      pstE += myKnightPSTE[fr];
-      
-      mob = 0;
-      
-      toObj = b[fr+10];
-      mob  += IS_E[toObj];
-      rchS += myReachN_S[toObj];
-      rchE += myReachN_E[toObj];
-      
-      toObj = b[fr-10];
-      mob  += IS_E[toObj];
-      rchS += myReachN_S[toObj];
-      rchE += myReachN_E[toObj];
-      
-      toObj = b[fr+14];
-      mob  += IS_E[toObj];
-      rchS += myReachN_S[toObj];
-      rchE += myReachN_E[toObj];
-      
-      toObj = b[fr-14];
-      mob  += IS_E[toObj];
-      rchS += myReachN_S[toObj];
-      rchE += myReachN_E[toObj];
-      
-      toObj = b[fr+23];
-      mob  += IS_E[toObj];
-      rchS += myReachN_S[toObj];
-      rchE += myReachN_E[toObj];
-      
-      toObj = b[fr-23];
-      mob  += IS_E[toObj];
-      rchS += myReachN_S[toObj];
-      rchE += myReachN_E[toObj];
-      
-      toObj = b[fr+25];
-      mob  += IS_E[toObj];
-      rchS += myReachN_S[toObj];
-      rchE += myReachN_E[toObj];
-      
-      toObj = b[fr-25];
-      mob  += IS_E[toObj];
-      rchS += myReachN_S[toObj];
-      rchE += myReachN_E[toObj];
-      
-      mobS += mob * mobil_S[KNIGHT];
-      mobE += mob * mobil_E[KNIGHT];
-      
-      imbS += imbalN_S[myNumPawns];
-      imbE += imbalN_E[myNumPawns];
-      
-      cthS += awayKingDist * cwtch_S[KNIGHT];
-      cthE += awayKingDist * cwtch_E[KNIGHT];
-      
-      //}}}
-    }
-  
-    else if (frObj == myBishop) {
-      //{{{  B
-      
-      pstS += myBishopPSTS[fr];
-      pstE += myBishopPSTE[fr];
-      
-      mob = 0;
-      
-      to = fr + 11;
-      while (!b[to]) {
-        to += 11;
-        mob++;
-      }
-      rchS += myReachB_S[b[to]];
-      rchE += myReachB_E[b[to]];
-      
-      to = fr - 11;
-      while (!b[to]) {
-        to -= 11;
-        mob++;
-      }
-      rchS += myReachB_S[b[to]];
-      rchE += myReachB_E[b[to]];
-      
-      to = fr + 13;
-      while (!b[to]) {
-        to += 13;
-        mob++;
-      }
-      rchS += myReachB_S[b[to]];
-      rchE += myReachB_E[b[to]];
-      
-      to = fr - 13;
-      while (!b[to]) {
-        to -= 13;
-        mob++;
-      }
-      rchS += myReachB_S[b[to]];
-      rchE += myReachB_E[b[to]];
-      
-      mobS += mob * mobil_S[BISHOP];
-      mobE += mob * mobil_E[BISHOP];
-      
-      imbS += imbalB_S[myNumPawns];
-      imbE += imbalB_E[myNumPawns];
-      
-      cthS += awayKingDist * cwtch_S[BISHOP];
-      cthE += awayKingDist * cwtch_E[BISHOP];
-      
-      xryS += XRAY[awayKingSq][BISHOP][fr] * xray_S[BISHOP];
-      xryE += XRAY[awayKingSq][BISHOP][fr] * xray_E[BISHOP];
-      
-      //}}}
-    }
-  
-    else if (frObj == myRook) {
-      //{{{  R
-      
-      pstS += myRookPSTS[fr];
-      pstE += myRookPSTE[fr];
-      
-      mob = 0;
-      
-      to = fr + 1;
-      while (!b[to]) {
-        to += 1;
-        mob++;
-      }
-      rchS += myReachR_S[b[to]];
-      rchE += myReachR_E[b[to]];
-      
-      to = fr - 1;
-      while (!b[to]) {
-        to -= 1;
-        mob++;
-      }
-      rchS += myReachR_S[b[to]];
-      rchE += myReachR_E[b[to]];
-      
-      to = fr + 12;
-      while (!b[to]) {
-        to += 12;
-        mob++;
-      }
-      rchS += myReachR_S[b[to]];
-      rchE += myReachR_E[b[to]];
-      
-      to = fr - 12;
-      while (!b[to]) {
-        to -= 12;
-        mob++;
-      }
-      rchS += myReachR_S[b[to]];
-      rchE += myReachR_E[b[to]];
-      
-      mobS += mob * mobil_S[ROOK];
-      mobE += mob * mobil_E[ROOK];
-      
-      cthS += awayKingDist * cwtch_S[ROOK];
-      cthE += awayKingDist * cwtch_E[ROOK];
-      
-      xryS += XRAY[awayKingSq][ROOK][fr] * xray_S[ROOK];
-      xryE += XRAY[awayKingSq][ROOK][fr] * xray_E[ROOK];
-      
-      //}}}
-    }
-  
-    else if (frObj == myQueen) {
-      //{{{  Q
-      
-      pstS += myQueenPSTS[fr];
-      pstE += myQueenPSTE[fr];
-      
-      mob = 0;
-      
-      to = fr + 1;
-      while (!b[to]) {
-        to += 1;
-        mob++;
-      }
-      rchS += myReachQ_S[b[to]];
-      rchE += myReachQ_E[b[to]];
-      
-      to = fr - 1;
-        while (!b[to]) {
-        to -= 1;
-        mob++;
-      }
-      rchS += myReachQ_S[b[to]];
-      rchE += myReachQ_E[b[to]];
-      
-      to = fr + 12;
-      while (!b[to]) {
-        to += 12;
-        mob++;
-      }
-      rchS += myReachQ_S[b[to]];
-      rchE += myReachQ_E[b[to]];
-      
-      to = fr - 12;
-      while (!b[to]) {
-        to -= 12;
-        mob++;
-      }
-      rchS += myReachQ_S[b[to]];
-      rchE += myReachQ_E[b[to]];
-      
-      to = fr + 11;
-      while (!b[to]) {
-        to += 11;
-        mob++;
-      }
-      rchS += myReachQ_S[b[to]];
-      rchE += myReachQ_E[b[to]];
-      
-      to = fr - 11;
-      while (!b[to]) {
-        to -= 11;
-        mob++;
-      }
-      rchS += myReachQ_S[b[to]];
-      rchE += myReachQ_E[b[to]];
-      
-      to = fr + 13;
-      while (!b[to]) {
-        to += 13;
-        mob++;
-      }
-      rchS += myReachQ_S[b[to]];
-      rchE += myReachQ_E[b[to]];
-      
-      to = fr - 13;
-      while (!b[to]) {
-        to -= 13;
-        mob++;
-      }
-      rchS += myReachQ_S[b[to]];
-      rchE += myReachQ_E[b[to]];
-      
-      mobS += mob * mobil_S[QUEEN];
-      mobE += mob * mobil_E[QUEEN];
-      
-      cthS += awayKingDist * cwtch_S[QUEEN];
-      cthE += awayKingDist * cwtch_E[QUEEN];
-      
-      xryS += XRAY[awayKingSq][QUEEN][fr] * xray_S[QUEEN];
-      xryE += XRAY[awayKingSq][QUEEN][fr] * xray_E[QUEEN];
-      
-      //}}}
-    }
-  
-    else if (frObj == myKing) {
-      //{{{  K
-      
-      pstS += myKingPSTS[fr];
-      pstE += myKingPSTE[fr];
-      
-      mob = 0;
-      
-      toObj = b[fr+1];
-      mob  += IS_E[toObj];
-      rchS += myReachK_S[toObj];
-      rchE += myReachK_E[toObj];
-      
-      toObj = b[fr-1];
-      mob  += IS_E[toObj];
-      rchS += myReachK_S[toObj];
-      rchE += myReachK_E[toObj];
-      
-      toObj = b[fr+13];
-      mob  += IS_E[toObj];
-      rchS += myReachK_S[toObj];
-      rchE += myReachK_E[toObj];
-      
-      toObj = b[fr-13];
-      mob  += IS_E[toObj];
-      rchS += myReachK_S[toObj];
-      rchE += myReachK_E[toObj];
-      
-      toObj = b[fr+11];
-      mob  += IS_E[toObj];
-      rchS += myReachK_S[toObj];
-      rchE += myReachK_E[toObj];
-      
-      toObj = b[fr-11];
-      mob  += IS_E[toObj];
-      rchS += myReachK_S[toObj];
-      rchE += myReachK_E[toObj];
-      
-      toObj = b[fr+12];
-      mob  += IS_E[toObj];
-      rchS += myReachK_S[toObj];
-      rchE += myReachK_E[toObj];
-      
-      toObj = b[fr-12];
-      mob  += IS_E[toObj];
-      rchS += myReachK_S[toObj];
-      rchE += myReachK_E[toObj];
-      
-      mobS += mob * mobil_S[KING];
-      mobE += mob * mobil_E[KING];
-      
-      cthS += awayKingDist * cwtch_S[KING];
-      cthE += awayKingDist * cwtch_E[KING];
-      
-      //}}}
-    }
-  
-    count++;
-  }
+  xrayS      += this.elx.xryS;
+  xrayE      += this.elx.xryE;
   
   //}}}
+  //{{{  black loop
   
-  positionS  += pstS;
-  positionE  += pstE;
+  this.elx.myPawnPSTS   = BPAWN_PSTS;
+  this.elx.myPawnPSTE   = BPAWN_PSTE;
+  this.elx.myKnightPSTS = BKNIGHT_PSTS;
+  this.elx.myKnightPSTE = BKNIGHT_PSTE;
+  this.elx.myBishopPSTS = BBISHOP_PSTS;
+  this.elx.myBishopPSTE = BBISHOP_PSTE;
+  this.elx.myRookPSTS   = BROOK_PSTS;
+  this.elx.myRookPSTE   = BROOK_PSTE;
+  this.elx.myQueenPSTS  = BQUEEN_PSTS;
+  this.elx.myQueenPSTE  = BQUEEN_PSTE;
+  this.elx.myKingPSTS   = BKING_PSTS;
+  this.elx.myKingPSTE   = BKING_PSTE;
   
-  mobilityS  += mobS;
-  mobilityE  += mobE;
+  this.elx.myPawn       = B_PAWN;
+  this.elx.myKnight     = B_KNIGHT;
+  this.elx.myBishop     = B_BISHOP;
+  this.elx.myRook       = B_ROOK;
+  this.elx.myQueen      = B_QUEEN;
+  this.elx.myKing       = B_KING;
   
-  imbalanceS += imbS;
-  imbalanceE += imbE;
+  this.elx.myReachP_S   = reachBP_S;
+  this.elx.myReachN_S   = reachBN_S;
+  this.elx.myReachB_S   = reachBB_S;
+  this.elx.myReachR_S   = reachBR_S;
+  this.elx.myReachQ_S   = reachBQ_S;
+  this.elx.myReachK_S   = reachBK_S;
   
-  reachS     += rchS;
-  reachE     += rchE;
+  this.elx.myReachP_E   = reachBP_E;
+  this.elx.myReachN_E   = reachBN_E;
+  this.elx.myReachB_E   = reachBB_E;
+  this.elx.myReachR_E   = reachBR_E;
+  this.elx.myReachQ_E   = reachBQ_E;
+  this.elx.myReachK_E   = reachBK_E;
   
-  cwtchS     += cthS;
-  cwtchE     += cthE;
+  this.elx.myNumPawns   = bNumPawns
   
-  xrayS      += xryS;
-  xrayE      += xryE;
+  this.elx.offsetPawnN  = 12;
+  this.elx.offsetPawnNE = 13;
+  this.elx.offsetPawnNW = 11;
   
-  //}}}
-  //{{{  black
+  this.elx.pList        = this.bList;
+  this.elx.pCount       = this.bCount;
   
-  var myPawnPSTS   = BPAWN_PSTS;
-  var myPawnPSTE   = BPAWN_PSTE;
-  var myKnightPSTS = BKNIGHT_PSTS;
-  var myKnightPSTE = BKNIGHT_PSTE;
-  var myBishopPSTS = BBISHOP_PSTS;
-  var myBishopPSTE = BBISHOP_PSTE;
-  var myRookPSTS   = BROOK_PSTS;
-  var myRookPSTE   = BROOK_PSTE;
-  var myQueenPSTS  = BQUEEN_PSTS;
-  var myQueenPSTE  = BQUEEN_PSTE;
-  var myKingPSTS   = BKING_PSTS;
-  var myKingPSTE   = BKING_PSTE;
+  this.elx.homeKingSq   = bKingSq;
+  this.elx.awayKingSq   = wKingSq;
   
-  var myPawn       = B_PAWN;
-  var myKnight     = B_KNIGHT;
-  var myBishop     = B_BISHOP;
-  var myRook       = B_ROOK;
-  var myQueen      = B_QUEEN;
-  var myKing       = B_KING;
+  this.elx.pstS         = 0;
+  this.elx.pstE         = 0;
+  this.elx.mobS         = 0;
+  this.elx.mobE         = 0;
+  this.elx.imbS         = 0;
+  this.elx.imbE         = 0;
+  this.elx.rchS         = 0;
+  this.elx.rchE         = 0;
+  this.elx.cthS         = 0;
+  this.elx.cthE         = 0;
+  this.elx.xryS         = 0;
+  this.elx.xryE         = 0;
   
-  var myReachP_S   = reachBP_S;
-  var myReachN_S   = reachBN_S;
-  var myReachB_S   = reachBB_S;
-  var myReachR_S   = reachBR_S;
-  var myReachQ_S   = reachBQ_S;
-  var myReachK_S   = reachBK_S;
+  this.eloop();
   
-  var myReachP_E   = reachBP_E;
-  var myReachN_E   = reachBN_E;
-  var myReachB_E   = reachBB_E;
-  var myReachR_E   = reachBR_E;
-  var myReachQ_E   = reachBQ_E;
-  var myReachK_E   = reachBK_E;
+  positionS  -= this.elx.pstS;
+  positionE  -= this.elx.pstE;
   
-  var myNumPawns   = bNumPawns
+  mobilityS  -= this.elx.mobS;
+  mobilityE  -= this.elx.mobE;
   
-  var offsetPawnN  = 12;
-  var offsetPawnNE = 13;
-  var offsetPawnNW = 11;
+  imbalanceS -= this.elx.imbS;
+  imbalanceE -= this.elx.imbE;
   
-  var pList        = this.bList;
-  var pCount       = this.bCount;
+  reachS     -= this.elx.rchS;
+  reachE     -= this.elx.rchE;
   
-  var homeKingSq   = bKingSq;
-  var awayKingSq   = wKingSq;
+  cwtchS     -= this.elx.cthS;
+  cwtchE     -= this.elx.cthE;
   
-  //{{{  generic loop
-  
-  var pstS  = 0;
-  var pstE  = 0;
-  var mobS  = 0;
-  var mobE  = 0;
-  var imbS  = 0;
-  var imbE  = 0;
-  var rchS  = 0;
-  var rchE  = 0;
-  var cthS  = 0;
-  var cthE  = 0;
-  var xryS  = 0;
-  var xryE  = 0;
-  
-  var mob   = 0;
-  var to    = 0;
-  var next  = 0;
-  var count = 0;
-  
-  while (count < pCount) {
-  
-    var fr = pList[next++];
-    if (!fr)
-      continue;
-  
-    var frObj        = b[fr];
-    var awayKingDist = 8-DIST[fr][awayKingSq];
-  
-    if (frObj == myPawn) {
-      //{{{  P
-      
-      pstS += myPawnPSTS[fr];
-      pstE += myPawnPSTE[fr];
-      
-      mob   = IS_E[b[fr+offsetPawnN]];
-      mobS += mob * mobil_S[PAWN];
-      mobE += mob * mobil_E[PAWN];
-      
-      rchS += myReachP_S[b[fr+offsetPawnNW]];
-      rchS += myReachP_S[b[fr+offsetPawnNE]];
-      
-      rchE += myReachP_E[b[fr+offsetPawnNW]];
-      rchE += myReachP_E[b[fr+offsetPawnNE]];
-      
-      cthS += awayKingDist * cwtch_S[PAWN];
-      cthE += awayKingDist * cwtch_E[PAWN];
-      
-      //}}}
-    }
-  
-    else if (frObj == myKnight) {
-      //{{{  N
-      
-      pstS += myKnightPSTS[fr];
-      pstE += myKnightPSTE[fr];
-      
-      mob = 0;
-      
-      toObj = b[fr+10];
-      mob  += IS_E[toObj];
-      rchS += myReachN_S[toObj];
-      rchE += myReachN_E[toObj];
-      
-      toObj = b[fr-10];
-      mob  += IS_E[toObj];
-      rchS += myReachN_S[toObj];
-      rchE += myReachN_E[toObj];
-      
-      toObj = b[fr+14];
-      mob  += IS_E[toObj];
-      rchS += myReachN_S[toObj];
-      rchE += myReachN_E[toObj];
-      
-      toObj = b[fr-14];
-      mob  += IS_E[toObj];
-      rchS += myReachN_S[toObj];
-      rchE += myReachN_E[toObj];
-      
-      toObj = b[fr+23];
-      mob  += IS_E[toObj];
-      rchS += myReachN_S[toObj];
-      rchE += myReachN_E[toObj];
-      
-      toObj = b[fr-23];
-      mob  += IS_E[toObj];
-      rchS += myReachN_S[toObj];
-      rchE += myReachN_E[toObj];
-      
-      toObj = b[fr+25];
-      mob  += IS_E[toObj];
-      rchS += myReachN_S[toObj];
-      rchE += myReachN_E[toObj];
-      
-      toObj = b[fr-25];
-      mob  += IS_E[toObj];
-      rchS += myReachN_S[toObj];
-      rchE += myReachN_E[toObj];
-      
-      mobS += mob * mobil_S[KNIGHT];
-      mobE += mob * mobil_E[KNIGHT];
-      
-      imbS += imbalN_S[myNumPawns];
-      imbE += imbalN_E[myNumPawns];
-      
-      cthS += awayKingDist * cwtch_S[KNIGHT];
-      cthE += awayKingDist * cwtch_E[KNIGHT];
-      
-      //}}}
-    }
-  
-    else if (frObj == myBishop) {
-      //{{{  B
-      
-      pstS += myBishopPSTS[fr];
-      pstE += myBishopPSTE[fr];
-      
-      mob = 0;
-      
-      to = fr + 11;
-      while (!b[to]) {
-        to += 11;
-        mob++;
-      }
-      rchS += myReachB_S[b[to]];
-      rchE += myReachB_E[b[to]];
-      
-      to = fr - 11;
-      while (!b[to]) {
-        to -= 11;
-        mob++;
-      }
-      rchS += myReachB_S[b[to]];
-      rchE += myReachB_E[b[to]];
-      
-      to = fr + 13;
-      while (!b[to]) {
-        to += 13;
-        mob++;
-      }
-      rchS += myReachB_S[b[to]];
-      rchE += myReachB_E[b[to]];
-      
-      to = fr - 13;
-      while (!b[to]) {
-        to -= 13;
-        mob++;
-      }
-      rchS += myReachB_S[b[to]];
-      rchE += myReachB_E[b[to]];
-      
-      mobS += mob * mobil_S[BISHOP];
-      mobE += mob * mobil_E[BISHOP];
-      
-      imbS += imbalB_S[myNumPawns];
-      imbE += imbalB_E[myNumPawns];
-      
-      cthS += awayKingDist * cwtch_S[BISHOP];
-      cthE += awayKingDist * cwtch_E[BISHOP];
-      
-      xryS += XRAY[awayKingSq][BISHOP][fr] * xray_S[BISHOP];
-      xryE += XRAY[awayKingSq][BISHOP][fr] * xray_E[BISHOP];
-      
-      //}}}
-    }
-  
-    else if (frObj == myRook) {
-      //{{{  R
-      
-      pstS += myRookPSTS[fr];
-      pstE += myRookPSTE[fr];
-      
-      mob = 0;
-      
-      to = fr + 1;
-      while (!b[to]) {
-        to += 1;
-        mob++;
-      }
-      rchS += myReachR_S[b[to]];
-      rchE += myReachR_E[b[to]];
-      
-      to = fr - 1;
-      while (!b[to]) {
-        to -= 1;
-        mob++;
-      }
-      rchS += myReachR_S[b[to]];
-      rchE += myReachR_E[b[to]];
-      
-      to = fr + 12;
-      while (!b[to]) {
-        to += 12;
-        mob++;
-      }
-      rchS += myReachR_S[b[to]];
-      rchE += myReachR_E[b[to]];
-      
-      to = fr - 12;
-      while (!b[to]) {
-        to -= 12;
-        mob++;
-      }
-      rchS += myReachR_S[b[to]];
-      rchE += myReachR_E[b[to]];
-      
-      mobS += mob * mobil_S[ROOK];
-      mobE += mob * mobil_E[ROOK];
-      
-      cthS += awayKingDist * cwtch_S[ROOK];
-      cthE += awayKingDist * cwtch_E[ROOK];
-      
-      xryS += XRAY[awayKingSq][ROOK][fr] * xray_S[ROOK];
-      xryE += XRAY[awayKingSq][ROOK][fr] * xray_E[ROOK];
-      
-      //}}}
-    }
-  
-    else if (frObj == myQueen) {
-      //{{{  Q
-      
-      pstS += myQueenPSTS[fr];
-      pstE += myQueenPSTE[fr];
-      
-      mob = 0;
-      
-      to = fr + 1;
-      while (!b[to]) {
-        to += 1;
-        mob++;
-      }
-      rchS += myReachQ_S[b[to]];
-      rchE += myReachQ_E[b[to]];
-      
-      to = fr - 1;
-        while (!b[to]) {
-        to -= 1;
-        mob++;
-      }
-      rchS += myReachQ_S[b[to]];
-      rchE += myReachQ_E[b[to]];
-      
-      to = fr + 12;
-      while (!b[to]) {
-        to += 12;
-        mob++;
-      }
-      rchS += myReachQ_S[b[to]];
-      rchE += myReachQ_E[b[to]];
-      
-      to = fr - 12;
-      while (!b[to]) {
-        to -= 12;
-        mob++;
-      }
-      rchS += myReachQ_S[b[to]];
-      rchE += myReachQ_E[b[to]];
-      
-      to = fr + 11;
-      while (!b[to]) {
-        to += 11;
-        mob++;
-      }
-      rchS += myReachQ_S[b[to]];
-      rchE += myReachQ_E[b[to]];
-      
-      to = fr - 11;
-      while (!b[to]) {
-        to -= 11;
-        mob++;
-      }
-      rchS += myReachQ_S[b[to]];
-      rchE += myReachQ_E[b[to]];
-      
-      to = fr + 13;
-      while (!b[to]) {
-        to += 13;
-        mob++;
-      }
-      rchS += myReachQ_S[b[to]];
-      rchE += myReachQ_E[b[to]];
-      
-      to = fr - 13;
-      while (!b[to]) {
-        to -= 13;
-        mob++;
-      }
-      rchS += myReachQ_S[b[to]];
-      rchE += myReachQ_E[b[to]];
-      
-      mobS += mob * mobil_S[QUEEN];
-      mobE += mob * mobil_E[QUEEN];
-      
-      cthS += awayKingDist * cwtch_S[QUEEN];
-      cthE += awayKingDist * cwtch_E[QUEEN];
-      
-      xryS += XRAY[awayKingSq][QUEEN][fr] * xray_S[QUEEN];
-      xryE += XRAY[awayKingSq][QUEEN][fr] * xray_E[QUEEN];
-      
-      //}}}
-    }
-  
-    else if (frObj == myKing) {
-      //{{{  K
-      
-      pstS += myKingPSTS[fr];
-      pstE += myKingPSTE[fr];
-      
-      mob = 0;
-      
-      toObj = b[fr+1];
-      mob  += IS_E[toObj];
-      rchS += myReachK_S[toObj];
-      rchE += myReachK_E[toObj];
-      
-      toObj = b[fr-1];
-      mob  += IS_E[toObj];
-      rchS += myReachK_S[toObj];
-      rchE += myReachK_E[toObj];
-      
-      toObj = b[fr+13];
-      mob  += IS_E[toObj];
-      rchS += myReachK_S[toObj];
-      rchE += myReachK_E[toObj];
-      
-      toObj = b[fr-13];
-      mob  += IS_E[toObj];
-      rchS += myReachK_S[toObj];
-      rchE += myReachK_E[toObj];
-      
-      toObj = b[fr+11];
-      mob  += IS_E[toObj];
-      rchS += myReachK_S[toObj];
-      rchE += myReachK_E[toObj];
-      
-      toObj = b[fr-11];
-      mob  += IS_E[toObj];
-      rchS += myReachK_S[toObj];
-      rchE += myReachK_E[toObj];
-      
-      toObj = b[fr+12];
-      mob  += IS_E[toObj];
-      rchS += myReachK_S[toObj];
-      rchE += myReachK_E[toObj];
-      
-      toObj = b[fr-12];
-      mob  += IS_E[toObj];
-      rchS += myReachK_S[toObj];
-      rchE += myReachK_E[toObj];
-      
-      mobS += mob * mobil_S[KING];
-      mobE += mob * mobil_E[KING];
-      
-      cthS += awayKingDist * cwtch_S[KING];
-      cthE += awayKingDist * cwtch_E[KING];
-      
-      //}}}
-    }
-  
-    count++;
-  }
-  
-  //}}}
-  
-  positionS  -= pstS;
-  positionE  -= pstE;
-  
-  mobilityS  -= mobS;
-  mobilityE  -= mobE;
-  
-  imbalanceS -= imbS;
-  imbalanceE -= imbE;
-  
-  reachS     -= rchS;
-  reachE     -= rchE;
-  
-  cwtchS     -= cthS;
-  cwtchE     -= cthE;
-  
-  xrayS      -= xryS;
-  xrayE      -= xryE;
-  
-  //}}}
+  xrayS      -= this.elx.xryS;
+  xrayE      -= this.elx.xryE;
   
   //}}}
   //{{{  tempo
@@ -4989,6 +4290,361 @@ lozBoard.prototype.evaluate = function (turn) {
   //}}}
 
   return (turn == WHITE) ? e : -e
+}
+
+//}}}
+//{{{  .eloop
+
+lozBoard.prototype.eloop = function () {
+
+  var b     = this.b;
+
+  var mob   = 0;
+  var to    = 0;
+  var next  = 0;
+  var count = 0;
+
+  while (count < this.elx.pCount) {
+
+    var fr = this.elx.pList[next++];
+    if (!fr)
+      continue;
+
+    var frObj        = b[fr];
+    var awayKingDist = 8-DIST[fr][this.elx.awayKingSq];
+
+    if (frObj == this.elx.myPawn) {
+      //{{{  P
+      
+      this.elx.pstS += this.elx.myPawnPSTS[fr];
+      this.elx.pstE += this.elx.myPawnPSTE[fr];
+      
+      mob   = IS_E[b[fr+this.elx.offsetPawnN]];
+      this.elx.mobS += mob * mobil_S[PAWN];
+      this.elx.mobE += mob * mobil_E[PAWN];
+      
+      this.elx.rchS += this.elx.myReachP_S[b[fr+this.elx.offsetPawnNW]];
+      this.elx.rchS += this.elx.myReachP_S[b[fr+this.elx.offsetPawnNE]];
+      
+      this.elx.rchE += this.elx.myReachP_E[b[fr+this.elx.offsetPawnNW]];
+      this.elx.rchE += this.elx.myReachP_E[b[fr+this.elx.offsetPawnNE]];
+      
+      this.elx.cthS += awayKingDist * cwtch_S[PAWN];
+      this.elx.cthE += awayKingDist * cwtch_E[PAWN];
+      
+      //}}}
+    }
+
+    else if (frObj == this.elx.myKnight) {
+      //{{{  N
+      
+      this.elx.pstS += this.elx.myKnightPSTS[fr];
+      this.elx.pstE += this.elx.myKnightPSTE[fr];
+      
+      mob = 0;
+      
+      toObj = b[fr+10];
+      mob  += IS_E[toObj];
+      this.elx.rchS += this.elx.myReachN_S[toObj];
+      this.elx.rchE += this.elx.myReachN_E[toObj];
+      
+      toObj = b[fr-10];
+      mob  += IS_E[toObj];
+      this.elx.rchS += this.elx.myReachN_S[toObj];
+      this.elx.rchE += this.elx.myReachN_E[toObj];
+      
+      toObj = b[fr+14];
+      mob  += IS_E[toObj];
+      this.elx.rchS += this.elx.myReachN_S[toObj];
+      this.elx.rchE += this.elx.myReachN_E[toObj];
+      
+      toObj = b[fr-14];
+      mob  += IS_E[toObj];
+      this.elx.rchS += this.elx.myReachN_S[toObj];
+      this.elx.rchE += this.elx.myReachN_E[toObj];
+      
+      toObj = b[fr+23];
+      mob  += IS_E[toObj];
+      this.elx.rchS += this.elx.myReachN_S[toObj];
+      this.elx.rchE += this.elx.myReachN_E[toObj];
+      
+      toObj = b[fr-23];
+      mob  += IS_E[toObj];
+      this.elx.rchS += this.elx.myReachN_S[toObj];
+      this.elx.rchE += this.elx.myReachN_E[toObj];
+      
+      toObj = b[fr+25];
+      mob  += IS_E[toObj];
+      this.elx.rchS += this.elx.myReachN_S[toObj];
+      this.elx.rchE += this.elx.myReachN_E[toObj];
+      
+      toObj = b[fr-25];
+      mob  += IS_E[toObj];
+      this.elx.rchS += this.elx.myReachN_S[toObj];
+      this.elx.rchE += this.elx.myReachN_E[toObj];
+      
+      this.elx.mobS += mob * mobil_S[KNIGHT];
+      this.elx.mobE += mob * mobil_E[KNIGHT];
+      
+      this.elx.imbS += imbalN_S[this.elx.myNumPawns];
+      this.elx.imbE += imbalN_E[this.elx.myNumPawns];
+      
+      this.elx.cthS += awayKingDist * cwtch_S[KNIGHT];
+      this.elx.cthE += awayKingDist * cwtch_E[KNIGHT];
+      
+      //}}}
+    }
+
+    else if (frObj == this.elx.myBishop) {
+      //{{{  B
+      
+      this.elx.pstS += this.elx.myBishopPSTS[fr];
+      this.elx.pstE += this.elx.myBishopPSTE[fr];
+      
+      mob = 0;
+      
+      to = fr + 11;
+      while (!b[to]) {
+        to += 11;
+        mob++;
+      }
+      this.elx.rchS += this.elx.myReachB_S[b[to]];
+      this.elx.rchE += this.elx.myReachB_E[b[to]];
+      
+      to = fr - 11;
+      while (!b[to]) {
+        to -= 11;
+        mob++;
+      }
+      this.elx.rchS += this.elx.myReachB_S[b[to]];
+      this.elx.rchE += this.elx.myReachB_E[b[to]];
+      
+      to = fr + 13;
+      while (!b[to]) {
+        to += 13;
+        mob++;
+      }
+      this.elx.rchS += this.elx.myReachB_S[b[to]];
+      this.elx.rchE += this.elx.myReachB_E[b[to]];
+      
+      to = fr - 13;
+      while (!b[to]) {
+        to -= 13;
+        mob++;
+      }
+      this.elx.rchS += this.elx.myReachB_S[b[to]];
+      this.elx.rchE += this.elx.myReachB_E[b[to]];
+      
+      this.elx.mobS += mob * mobil_S[BISHOP];
+      this.elx.mobE += mob * mobil_E[BISHOP];
+      
+      this.elx.imbS += imbalB_S[this.elx.myNumPawns];
+      this.elx.imbE += imbalB_E[this.elx.myNumPawns];
+      
+      this.elx.cthS += awayKingDist * cwtch_S[BISHOP];
+      this.elx.cthE += awayKingDist * cwtch_E[BISHOP];
+      
+      this.elx.xryS += XRAY[this.elx.awayKingSq][BISHOP][fr] * xray_S[BISHOP];
+      this.elx.xryE += XRAY[this.elx.awayKingSq][BISHOP][fr] * xray_E[BISHOP];
+      
+      //}}}
+    }
+
+    else if (frObj == this.elx.myRook) {
+      //{{{  R
+      
+      this.elx.pstS += this.elx.myRookPSTS[fr];
+      this.elx.pstE += this.elx.myRookPSTE[fr];
+      
+      mob = 0;
+      
+      to = fr + 1;
+      while (!b[to]) {
+        to += 1;
+        mob++;
+      }
+      this.elx.rchS += this.elx.myReachR_S[b[to]];
+      this.elx.rchE += this.elx.myReachR_E[b[to]];
+      
+      to = fr - 1;
+      while (!b[to]) {
+        to -= 1;
+        mob++;
+      }
+      this.elx.rchS += this.elx.myReachR_S[b[to]];
+      this.elx.rchE += this.elx.myReachR_E[b[to]];
+      
+      to = fr + 12;
+      while (!b[to]) {
+        to += 12;
+        mob++;
+      }
+      this.elx.rchS += this.elx.myReachR_S[b[to]];
+      this.elx.rchE += this.elx.myReachR_E[b[to]];
+      
+      to = fr - 12;
+      while (!b[to]) {
+        to -= 12;
+        mob++;
+      }
+      this.elx.rchS += this.elx.myReachR_S[b[to]];
+      this.elx.rchE += this.elx.myReachR_E[b[to]];
+      
+      this.elx.mobS += mob * mobil_S[ROOK];
+      this.elx.mobE += mob * mobil_E[ROOK];
+      
+      this.elx.cthS += awayKingDist * cwtch_S[ROOK];
+      this.elx.cthE += awayKingDist * cwtch_E[ROOK];
+      
+      this.elx.xryS += XRAY[this.elx.awayKingSq][ROOK][fr] * xray_S[ROOK];
+      this.elx.xryE += XRAY[this.elx.awayKingSq][ROOK][fr] * xray_E[ROOK];
+      
+      //}}}
+    }
+
+    else if (frObj == this.elx.myQueen) {
+      //{{{  Q
+      
+      this.elx.pstS += this.elx.myQueenPSTS[fr];
+      this.elx.pstE += this.elx.myQueenPSTE[fr];
+      
+      mob = 0;
+      
+      to = fr + 1;
+      while (!b[to]) {
+        to += 1;
+        mob++;
+      }
+      this.elx.rchS += this.elx.myReachQ_S[b[to]];
+      this.elx.rchE += this.elx.myReachQ_E[b[to]];
+      
+      to = fr - 1;
+        while (!b[to]) {
+        to -= 1;
+        mob++;
+      }
+      this.elx.rchS += this.elx.myReachQ_S[b[to]];
+      this.elx.rchE += this.elx.myReachQ_E[b[to]];
+      
+      to = fr + 12;
+      while (!b[to]) {
+        to += 12;
+        mob++;
+      }
+      this.elx.rchS += this.elx.myReachQ_S[b[to]];
+      this.elx.rchE += this.elx.myReachQ_E[b[to]];
+      
+      to = fr - 12;
+      while (!b[to]) {
+        to -= 12;
+        mob++;
+      }
+      this.elx.rchS += this.elx.myReachQ_S[b[to]];
+      this.elx.rchE += this.elx.myReachQ_E[b[to]];
+      
+      to = fr + 11;
+      while (!b[to]) {
+        to += 11;
+        mob++;
+      }
+      this.elx.rchS += this.elx.myReachQ_S[b[to]];
+      this.elx.rchE += this.elx.myReachQ_E[b[to]];
+      
+      to = fr - 11;
+      while (!b[to]) {
+        to -= 11;
+        mob++;
+      }
+      this.elx.rchS += this.elx.myReachQ_S[b[to]];
+      this.elx.rchE += this.elx.myReachQ_E[b[to]];
+      
+      to = fr + 13;
+      while (!b[to]) {
+        to += 13;
+        mob++;
+      }
+      this.elx.rchS += this.elx.myReachQ_S[b[to]];
+      this.elx.rchE += this.elx.myReachQ_E[b[to]];
+      
+      to = fr - 13;
+      while (!b[to]) {
+        to -= 13;
+        mob++;
+      }
+      this.elx.rchS += this.elx.myReachQ_S[b[to]];
+      this.elx.rchE += this.elx.myReachQ_E[b[to]];
+      
+      this.elx.mobS += mob * mobil_S[QUEEN];
+      this.elx.mobE += mob * mobil_E[QUEEN];
+      
+      this.elx.cthS += awayKingDist * cwtch_S[QUEEN];
+      this.elx.cthE += awayKingDist * cwtch_E[QUEEN];
+      
+      this.elx.xryS += XRAY[this.elx.awayKingSq][QUEEN][fr] * xray_S[QUEEN];
+      this.elx.xryE += XRAY[this.elx.awayKingSq][QUEEN][fr] * xray_E[QUEEN];
+      
+      //}}}
+    }
+
+    else if (frObj == this.elx.myKing) {
+      //{{{  K
+      
+      this.elx.pstS += this.elx.myKingPSTS[fr];
+      this.elx.pstE += this.elx.myKingPSTE[fr];
+      
+      mob = 0;
+      
+      toObj = b[fr+1];
+      mob  += IS_E[toObj];
+      this.elx.rchS += this.elx.myReachK_S[toObj];
+      this.elx.rchE += this.elx.myReachK_E[toObj];
+      
+      toObj = b[fr-1];
+      mob  += IS_E[toObj];
+      this.elx.rchS += this.elx.myReachK_S[toObj];
+      this.elx.rchE += this.elx.myReachK_E[toObj];
+      
+      toObj = b[fr+13];
+      mob  += IS_E[toObj];
+      this.elx.rchS += this.elx.myReachK_S[toObj];
+      this.elx.rchE += this.elx.myReachK_E[toObj];
+      
+      toObj = b[fr-13];
+      mob  += IS_E[toObj];
+      this.elx.rchS += this.elx.myReachK_S[toObj];
+      this.elx.rchE += this.elx.myReachK_E[toObj];
+      
+      toObj = b[fr+11];
+      mob  += IS_E[toObj];
+      this.elx.rchS += this.elx.myReachK_S[toObj];
+      this.elx.rchE += this.elx.myReachK_E[toObj];
+      
+      toObj = b[fr-11];
+      mob  += IS_E[toObj];
+      this.elx.rchS += this.elx.myReachK_S[toObj];
+      this.elx.rchE += this.elx.myReachK_E[toObj];
+      
+      toObj = b[fr+12];
+      mob  += IS_E[toObj];
+      this.elx.rchS += this.elx.myReachK_S[toObj];
+      this.elx.rchE += this.elx.myReachK_E[toObj];
+      
+      toObj = b[fr-12];
+      mob  += IS_E[toObj];
+      this.elx.rchS += this.elx.myReachK_S[toObj];
+      this.elx.rchE += this.elx.myReachK_E[toObj];
+      
+      this.elx.mobS += mob * mobil_S[KING];
+      this.elx.mobE += mob * mobil_E[KING];
+      
+      this.elx.cthS += awayKingDist * cwtch_S[KING];
+      this.elx.cthE += awayKingDist * cwtch_E[KING];
+      
+      //}}}
+    }
+
+    count++;
+  }
 }
 
 //}}}

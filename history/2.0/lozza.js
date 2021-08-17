@@ -323,7 +323,7 @@ var COLOR_MASK = 0x8;
 
 var VALUE_PAWN = 100;             // safe - tuning root
 
-const TTSIZE = 1 << 24;
+const TTSIZE = 1 << 22;
 const TTMASK = TTSIZE - 1;
 
 const PTTSIZE = 1 << 14;
@@ -1492,6 +1492,8 @@ lozChess.prototype.go = function() {
     //if (this.uci.numMoves <= 3) {
       //movTime *= 2;
     //}
+  
+    movTime = movTime * 0.95;
   
     if (movTime > 0)
       this.stats.moveTime = movTime | 0;
