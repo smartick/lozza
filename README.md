@@ -40,7 +40,7 @@ Lozza can be used on almost any platform via Nodejs. Download the latest Lozza r
 
 From version 3 Lozza's evaluation function is somewhat unique in that it only uses generic metrics like mobility, reach, cwtch and xray. It is tempting to go ad-hoc with bishop-pair bonuses and passed pawns etc. in the name of ELO, but I am trying to design a scheme such that these are side-effects of the generic metrics. As of yet Lozza has no deep-learning style networks, but I have been playing around with them a bit as a learning exercise; see the tuning folder for examples. See also https://github.com/op12no2/toynet. 
 
-# Notes
+## Notes
 
 lozza.js is folded using {{{ and }}} (emacs convention) and most easily read using an editor with a folding capability.
 
