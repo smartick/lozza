@@ -1,4 +1,4 @@
-_To run Lozza in a chess UI like Arena, Winboard etc. or the command line, download the latest release (see right-hand section of this page). All platforms supported via Nodejs._
+_To run Lozza in a chess UI like Arena, Winboard etc. or the command line, download the latest release (see right-hand section of this page). Most platforms supported via Nodejs._
 
 # Lozza
 
