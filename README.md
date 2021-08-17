@@ -42,4 +42,12 @@ lozza.js is folded using {{{ and }}} (emacs convention) and most easily read usi
 
 ## Acknowledgements
 
-The Chess Programming Wiki edited by Gerd Isenberg has been, and still is, invaluable. Harm Geert Muller was very generous with his time on the computer chess discussion forums. Lozza was tested by Graham Banks and Gabor Szots et al. at CCRL - and included in their rating lists. Before using Nodejs, Lozza ran in Edmund Moshammer's jsUCI stdin/stdout V8 container. I use a PGN/EPD utility called pgn-extract written by David J. Barnes. Lozza soak testing is performed using the freely available and totally amazing Cutechess command-line and UI applications written by Ilari Pihlajisto and Arto Jonsson. Lozza was initially tuned using Peter Österlund's method ("Texel tuning") and quiet-labeled.epd published by Alexandru Moșoi, the Zurichess author. 
+https://www.chessprogramming.org/Main_Page
+
+https://cutechess.com/
+
+https://nodejs.org/en/
+
+http://ccrl.chessdom.com/ccrl/4040/
+
+
