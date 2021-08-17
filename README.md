@@ -34,7 +34,7 @@ https://github.com/op12no2/lozza/releases
 
 ## Evaluation
 
-From version 3, Lozza's evaluation function is somewhat unique in that it only uses generic metrics like mobility, imbalance, reach, cwtch and xray. It is tempting to go ad-hoc with bishop-pair bonuses and passed pawns etc. in the name of ELO, but I am trying to design a scheme such that these are side-effects of the generic metrics. As of yet Lozza has no networks, but I have been playing around with them a bit as a learning exercise, including training; see the tuning folder for examples. See also https://github.com/op12no2/toynet. 
+From version 3, Lozza's evaluation function is somewhat unusual in that it only uses generic metrics like mobility, imbalance, reach, cwtch and xray. It is tempting to go ad-hoc with bishop-pair bonuses and passed pawns etc. in the name of ELO, but I am trying to design a scheme such that these are side-effects of the generic metrics. As of yet Lozza has no networks, but I have been playing around with them a bit as a learning exercise, including training; see the tuning folder for examples. See also https://github.com/op12no2/toynet. 
 
 ## Notes
 
