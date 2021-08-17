@@ -32,6 +32,8 @@ A sister project - https://github.com/op12no2/lozza-ui - has some example user i
 
 Lozza can be used on almost any platform via Nodejs. Download the latest Lozza release and follow the instructions in readme.txt. Short version: Install Nodejs and edit the batch file one-liner included in the release to point at the node executable and lozza.js. Then point your chess UI at the batch file.
 
+https://github.com/op12no2/lozza/releases
+
 ## Evaluation
 
 From version 3, Lozza's evaluation function is somewhat unique in that it only uses generic metrics like mobility, imbalance, reach, cwtch and xray. It is tempting to go ad-hoc with bishop-pair bonuses and passed pawns etc. in the name of ELO, but I am trying to design a scheme such that these are side-effects of the generic metrics. As of yet Lozza has no networks, but I have been playing around with them a bit as a learning exercise, including training; see the tuning folder for examples. See also https://github.com/op12no2/toynet. 
