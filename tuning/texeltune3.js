@@ -890,6 +890,8 @@ const cwtch_S        = [0,-1,2,2,5,18,0];
 const cwtch_E        = [0,-1,0,0,-3,10,0];
 const xray_S         = [0,0,0,4,7,-6];
 const xray_E         = [0,0,0,3,-6,0];
+const misc_S         = [10];
+const misc_E         = [0];
 
 //}}}
 //{{{  pst lists
@@ -4065,6 +4067,9 @@ lozBoard.prototype.evaluate = function (turn) {
   var xrayS       = 0;
   var xrayE       = 0;
   
+  var tempoS      = 0;
+  var tempoE      = 0;
+  
   //}}}
   //{{{  draw?
   
@@ -4943,7 +4948,14 @@ lozBoard.prototype.evaluate = function (turn) {
   //}}}
   //{{{  tempo
   
-  tempo = (turn == WHITE) ? 10 : -10;
+  if (turn == WHITE) {
+    tempoS = misc_S[0];
+    tempoE = misc_E[0];
+  }
+  else {
+    tempoS = -misc_S[0];
+    tempoE = -misc_E[0];
+  }
   
   //}}}
   //{{{  combine
@@ -4960,10 +4972,8 @@ lozBoard.prototype.evaluate = function (turn) {
               (wNumRooks   - bNumRooks)   * VALUE_VECTOR_E[ROOK]   +
               (wNumQueens  - bNumQueens)  * VALUE_VECTOR_E[QUEEN];
   
-  var evalS = materialS + positionS + imbalanceS + mobilityS + reachS + cwtchS + xrayS;
-  var evalE = materialE + positionE + imbalanceE + mobilityE + reachE + cwtchE + xrayE;
-  
-  //evalS += tempo;
+  var evalS = materialS + positionS + imbalanceS + mobilityS + reachS + cwtchS + xrayS + tempoS;
+  var evalE = materialE + positionE + imbalanceE + mobilityE + reachE + cwtchE + xrayE + tempoE;
   
   var e = (evalS * (TPHASE - phase) + evalE * phase) / TPHASE;
   
@@ -4983,7 +4993,7 @@ lozBoard.prototype.evaluate = function (turn) {
     uci.send('info string','mobility =',           mobilityS,  mobilityE);
     uci.send('info string','position =',           positionS,  positionE);
     uci.send('info string','material =',           materialS,  materialE);
-    uci.send('info string','tempo =',              tempo);
+    uci.send('info string','tempo =',              tempoS,     tempoE);
     uci.send('info string','num white (p to q) =', wNumPawns,wNumKnights,wNumBishops,wNumRooks,wNumQueens);
     uci.send('info string','num black (p to q) =', bNumPawns,bNumKnights,bNumBishops,bNumRooks,bNumQueens);
   }
@@ -6300,11 +6310,6 @@ if (lozzaHost == HOST_NODEJS) {
 //
 // copy lozza.js above here.
 //
-// REMEMBER TO:-
-//
-//   1. REMOVE ROUND.
-//   2. REMOVE TEMPO.
-//
 
 console.log('hello world! wait...');
 
@@ -6562,6 +6567,9 @@ function saveparams () {
   out += loga(xray_S,         'xray_S        ');
   out += loga(xray_E,         'xray_E        ');
 
+  out += loga(misc_S,         'misc_S        ');
+  out += loga(misc_E,         'misc_E        ');
+
   out = out + '\r\n//}}}\r\n\r\n';
 
   fs.writeFileSync('texeltune3.txt',out);
@@ -6767,6 +6775,11 @@ function grunt () {
   for (var i=BISHOP; i <= QUEEN; i++) {
     addp('xrays', xray_S, i);
     addp('xraye', xray_E, i);
+  }
+  
+  for (var i=0; i <= misc_S.length; i++) {
+    addp('miscs', misc_S, i);
+    addp('misce', misc_E, i);
   }
   
   console.log('number of params =', params.length);
