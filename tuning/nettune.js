@@ -523,7 +523,7 @@ function grunt () {
     process.exit();
   }
   
-  debug  = 0;
+  debug = 0;
   
   console.log('decoding ok',(t2-t1),'ms');
   
