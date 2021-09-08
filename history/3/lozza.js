@@ -4043,8 +4043,6 @@ lozBoard.prototype.evaluate = function (turn) {
   var wKingSq     = this.wList[0];
   var bKingSq     = this.bList[0];
   
-  var tempo       = 0;
-  
   var materialS   = 0;
   var materialE   = 0;
   
@@ -4066,8 +4064,8 @@ lozBoard.prototype.evaluate = function (turn) {
   var xrayS       = 0;
   var xrayE       = 0;
   
-  var tempoS      = 0;
-  var tempoE      = 0;
+  var biasS       = 0;
+  var biasE       = 0;
   
   //}}}
   //{{{  draw?
@@ -4945,15 +4943,15 @@ lozBoard.prototype.evaluate = function (turn) {
   //}}}
   
   //}}}
-  //{{{  tempo
+  //{{{  bias
   
   if (turn == WHITE) {
-    tempoS = misc_S[0];
-    tempoE = misc_E[0];
+    biasS = misc_S[0];
+    biasE = misc_E[0];
   }
   else {
-    tempoS = -misc_S[0];
-    tempoE = -misc_E[0];
+    biasS = -misc_S[0];
+    biasE = -misc_E[0];
   }
   
   //}}}
@@ -4971,8 +4969,8 @@ lozBoard.prototype.evaluate = function (turn) {
               (wNumRooks   - bNumRooks)   * VALUE_VECTOR_E[ROOK]   +
               (wNumQueens  - bNumQueens)  * VALUE_VECTOR_E[QUEEN];
   
-  var evalS = materialS + positionS + imbalanceS + mobilityS + reachS + cwtchS + xrayS + tempoS;
-  var evalE = materialE + positionE + imbalanceE + mobilityE + reachE + cwtchE + xrayE + tempoE;
+  var evalS = materialS + positionS + imbalanceS + mobilityS + reachS + cwtchS + xrayS + biasS;
+  var evalE = materialE + positionE + imbalanceE + mobilityE + reachE + cwtchE + xrayE + biasE;
   
   var e = (evalS * (TPHASE - phase) + evalE * phase) / TPHASE;
   
@@ -4992,7 +4990,7 @@ lozBoard.prototype.evaluate = function (turn) {
     uci.send('info string','mobility =',           mobilityS,  mobilityE);
     uci.send('info string','position =',           positionS,  positionE);
     uci.send('info string','material =',           materialS,  materialE);
-    uci.send('info string','tempo =',              tempoS,     tempoE);
+    uci.send('info string','bias =',               biasS,      biasE);
     uci.send('info string','num white (p to q) =', wNumPawns,wNumKnights,wNumBishops,wNumRooks,wNumQueens);
     uci.send('info string','num black (p to q) =', bNumPawns,bNumKnights,bNumBishops,bNumRooks,bNumQueens);
   }
