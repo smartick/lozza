@@ -1,6 +1,6 @@
 # Lozza
 
-A UCI compliant Javascript chess engine inspired by Fabien Letouzeys Fruit 2.1. It's easy to embed Lozza into your web project or use her offline in client user interfaces like Arena and Winboard. A sister project also allows Lozza to be played online in your web browser via PC/laptop/tablet/phone etc. 
+A hand-coded Javascript chess engine inspired by Fabien Letouzey's Fruit 2.1. It's easy to embed Lozza into your web project or use her offline in client user interfaces like Arena and Winboard. A sister project also allows Lozza to be played online in your web browser via PC/laptop/tablet/phone etc. 
 
 ## Example use in a web  project
 
