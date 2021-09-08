@@ -4972,8 +4972,8 @@ lozBoard.prototype.evaluate = function (turn) {
               (wNumRooks   - bNumRooks)   * VALUE_VECTOR_E[ROOK]   +
               (wNumQueens  - bNumQueens)  * VALUE_VECTOR_E[QUEEN];
   
-  var evalS = materialS + positionS + imbalanceS + mobilityS + reachS + cwtchS + xrayS + biasS;
-  var evalE = materialE + positionE + imbalanceE + mobilityE + reachE + cwtchE + xrayE + biasE;
+  var evalS = materialS  + imbalanceS + mobilityS + reachS + cwtchS + xrayS + biasS;
+  var evalE = materialE  + imbalanceE + mobilityE + reachE + cwtchE + xrayE + biasE;
   
   var e = (evalS * phase_S[phase] + evalE * phase_E[phase]) / TPHASE;
   
