@@ -4,10 +4,12 @@
 // testing and tuning results in testing/testing.log
 //
 
-var BUILD = "2.0";
+var BUILD = "2.1";
 
 //{{{  history
 /*
+
+2.1
 
 2.0 19/02/21 Add imbalance terms when no pawns.
 2.0 17/02/21 Tune all eval params.
