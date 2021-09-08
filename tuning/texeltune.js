@@ -244,56 +244,37 @@ function myround(x) {
 
 //{{{  ev indexes
 
-var iMOB_NS               = 0;
-var iMOB_NE               = 1;
-var iMOB_BS               = 2;
-var iMOB_BE               = 3;
-var iMOB_RS               = 4;
-var iMOB_RE               = 5;
-var iMOB_QS               = 6;
-var iMOB_QE               = 7;
-var iATT_N                = 8;
-var iATT_B                = 9;
-var iATT_R                = 10;
-var iATT_Q                = 11;
-var iATT_M                = 12;
-var iPAWN_DOUBLED_S       = 13;
-var iPAWN_DOUBLED_E       = 14;
-var iPAWN_ISOLATED_S      = 15;
-var iPAWN_ISOLATED_E      = 16;
-var iPAWN_BACKWARD_S      = 17;
-var iPAWN_BACKWARD_E      = 18;
-var iPAWN_PASSED_OFFSET_S = 19;
-var iPAWN_PASSED_OFFSET_E = 20;
-var iPAWN_PASSED_MULT_S   = 21;
-var iPAWN_PASSED_MULT_E   = 22;
-var iTWOBISHOPS_S         = 23;
-var iROOK7TH_S            = 24;
-var iROOK7TH_E            = 25;
-var iROOKOPEN_S           = 26;
-var iROOKOPEN_E           = 27;
-var iQUEEN7TH_S           = 28;
-var iQUEEN7TH_E           = 29;
-var iTRAPPED              = 30;
-var iKING_PENALTY         = 31;
-var iPAWN_OFFSET_S        = 32;
-var iPAWN_OFFSET_E        = 33;
-var iPAWN_MULT_S          = 34;
-var iPAWN_MULT_E          = 35;
-var iPAWN_PASS_FREE       = 36;
-var iPAWN_PASS_UNSTOP     = 37;
-var iPAWN_PASS_KING1      = 38;
-var iPAWN_PASS_KING2      = 39;
-var iMOBOFF_NS            = 40;
-var iMOBOFF_NE            = 41;
-var iMOBOFF_BS            = 42;
-var iMOBOFF_BE            = 43;
-var iMOBOFF_RS            = 44;
-var iMOBOFF_RE            = 45;
-var iTWOBISHOPS_E         = 46;
-var iTEMPO_S              = 47;
-var iTEMPO_E              = 48;
-var iSHELTERM             = 49;
+var iPAWN_DOUBLED_S       = 0;
+var iPAWN_DOUBLED_E       = 1;
+var iPAWN_ISOLATED_S      = 2;
+var iPAWN_ISOLATED_E      = 3;
+var iPAWN_BACKWARD_S      = 4;
+var iPAWN_BACKWARD_E      = 5;
+var iPAWN_PASSED_OFFSET_S = 6;
+var iPAWN_PASSED_OFFSET_E = 7;
+var iPAWN_PASSED_MULT_S   = 8;
+var iPAWN_PASSED_MULT_E   = 9;
+var iTWOBISHOPS_S         = 10;
+var iTWOBISHOPS_E         = 11;
+var iROOK7TH_S            = 12;
+var iROOK7TH_E            = 13;
+var iROOKOPEN_S           = 14;
+var iROOKOPEN_E           = 15;
+var iQUEEN7TH_S           = 16;
+var iQUEEN7TH_E           = 17;
+var iTRAPPED              = 18;
+var iKING_PENALTY         = 19;
+var iPAWN_OFFSET_S        = 20;
+var iPAWN_OFFSET_E        = 21;
+var iPAWN_MULT_S          = 22;
+var iPAWN_MULT_E          = 23;
+var iPAWN_PASS_FREE       = 24;
+var iPAWN_PASS_UNSTOP     = 25;
+var iPAWN_PASS_KING1      = 26;
+var iPAWN_PASS_KING2      = 27;
+var iTEMPO_S              = 28;
+var iTEMPO_E              = 29;
+var iSHELTERM             = 30;
 
 //}}}
 
@@ -1121,7 +1102,12 @@ var WOUTPOST = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 
 var BOUTPOST = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,18,21,21,18,26,22,0,0,0,0,0,0,12,19,28,17,36,46,0,0,0,0,0,0,17,17,14,23,23,23,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
 
-var EV = [5,-1,7,2,4,2,2,4,1,1,4,3,21,5,10,13,13,9,9,-3,-1,49,99,23,7,26,18,-1,-3,20,42,7,3,14,56,102,91,793,40,26,1,-1,0,0,0,0,61,21,21,2];
+var EV = [5,10,13,13,9,9,-3,-1,49,99,23,61,7,26,18,-1,-3,20,42,7,3,14,56,102,91,793,40,26,21,21,2];
+
+var mobility_S = [0,0,5,7,4,2];
+var mobility_E = [0,0,-1,2,2,4];
+
+var ATTACKS = [0,0,1,1,4,3];
 
 var imbalN_S = [-91,1,1,-2,2,-1,0,8,22];
 
@@ -1150,19 +1136,6 @@ var WSTORM = [0,0,0,35,7,4,-8,-1,0,5];
 //}}}
 //{{{  ev assignments
 
-var MOB_NS               = EV[iMOB_NS];
-var MOB_NE               = EV[iMOB_NE];
-var MOB_BS               = EV[iMOB_BS];
-var MOB_BE               = EV[iMOB_BE];
-var MOB_RS               = EV[iMOB_RS];
-var MOB_RE               = EV[iMOB_RE];
-var MOB_QS               = EV[iMOB_QS];
-var MOB_QE               = EV[iMOB_QE];
-var ATT_N                = EV[iATT_N];
-var ATT_B                = EV[iATT_B];
-var ATT_R                = EV[iATT_R];
-var ATT_Q                = EV[iATT_Q];
-var ATT_M                = EV[iATT_M];
 var PAWN_DOUBLED_S       = EV[iPAWN_DOUBLED_S];
 var PAWN_DOUBLED_E       = EV[iPAWN_DOUBLED_E];
 var PAWN_ISOLATED_S      = EV[iPAWN_ISOLATED_S];
@@ -1174,6 +1147,7 @@ var PAWN_PASSED_OFFSET_E = EV[iPAWN_PASSED_OFFSET_E];
 var PAWN_PASSED_MULT_S   = EV[iPAWN_PASSED_MULT_S];
 var PAWN_PASSED_MULT_E   = EV[iPAWN_PASSED_MULT_E];
 var TWOBISHOPS_S         = EV[iTWOBISHOPS_S];
+var TWOBISHOPS_E         = EV[iTWOBISHOPS_E];
 var ROOK7TH_S            = EV[iROOK7TH_S];
 var ROOK7TH_E            = EV[iROOK7TH_E];
 var ROOKOPEN_S           = EV[iROOKOPEN_S];
@@ -1190,13 +1164,6 @@ var PAWN_PASS_FREE       = EV[iPAWN_PASS_FREE];
 var PAWN_PASS_UNSTOP     = EV[iPAWN_PASS_UNSTOP];
 var PAWN_PASS_KING1      = EV[iPAWN_PASS_KING1];
 var PAWN_PASS_KING2      = EV[iPAWN_PASS_KING2];
-var MOBOFF_NS            = EV[iMOBOFF_NS];
-var MOBOFF_NE            = EV[iMOBOFF_NE];
-var MOBOFF_BS            = EV[iMOBOFF_BS];
-var MOBOFF_BE            = EV[iMOBOFF_BE];
-var MOBOFF_RS            = EV[iMOBOFF_RS];
-var MOBOFF_RE            = EV[iMOBOFF_RE];
-var TWOBISHOPS_E         = EV[iTWOBISHOPS_E];
 var TEMPO_S              = EV[iTEMPO_S];
 var TEMPO_E              = EV[iTEMPO_E];
 var SHELTERM             = EV[iSHELTERM];
@@ -3974,28 +3941,15 @@ var MOB_BIS = IS_NBRQKE;
 var MOB_RIS = IS_RQKE;
 var MOB_QIS = IS_QKE;
 
-var ATT_L = 7;
-
 var PAWN_PASSED = [0,0,0,0,0.1,0.3,0.6,1.0,0];
 
+var ATT_M = 21;
+var ATT_L = 7;
 var ATT_W = [0,0,0.5,0.75,0.88,0.94,0.97,0.99];
 
 lozBoard.prototype.evaluate = function (turn) {
   //{{{  ev assignments
   
-  var MOB_NS               = EV[iMOB_NS];
-  var MOB_NE               = EV[iMOB_NE];
-  var MOB_BS               = EV[iMOB_BS];
-  var MOB_BE               = EV[iMOB_BE];
-  var MOB_RS               = EV[iMOB_RS];
-  var MOB_RE               = EV[iMOB_RE];
-  var MOB_QS               = EV[iMOB_QS];
-  var MOB_QE               = EV[iMOB_QE];
-  var ATT_N                = EV[iATT_N];
-  var ATT_B                = EV[iATT_B];
-  var ATT_R                = EV[iATT_R];
-  var ATT_Q                = EV[iATT_Q];
-  var ATT_M                = EV[iATT_M];
   var PAWN_DOUBLED_S       = EV[iPAWN_DOUBLED_S];
   var PAWN_DOUBLED_E       = EV[iPAWN_DOUBLED_E];
   var PAWN_ISOLATED_S      = EV[iPAWN_ISOLATED_S];
@@ -4007,6 +3961,7 @@ lozBoard.prototype.evaluate = function (turn) {
   var PAWN_PASSED_MULT_S   = EV[iPAWN_PASSED_MULT_S];
   var PAWN_PASSED_MULT_E   = EV[iPAWN_PASSED_MULT_E];
   var TWOBISHOPS_S         = EV[iTWOBISHOPS_S];
+  var TWOBISHOPS_E         = EV[iTWOBISHOPS_E];
   var ROOK7TH_S            = EV[iROOK7TH_S];
   var ROOK7TH_E            = EV[iROOK7TH_E];
   var ROOKOPEN_S           = EV[iROOKOPEN_S];
@@ -4023,13 +3978,6 @@ lozBoard.prototype.evaluate = function (turn) {
   var PAWN_PASS_UNSTOP     = EV[iPAWN_PASS_UNSTOP];
   var PAWN_PASS_KING1      = EV[iPAWN_PASS_KING1];
   var PAWN_PASS_KING2      = EV[iPAWN_PASS_KING2];
-  var MOBOFF_NS            = EV[iMOBOFF_NS];
-  var MOBOFF_NE            = EV[iMOBOFF_NE];
-  var MOBOFF_BS            = EV[iMOBOFF_BS];
-  var MOBOFF_BE            = EV[iMOBOFF_BE];
-  var MOBOFF_RS            = EV[iMOBOFF_RS];
-  var MOBOFF_RE            = EV[iMOBOFF_RE];
-  var TWOBISHOPS_E         = EV[iTWOBISHOPS_E];
   var TEMPO_S              = EV[iTEMPO_S];
   var TEMPO_E              = EV[iTEMPO_E];
   var SHELTERM             = EV[iSHELTERM];
@@ -4771,12 +4719,12 @@ lozBoard.prototype.evaluate = function (turn) {
       to = fr+25; mob += MOB_NIS[b[to]]; att += BKZ[to] * MOB_NIS[b[to]];
       to = fr-25; mob += MOB_NIS[b[to]]; att += BKZ[to] * MOB_NIS[b[to]];
       
-      mobS += mob * MOB_NS - MOBOFF_NS;
-      mobE += mob * MOB_NE - MOBOFF_NE;
+      mobS += mob * mobility_S[KNIGHT];
+      mobE += mob * mobility_E[KNIGHT];
       
       if (att) {
         attackN++;
-        attackV += ATT_N;
+        attackV += ATTACKS[KNIGHT];
       }
       
       //{{{  outpost
@@ -4811,12 +4759,12 @@ lozBoard.prototype.evaluate = function (turn) {
       to = fr + 13;  while (!b[to]) {att += BKZ[to]; to += 13; mob++;} mob += MOB_BIS[b[to]]; att += BKZ[to] * MOB_BIS[b[to]];
       to = fr - 13;  while (!b[to]) {att += BKZ[to]; to -= 13; mob++;} mob += MOB_BIS[b[to]]; att += BKZ[to] * MOB_BIS[b[to]];
       
-      mobS += mob * MOB_BS - MOBOFF_BS;
-      mobE += mob * MOB_BE - MOBOFF_BE;
+      mobS += mob * mobility_S[BISHOP];
+      mobE += mob * mobility_E[BISHOP];
       
       if (att) {
         attackN++;
-        attackV += ATT_B;
+        attackV += ATTACKS[BISHOP];
       }
       
       wBishop += WSQUARE[fr];
@@ -4839,12 +4787,12 @@ lozBoard.prototype.evaluate = function (turn) {
       to = fr + 12;  while (!b[to]) {att += BKZ[to]; to += 12; mob++;} mob += MOB_RIS[b[to]]; att += BKZ[to] * MOB_RIS[b[to]];
       to = fr - 12;  while (!b[to]) {att += BKZ[to]; to -= 12; mob++;} mob += MOB_RIS[b[to]]; att += BKZ[to] * MOB_RIS[b[to]];
       
-      mobS += mob * MOB_RS - MOBOFF_RS;
-      mobE += mob * MOB_RE - MOBOFF_RE;
+      mobS += mob * mobility_S[ROOK];
+      mobE += mob * mobility_E[ROOK];
       
       if (att) {
         attackN++;
-        attackV += ATT_R;
+        attackV += ATTACKS[ROOK];
       }
       
       //{{{  7th
@@ -4903,12 +4851,12 @@ lozBoard.prototype.evaluate = function (turn) {
       to = fr + 13;  while (!b[to]) {att += BKZ[to]; to += 13; mob++;} mob += MOB_QIS[b[to]]; att += BKZ[to] * MOB_QIS[b[to]];
       to = fr - 13;  while (!b[to]) {att += BKZ[to]; to -= 13; mob++;} mob += MOB_QIS[b[to]]; att += BKZ[to] * MOB_QIS[b[to]];
       
-      mobS += mob * MOB_QS;
-      mobE += mob * MOB_QE;
+      mobS += mob * mobility_S[QUEEN];
+      mobE += mob * mobility_E[QUEEN];
       
       if (att) {
         attackN++;
-        attackV += ATT_Q;
+        attackV += ATTACKS[QUEEN];
       }
       
       //{{{  7th rank
@@ -4999,12 +4947,12 @@ lozBoard.prototype.evaluate = function (turn) {
       to = fr+25; mob += MOB_NIS[b[to]]; att += WKZ[to] * MOB_NIS[b[to]];
       to = fr-25; mob += MOB_NIS[b[to]]; att += WKZ[to] * MOB_NIS[b[to]];
       
-      mobS -= mob * MOB_NS - MOBOFF_NS;
-      mobE -= mob * MOB_NE - MOBOFF_NE;
+      mobS -= mob * mobility_S[KNIGHT];
+      mobE -= mob * mobility_E[KNIGHT];
       
       if (att) {
         attackN++;
-        attackV += ATT_N;
+        attackV += ATTACKS[KNIGHT];
       }
       
       //{{{  outpost
@@ -5039,12 +4987,12 @@ lozBoard.prototype.evaluate = function (turn) {
       to = fr + 13;  while (!b[to]) {att += WKZ[to]; to += 13; mob++;} mob += MOB_BIS[b[to]]; att += WKZ[to] * MOB_BIS[b[to]];
       to = fr - 13;  while (!b[to]) {att += WKZ[to]; to -= 13; mob++;} mob += MOB_BIS[b[to]]; att += WKZ[to] * MOB_BIS[b[to]];
       
-      mobS -= mob * MOB_BS - MOBOFF_BS;
-      mobE -= mob * MOB_BE - MOBOFF_BE;
+      mobS -= mob * mobility_S[BISHOP];
+      mobE -= mob * mobility_E[BISHOP];
       
       if (att) {
         attackN++;
-        attackV += ATT_B;
+        attackV += ATTACKS[BISHOP];
       }
       
       wBishop += WSQUARE[fr];
@@ -5067,12 +5015,12 @@ lozBoard.prototype.evaluate = function (turn) {
       to = fr + 12;  while (!b[to]) {att += WKZ[to]; to += 12; mob++;} mob += MOB_RIS[b[to]]; att += WKZ[to] * MOB_RIS[b[to]];
       to = fr - 12;  while (!b[to]) {att += WKZ[to]; to -= 12; mob++;} mob += MOB_RIS[b[to]]; att += WKZ[to] * MOB_RIS[b[to]];
       
-      mobS -= mob * MOB_RS - MOBOFF_RS;
-      mobE -= mob * MOB_RE - MOBOFF_RE;
+      mobS -= mob * mobility_S[ROOK];
+      mobE -= mob * mobility_E[ROOK];
       
       if (att) {
         attackN++;
-        attackV += ATT_R;
+        attackV += ATTACKS[ROOK];
       }
       
       //{{{  7th rank
@@ -5131,12 +5079,12 @@ lozBoard.prototype.evaluate = function (turn) {
       to = fr + 13;  while (!b[to]) {att += WKZ[to]; to += 13; mob++;} mob += MOB_QIS[b[to]]; att += WKZ[to] * MOB_QIS[b[to]];
       to = fr - 13;  while (!b[to]) {att += WKZ[to]; to -= 13; mob++;} mob += MOB_QIS[b[to]]; att += WKZ[to] * MOB_QIS[b[to]];
       
-      mobS -= mob * MOB_QS;
-      mobE -= mob * MOB_QE;
+      mobS -= mob * mobility_S[QUEEN];
+      mobE -= mob * mobility_E[QUEEN];
       
       if (att) {
         attackN++;
-        attackV += ATT_Q;
+        attackV += ATTACKS[QUEEN];
       }
       
       //{{{  7th rank
@@ -6861,8 +6809,12 @@ function saveparams () {
 
   out += loga(EV,             'EV            ');
 
+  out += loga(ATTACKS,        'ATTACKS       ');
   out += loga(WSTORM,         'WSTORM        ');
   out += loga(WSHELTER,       'WSHELTER      ');
+
+  out += loga(mobility_S,     'mobility_S    ');
+  out += loga(mobility_E,     'mobility_E    ');
 
   out += loga(imbalN_S,       'imbalN_S      ');
   out += loga(imbalN_E,       'imbalN_E      ');
@@ -7009,6 +6961,11 @@ function grunt () {
     addp('npste', WKNIGHT_PSTE, wi);
   }
   
+  for (var i=0; i < ko.length; i++) {
+    var wi = ko[i];
+    addp('ko', WOUTPOST, wi);
+  }
+  
   for (var i=0; i < B88.length; i++) {
     var wi = B88[i];
     addp('bpsts', WBISHOP_PSTS, wi);
@@ -7027,11 +6984,6 @@ function grunt () {
     addp('qpste', WQUEEN_PSTE, wi);
   }
   
-  for (var i=0; i < ko.length; i++) {
-    var wi = ko[i];
-    addp('ko', WOUTPOST, wi);
-  }
-  
   for (var i=0; i <= 8; i++) {
     addp('imbalns', imbalN_S, i);
     addp('imbalne', imbalN_E, i);
@@ -7043,15 +6995,25 @@ function grunt () {
     addp('imbalqe', imbalQ_E, i);
   }
   
-  for (var i=0; i < EV.length; i++) {
-    addp('ev', EV, i);
+  for (var i=KNIGHT; i < QUEEN; i++) {
+    addp('mobS', mobility_S, i);
+    addp('mobE', mobility_E, i);
+  }
+  
+  for (var i=KNIGHT; i < QUEEN; i++) {
+    addp('attacks', ATTACKS, i);
   }
   
   for (var i=3; i < WSHELTER.length; i++) {
     addp('wshelter', WSHELTER, i);
   }
+  
   for (var i=3; i < WSTORM.length; i++) {
     addp('wstorm', WSTORM, i);
+  }
+  
+  for (var i=0; i < EV.length; i++) {
+    addp('ev', EV, i);
   }
   
   console.log('number of params =', params.length);
