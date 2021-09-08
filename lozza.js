@@ -9,7 +9,7 @@ var BUILD = "2.1";
 //{{{  history
 /*
 
-2.1
+2.1 08/09/21 Fix mobility bug when adding black offsets.
 
 2.0 19/02/21 Add imbalance terms when no pawns.
 2.0 17/02/21 Tune all eval params.
@@ -1142,9 +1142,9 @@ var WSHELTER = [0,0,0,7,12,13,36,9,0,28];
 
 var WSTORM = [0,0,0,35,7,4,-8,-1,0,5];
 
-var ATT_W = [0,0.01,0.41999999999999993,0.78,1.11,1.5200000000000005,0.97,0.99];
+var PAWN_PASSED     = [0,0,0,0,0.1,0.3,0.6,1.0,0];
+var ATT_W           = [0,0,0.5,0.75,0.88,0.94,0.97,0.99];
 
-var PAWN_PASSED = [0,0,0,0,0.1,0.30000000000000004,0.6999999999999998,1.2000000000000126,0];
 
 // bestErr=0.05580612020741582
 
@@ -4944,8 +4944,8 @@ lozBoard.prototype.evaluate = function (turn) {
       to = fr+25; mob += MOB_NIS[b[to]]; att += WKZ[to] * MOB_NIS[b[to]];
       to = fr-25; mob += MOB_NIS[b[to]]; att += WKZ[to] * MOB_NIS[b[to]];
       
-      mobS -= mob * MOB_NS + MOBOFF_NS;
-      mobE -= mob * MOB_NE + MOBOFF_NE;
+      mobS -= mob * MOB_NS - MOBOFF_NS;
+      mobE -= mob * MOB_NE - MOBOFF_NE;
       
       if (att) {
         attackN++;
@@ -4984,8 +4984,8 @@ lozBoard.prototype.evaluate = function (turn) {
       to = fr + 13;  while (!b[to]) {att += WKZ[to]; to += 13; mob++;} mob += MOB_BIS[b[to]]; att += WKZ[to] * MOB_BIS[b[to]];
       to = fr - 13;  while (!b[to]) {att += WKZ[to]; to -= 13; mob++;} mob += MOB_BIS[b[to]]; att += WKZ[to] * MOB_BIS[b[to]];
       
-      mobS -= mob * MOB_BS + MOBOFF_BS;
-      mobE -= mob * MOB_BE + MOBOFF_BE;
+      mobS -= mob * MOB_BS - MOBOFF_BS;
+      mobE -= mob * MOB_BE - MOBOFF_BE;
       
       if (att) {
         attackN++;
@@ -5012,8 +5012,8 @@ lozBoard.prototype.evaluate = function (turn) {
       to = fr + 12;  while (!b[to]) {att += WKZ[to]; to += 12; mob++;} mob += MOB_RIS[b[to]]; att += WKZ[to] * MOB_RIS[b[to]];
       to = fr - 12;  while (!b[to]) {att += WKZ[to]; to -= 12; mob++;} mob += MOB_RIS[b[to]]; att += WKZ[to] * MOB_RIS[b[to]];
       
-      mobS -= mob * MOB_RS + MOBOFF_RS;
-      mobE -= mob * MOB_RE + MOBOFF_RE;
+      mobS -= mob * MOB_RS - MOBOFF_RS;
+      mobE -= mob * MOB_RE - MOBOFF_RE;
       
       if (att) {
         attackN++;
