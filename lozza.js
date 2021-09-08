@@ -1,7 +1,6 @@
-//"use strict"
 //
-// https://github.com/op12no2
-// testing and tuning results in testing/testing.log
+// A hand-coded Javascript chess engine inspired by Fabien Letouzey's Fruit 2.1.
+// https://github.com/op12no2/Lozza
 //
 
 var BUILD = "2.1";
@@ -9,6 +8,7 @@ var BUILD = "2.1";
 //{{{  history
 /*
 
+2.1 08/09/21 Don't tune attack and passed pawn curves.
 2.1 08/09/21 Fix mobility bug when adding black offsets.
 
 2.0 19/02/21 Add imbalance terms when no pawns.
@@ -1141,10 +1141,6 @@ var imbalQ_E = [-16,-13,-1,-3,-7,-5,0,-4,-7];
 var WSHELTER = [0,0,0,7,12,13,36,9,0,28];
 
 var WSTORM = [0,0,0,35,7,4,-8,-1,0,5];
-
-var PAWN_PASSED     = [0,0,0,0,0.1,0.3,0.6,1.0,0];
-var ATT_W           = [0,0,0.5,0.75,0.88,0.94,0.97,0.99];
-
 
 // bestErr=0.05580612020741582
 
@@ -3978,6 +3974,10 @@ var MOB_RIS = IS_RQKE;
 var MOB_QIS = IS_QKE;
 
 var ATT_L = 7;
+
+var PAWN_PASSED = [0,0,0,0,0.1,0.3,0.6,1.0,0];
+
+var ATT_W = [0,0,0.5,0.75,0.88,0.94,0.97,0.99];
 
 lozBoard.prototype.evaluate = function (turn) {
 
