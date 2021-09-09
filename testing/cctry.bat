@@ -16,7 +16,7 @@ set r=-resign movecount=3 score=400
 
 set d=-draw movenumber=40 movecount=8 score=10
 
-set a=123%1
+set a=%@random[1,9999999]
 
 set o=-repeat -srand %a -openings file=c:\projects\chessdata\4moves_noob.pgn format=pgn order=random plies=16
 
