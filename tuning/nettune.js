@@ -1,6 +1,6 @@
 
 var maxPositions   = 1000000000;
-var netHiddenSize  = 16;
+var netHiddenSize  = 256;
 var learningRate   = 0.001;
 var batchSize      = 100;
 
