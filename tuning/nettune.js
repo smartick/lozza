@@ -1,6 +1,6 @@
 
 var maxPositions   = 1000000000;
-var netHiddenSize  = 256;
+var netHiddenSize  = 16;
 var learningRate   = 0.001;
 var batchSize      = 100;
 
@@ -525,7 +525,23 @@ function grunt () {
   
   debug = 0;
   
-  console.log('decoding ok',(t2-t1),'ms');
+  console.log('decoding ok',(t2-t1),'ms',epds.length,'epds');
+  
+  //}}}
+  //{{{  time forward()
+  
+  var t1 = Date.now();
+  
+  var epd = epds[0];
+  decodeFEN(epd.board, epd.stm);
+  
+  for (var i=0; i < epds.length; i++) {
+    netForward()
+  }
+  
+  var t2 = Date.now();
+  
+  console.log('netforward() timing',(t2-t1),'ms',epds.length,'epds');
   
   //}}}
   //{{{  tune
@@ -547,6 +563,8 @@ function grunt () {
     
     var loss = 0;
     
+    var t1 = Date.now();
+    
     for (var i=0; i < testPositions; i++) {
     
       if (i % 10000 == 0)
@@ -563,7 +581,9 @@ function grunt () {
       loss += netLoss(targets);
     }
     
-    console.log ('epoch =',epoch,'loss =',loss/testPositions);
+    var t2 = Date.now();
+    
+    console.log ('epoch =',epoch,'loss =',loss/testPositions,t2-t1,'ms',testPositions,'epds');
     
     //}}}
     //{{{  batched epoch
