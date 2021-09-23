@@ -1,5 +1,5 @@
 
-{{{  tuned params xray alone
+{{{  tuned params 2.1 xray
 
 // data=c:/projects/chessdata/quiet-labeled.epd
 // useEval=1
@@ -52,7 +52,7 @@ const XRAY_S         = [0,0,0,1,-2,0,0];
 const XRAY_E         = [0,0,0,1,-2,0,0];
 
 }}}
-{{{  tuned params full
+{{{  tuned params 2.1 full e
 
 // data=c:/projects/chessdata/quiet-labeled.epd
 // useEval=1
@@ -103,7 +103,7 @@ const IMBALQ_S       = [5,-9,-2,2,3,2,-1,-3,-20];
 const IMBALQ_E       = [-22,-18,-1,-3,-6,-5,0,-4,-10];
 
 }}}
-{{{  tuned params full
+{{{  tuned params 2.1 full q
 
 // data=c:/projects/chessdata/quiet-labeled.epd
 // k=1.61
