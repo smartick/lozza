@@ -7082,11 +7082,13 @@ function calcErr (param) {
 
     lozza.position();
 
-    var sfEval  = epd.eval;
-    var lozEval = board.evaluate(board.turn);
+    var sfEval = epd.eval;
 
+    var lozEval = board.evaluate(board.turn);
     if (board.turn == BLACK)
       lozEval = -lozEval;  // undo negamax.
+
+    //console.log(epd.board,epd.turn,epd.rights,epd.ep,sfEval,lozEval);
 
     if (isNaN(sfEval) || isNaN(lozEval)) {
       console.log('nan eek',sfEval,lozEval);
@@ -7279,8 +7281,8 @@ if (gcheckSigmoid) {
 //{{{  kick it off
 //
 // sf14quiet-labeled.epd
-// rnb1kbnr/pp1pppp1/7p/2q5/5P2/N1P1P3/P2P2PP/R1BQKBNR w KQkq - eval
-// 0                                                   1 2    3 4
+// 8/1p2k1p1/pB2p2p/3p4/b7/2K4P/1P1R2P1/8 w - - c9 "1-0" sf14hce 277 sf14nnue 474 sf14hybrid 277
+// 0                                      1 2 3 4  5     6       7   8        9   10         11
 //
 
 var epdfile = 'c:/projects/chessdata/sf14quiet-labeled.epd';
@@ -7305,11 +7307,11 @@ rl.on('line', function (line) {
 
   if (thisPosition <= maxPositions) {
 
-    line = line.replace(/(\r\n|\n|\r)/gm,'');
+    line = line.replace(/(\r\n|\n|\r|;)/gm,'');
 
     var parts = line.split(' ');
 
-    if (parts.length != 5) {
+    if (parts.length != 12) {
       console.log('file format',line);
     }
     else {
@@ -7317,7 +7319,7 @@ rl.on('line', function (line) {
                  turn:   parts[1],
                  rights: parts[2],
                  ep:     parts[3],
-                 eval:   parts[4]});
+                 eval:   parseInt(parts[11])});
   }}
 });
 
