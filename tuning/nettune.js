@@ -106,119 +106,231 @@ function getprob (r) {
 
 function decodeFEN(board, stmStr) {
 
-  //{{{  init arr
-  
   for (var i=0; i<netInputSize; i++)
     neti[i] = 0.0;
-  
-  //}}}
 
-  var stm = chStm[stmStr];
-  var sq  = 0;
-
-  for (var j=0; j < board.length; j++) {
-
-    var ch  = board.charAt(j);
-    var num = chNum[ch];
-    var col = 0;
-
-    if (typeof(num) == 'undefined') {
-      //{{{  decode ch
-      
-      pce = chPce[ch];
-      col = chCol[ch];
-      
-      //}}}
-      //{{{  check stuff
-      
-      if (debug) {
-      
-        if (sq < 0) {
-          console.log('sq<0',sq);
-          process.exit();
+  if (netInputSize = 768) {
+    //{{{  768
+    
+    var stm = chStm[stmStr];
+    var sq  = 0;
+    
+    for (var j=0; j < board.length; j++) {
+    
+      var ch  = board.charAt(j);
+      var num = chNum[ch];
+      var col = 0;
+    
+      if (typeof(num) == 'undefined') {
+        //{{{  decode ch
+        
+        pce = chPce[ch];
+        col = chCol[ch];
+        
+        //}}}
+        //{{{  check stuff
+        
+        if (debug) {
+        
+          if (sq < 0) {
+            console.log('sq<0',sq);
+            process.exit();
+          }
+          else if (sq > 63) {
+            console.log('sq>63',sq);
+            process.exit();
+          }
+          else if (pce < 0) {
+            console.log('pce<0',pce);
+            process.exit();
+          }
+          else if (pce > 5) {
+            console.log('pce>5',pce);
+            process.exit();
+          }
+          else if (typeof(pce) == 'undefined') {
+            console.log('pceundef',pce);
+            process.exit();
+          }
+          else if (col < 0) {
+            console.log('col<0',col);
+            process.exit();
+          }
+          else if (col > 1) {
+            console.log('col>1',col);
+            process.exit();
+          }
+          else if (typeof(col) == 'undefined') {
+            console.log('colundef',col);
+            process.exit();
+          }
+          else if (stm < 0) {
+            console.log('stm<0',stm);
+            process.exit();
+          }
+          else if (stm > 1) {
+            console.log('stm>1',stm);
+            process.exit();
+          }
+          else if (typeof(stm) == 'undefined') {
+            console.log('stmundef',stm);
+            process.exit();
+          }
         }
-        else if (sq > 63) {
-          console.log('sq>63',sq);
-          process.exit();
-        }
-        else if (pce < 0) {
-          console.log('pce<0',pce);
-          process.exit();
-        }
-        else if (pce > 5) {
-          console.log('pce>5',pce);
-          process.exit();
-        }
-        else if (typeof(pce) == 'undefined') {
-          console.log('pceundef',pce);
-          process.exit();
-        }
-        else if (col < 0) {
-          console.log('col<0',col);
-          process.exit();
-        }
-        else if (col > 1) {
-          console.log('col>1',col);
-          process.exit();
-        }
-        else if (typeof(col) == 'undefined') {
-          console.log('colundef',col);
-          process.exit();
-        }
-        else if (stm < 0) {
-          console.log('stm<0',stm);
-          process.exit();
-        }
-        else if (stm > 1) {
-          console.log('stm>1',stm);
-          process.exit();
-        }
-        else if (typeof(stm) == 'undefined') {
-          console.log('stmundef',stm);
-          process.exit();
-        }
+        
+        //}}}
+        //{{{  map to model
+        //
+        // stm pieces are first.
+        //
+        
+        var off = Math.abs(col - stm) * 384;
+        
+        var x = off + pce * 64 + sq;
+        
+        //if (debug) {
+        //  if (isNaN(x)) {
+        //    console.log('xnan',x);
+        //    process.exit();
+        //  }
+        //  if (x >= 768) {
+        //    console.log('x>768',x);
+        //    process.exit();
+        //  }
+        //  if (x < 0) {
+        //    console.log('x-ve',x);
+        //    process.exit();
+        //  }
+        //}
+        
+        //}}}
+        neti[x] = 1.0;
+        sq++;
       }
-      
-      //}}}
-      //{{{  map to model
-      //
-      // stm pieces are first.
-      //
-      
-      var off = Math.abs(col - stm) * 384;
-      
-      var x = off + pce * 64 + sq;
-      
-      //if (debug) {
-      //  if (isNaN(x)) {
-      //    console.log('xnan',x);
-      //    process.exit();
-      //  }
-      //  if (x >= 768) {
-      //    console.log('x>768',x);
-      //    process.exit();
-      //  }
-      //  if (x < 0) {
-      //    console.log('x-ve',x);
-      //    process.exit();
-      //  }
-      //}
-      
-      //}}}
-      neti[x] = 1.0;
-      sq++;
+      else {
+        sq += num;
+      }
     }
-    else {
-      sq += num;
+    
+    //}}}
+  }
+  else if (netInputSize = 40960) {
+    //{{{  40960
+    
+    var stm = chStm[stmStr];
+    var sq  = 0;
+    
+    for (var j=0; j < board.length; j++) {
+    
+      var ch  = board.charAt(j);
+      var num = chNum[ch];
+      var col = 0;
+    
+      if (typeof(num) == 'undefined') {
+        //{{{  decode ch
+        
+        pce = chPce[ch];
+        col = chCol[ch];
+        
+        //}}}
+        //{{{  check stuff
+        
+        if (debug) {
+        
+          if (sq < 0) {
+            console.log('sq<0',sq);
+            process.exit();
+          }
+          else if (sq > 63) {
+            console.log('sq>63',sq);
+            process.exit();
+          }
+          else if (pce < 0) {
+            console.log('pce<0',pce);
+            process.exit();
+          }
+          else if (pce > 5) {
+            console.log('pce>5',pce);
+            process.exit();
+          }
+          else if (typeof(pce) == 'undefined') {
+            console.log('pceundef',pce);
+            process.exit();
+          }
+          else if (col < 0) {
+            console.log('col<0',col);
+            process.exit();
+          }
+          else if (col > 1) {
+            console.log('col>1',col);
+            process.exit();
+          }
+          else if (typeof(col) == 'undefined') {
+            console.log('colundef',col);
+            process.exit();
+          }
+          else if (stm < 0) {
+            console.log('stm<0',stm);
+            process.exit();
+          }
+          else if (stm > 1) {
+            console.log('stm>1',stm);
+            process.exit();
+          }
+          else if (typeof(stm) == 'undefined') {
+            console.log('stmundef',stm);
+            process.exit();
+          }
+        }
+        
+        //}}}
+        //{{{  map to model
+        //
+        // stm pieces are first.
+        //
+        
+        var off = Math.abs(col - stm) * 384;
+        
+        var x = off + pce * 64 + sq;
+        
+        //if (debug) {
+        //  if (isNaN(x)) {
+        //    console.log('xnan',x);
+        //    process.exit();
+        //  }
+        //  if (x >= 768) {
+        //    console.log('x>768',x);
+        //    process.exit();
+        //  }
+        //  if (x < 0) {
+        //    console.log('x-ve',x);
+        //    process.exit();
+        //  }
+        //}
+        
+        //}}}
+        neti[x] = 1.0;
+        sq++;
+      }
+      else {
+        sq += num;
+      }
     }
+    
+    //}}}
+  }
+  else {
+    console.log('net input size');
+    process.exit();
   }
 }
 
 //}}}
 //{{{  network
 
-var netInputSize   = 768; // input layer.
-var netOutputSize  = 1;   // output layer.
+//var netInputSize   = 768;   // input layer.
+var netInputSize   = 40960; // input layer.
+var netOutputSize  = 16;    // output layer.
 
 //{{{  build net
 
