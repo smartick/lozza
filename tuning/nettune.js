@@ -1,7 +1,7 @@
 
 var maxPositions   = 1000000000;
-var netInputSize   = 768;
-//var netInputSize   = 40960;
+//var netInputSize   = 768;
+var netInputSize   = 40960;
 var netHiddenSize  = 16;
 var learningRate   = 0.001;
 var batchSize      = 100;
