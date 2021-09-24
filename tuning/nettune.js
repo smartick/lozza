@@ -109,7 +109,7 @@ function decodeFEN(board, stmStr) {
   for (var i=0; i<netInputSize; i++)
     neti[i] = 0.0;
 
-  if (netInputSize = 768) {
+  if (netInputSize == 768) {
     //{{{  768
     
     var stm = chStm[stmStr];
@@ -188,20 +188,20 @@ function decodeFEN(board, stmStr) {
         
         var x = off + pce * 64 + sq;
         
-        //if (debug) {
-        //  if (isNaN(x)) {
-        //    console.log('xnan',x);
-        //    process.exit();
-        //  }
-        //  if (x >= 768) {
-        //    console.log('x>768',x);
-        //    process.exit();
-        //  }
-        //  if (x < 0) {
-        //    console.log('x-ve',x);
-        //    process.exit();
-        //  }
-        //}
+        if (debug) {
+          if (isNaN(x)) {
+            console.log('xnan',x);
+            process.exit();
+          }
+          if (x >= 768) {
+            console.log('x>768',x);
+            process.exit();
+          }
+          if (x < 0) {
+            console.log('x-ve',x);
+            process.exit();
+          }
+        }
         
         //}}}
         neti[x] = 1.0;
@@ -214,8 +214,39 @@ function decodeFEN(board, stmStr) {
     
     //}}}
   }
-  else if (netInputSize = 40960) {
+  else if (netInputSize == 40960) {
     //{{{  40960
+    
+    //{{{  find king squares
+    
+    var wKingSq = 0;
+    var bKingSq = 0;
+    
+    var stm = chStm[stmStr];
+    var sq  = 0;
+    
+    for (var j=0; j < board.length; j++) {
+    
+      var ch  = board.charAt(j);
+      var num = chNum[ch];
+      var col = 0;
+    
+      if (typeof(num) == 'undefined') {
+        pce = chPce[ch];
+        col = chCol[ch];
+        if (col == WHITE && pce == KING)
+          wKingSq = sq;
+        else if (col == BLACK && pce == KING)
+          bKingSq = sq;
+        sq++;
+      }
+      else {
+        sq += num;
+      }
+    }
+    
+    //}}}
+    //{{{  fill input layer;
     
     var stm = chStm[stmStr];
     var sq  = 0;
@@ -285,28 +316,28 @@ function decodeFEN(board, stmStr) {
         
         //}}}
         //{{{  map to model
-        //
-        // stm pieces are first.
-        //
         
-        var off = Math.abs(col - stm) * 384;
+        if (pce != KING) {
+          if (col == WHITE)
+            var x = 0     + wKingSq * 64 + (pce-1) * 64 + sq;
+          else
+            var x = 20480 + bKingSq * 64 + (pce-1) * 64 + sq;
         
-        var x = off + pce * 64 + sq;
-        
-        //if (debug) {
-        //  if (isNaN(x)) {
-        //    console.log('xnan',x);
-        //    process.exit();
-        //  }
-        //  if (x >= 768) {
-        //    console.log('x>768',x);
-        //    process.exit();
-        //  }
-        //  if (x < 0) {
-        //    console.log('x-ve',x);
-        //    process.exit();
-        //  }
-        //}
+          if (debug) {
+            if (isNaN(x)) {
+              console.log('xnan',x);
+              process.exit();
+            }
+            if (x >= 40960) {
+              console.log('x>40960',x);
+              process.exit();
+            }
+            if (x < 0) {
+              console.log('x-ve',x);
+              process.exit();
+            }
+          }
+        }
         
         //}}}
         neti[x] = 1.0;
@@ -316,6 +347,8 @@ function decodeFEN(board, stmStr) {
         sq += num;
       }
     }
+    
+    //}}}
     
     //}}}
   }
@@ -330,7 +363,7 @@ function decodeFEN(board, stmStr) {
 
 //var netInputSize   = 768;   // input layer.
 var netInputSize   = 40960; // input layer.
-var netOutputSize  = 16;    // output layer.
+var netOutputSize  = 1;    // output layer.
 
 //{{{  build net
 
@@ -629,11 +662,11 @@ function grunt () {
   
   var t2 = Date.now();
   
-  decodeFEN('1P2kK2Q7888887n', 'w');
-  if (!neti[321] || !neti[388] || !neti[5] || !neti[72] || !neti[703]) {
-    console.log('decode pos');
-    process.exit();
-  }
+  //decodeFEN('1P2kK2Q7888887n', 'w');
+  //if (!neti[321] || !neti[388] || !neti[5] || !neti[72] || !neti[703]) {
+    //console.log('decode pos');
+    //process.exit();
+  //}
   
   debug = 0;
   
@@ -647,13 +680,13 @@ function grunt () {
   var epd = epds[0];
   decodeFEN(epd.board, epd.stm);
   
-  for (var i=0; i < epds.length; i++) {
-    netForward()
+  for (var i=0; i < 10; i++) {
+    netForward();
   }
   
   var t2 = Date.now();
   
-  console.log('netforward() timing',(t2-t1),'ms',epds.length,'epds');
+  console.log('netforward() timing',(t2-t1),'ms',10,'epds');
   
   //}}}
   //{{{  tune
