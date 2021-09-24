@@ -1,5 +1,7 @@
 
 var maxPositions   = 1000000000;
+//var netInputSize   = 768;
+var netInputSize   = 40960;
 var netHiddenSize  = 16;
 var learningRate   = 0.001;
 var batchSize      = 100;
@@ -106,6 +108,13 @@ function getprob (r) {
 
 function decodeFEN(board, stmStr) {
 
+  var x = 0;
+
+  for (var h=0; h < netHiddenSize; h++) {
+    var hidden = neth[h];
+    hidden.in = 0.0;
+  }
+
   for (var i=0; i<netInputSize; i++)
     neti[i] = 0.0;
 
@@ -120,6 +129,7 @@ function decodeFEN(board, stmStr) {
       var ch  = board.charAt(j);
       var num = chNum[ch];
       var col = 0;
+      var pce = 0;
     
       if (typeof(num) == 'undefined') {
         //{{{  decode ch
@@ -180,13 +190,11 @@ function decodeFEN(board, stmStr) {
         
         //}}}
         //{{{  map to model
-        //
-        // stm pieces are first.
-        //
         
-        var off = Math.abs(col - stm) * 384;
-        
-        var x = off + pce * 64 + sq;
+        if (col == WHITE)
+          x = 0   + pce * 64 + sq;
+        else
+          x = 384 + pce * 64 + sq;
         
         if (debug) {
           if (isNaN(x)) {
@@ -205,6 +213,10 @@ function decodeFEN(board, stmStr) {
         
         //}}}
         neti[x] = 1.0;
+        for (var h=0; h < netHiddenSize; h++) {
+          var hidden = neth[h];
+          hidden.in += hidden.weights[x];
+        }
         sq++;
       }
       else {
@@ -230,6 +242,7 @@ function decodeFEN(board, stmStr) {
       var ch  = board.charAt(j);
       var num = chNum[ch];
       var col = 0;
+      var pce = 0;
     
       if (typeof(num) == 'undefined') {
         pce = chPce[ch];
@@ -256,6 +269,7 @@ function decodeFEN(board, stmStr) {
       var ch  = board.charAt(j);
       var num = chNum[ch];
       var col = 0;
+      var pce = 0;
     
       if (typeof(num) == 'undefined') {
         //{{{  decode ch
@@ -319,9 +333,9 @@ function decodeFEN(board, stmStr) {
         
         if (pce != KING) {
           if (col == WHITE)
-            var x = 0     + wKingSq * 64 + (pce-1) * 64 + sq;
+            x = 0     + wKingSq * 64 + (pce-1) * 64 + sq;
           else
-            var x = 20480 + bKingSq * 64 + (pce-1) * 64 + sq;
+            x = 20480 + bKingSq * 64 + (pce-1) * 64 + sq;
         
           if (debug) {
             if (isNaN(x)) {
@@ -341,6 +355,10 @@ function decodeFEN(board, stmStr) {
         
         //}}}
         neti[x] = 1.0;
+        for (var h=0; h < netHiddenSize; h++) {
+          var hidden = neth[h];
+          hidden.in += hidden.weights[x];
+        }
         sq++;
       }
       else {
@@ -361,8 +379,6 @@ function decodeFEN(board, stmStr) {
 //}}}
 //{{{  network
 
-//var netInputSize   = 768;   // input layer.
-var netInputSize   = 40960; // input layer.
 var netOutputSize  = 1;    // output layer.
 
 //{{{  build net
@@ -428,15 +444,14 @@ function netLoss(target) {
 
 //}}}
 //{{{  netForward()
+//
+//  hidden.in is accumulated by decodeFen().
+//
 
 function netForward() {
 
   for (var h=0; h < netHiddenSize; h++) {
     var hidden = neth[h];
-    hidden.in = 0;
-    for (var i=0; i < netInputSize; i++) {
-      hidden.in += hidden.weights[i] * neti[i];
-    }
     hidden.out = relu(hidden.in);
   }
 
@@ -609,6 +624,8 @@ function netSaveWeights () {
 
 function grunt () {
 
+  netInitWeights();
+
   console.log('positions =',epds.length);
 
   //{{{  count win, lose, draw
@@ -662,31 +679,9 @@ function grunt () {
   
   var t2 = Date.now();
   
-  //decodeFEN('1P2kK2Q7888887n', 'w');
-  //if (!neti[321] || !neti[388] || !neti[5] || !neti[72] || !neti[703]) {
-    //console.log('decode pos');
-    //process.exit();
-  //}
-  
   debug = 0;
   
   console.log('decoding ok',(t2-t1),'ms',epds.length,'epds');
-  
-  //}}}
-  //{{{  time forward()
-  
-  var t1 = Date.now();
-  
-  var epd = epds[0];
-  decodeFEN(epd.board, epd.stm);
-  
-  for (var i=0; i < 10; i++) {
-    netForward();
-  }
-  
-  var t2 = Date.now();
-  
-  console.log('netforward() timing',(t2-t1),'ms',10,'epds');
   
   //}}}
   //{{{  tune
@@ -695,13 +690,12 @@ function grunt () {
   var testPositions = epds.length * 0.2 | 0;
   var numEpochs     = 100000;
   
+  console.log('input layer size =',netInputSize);
   console.log('hidden layer size =',netHiddenSize);
   console.log('batch size =',batchSize);
   console.log('batches per epoch =',numBatches);
   console.log('test positions =',testPositions);
   console.log('learning rate =',learningRate);
-  
-  netInitWeights();
   
   for (var epoch=0; epoch < numEpochs; epoch++) {
     //{{{  test
@@ -719,7 +713,7 @@ function grunt () {
     
       decodeFEN(epd.board, epd.stm);
     
-      netForward()
+      netForward();
     
       var targets = [epd.prob];
     
