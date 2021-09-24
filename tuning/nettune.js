@@ -1,7 +1,7 @@
 
 var maxPositions   = 1000000000;
-//var netInputSize   = 768;
-var netInputSize   = 40960;
+var netInputSize   = 768;
+//var netInputSize   = 40960;
 var netHiddenSize  = 16;
 var learningRate   = 0.001;
 var batchSize      = 100;
@@ -105,6 +105,11 @@ function getprob (r) {
 
 //}}}
 //{{{  decodeFEN
+//
+// Also accumulates the hidden.in nnue style and creates a list of input
+// vector elements that are 1.0 for calculating and accumulating gradients
+// without scanning the whole input vector.
+//
 
 function decodeFEN(board, stmStr) {
 
@@ -117,6 +122,8 @@ function decodeFEN(board, stmStr) {
 
   for (var i=0; i<netInputSize; i++)
     neti[i] = 0.0;
+
+  inNum = 0;
 
   if (netInputSize == 768) {
     //{{{  768
@@ -217,6 +224,8 @@ function decodeFEN(board, stmStr) {
           var hidden = neth[h];
           hidden.in += hidden.weights[x];
         }
+        inList[inNum] = x;
+        inNum++;
         sq++;
       }
       else {
@@ -405,6 +414,9 @@ for (var o=0; o < netOutputSize; o++) {
   neto[o] = new netNode(netHiddenSize);
 }
 
+var inList = Array(32);
+var inNum  = 0;
+
 //}}}
 
 //{{{  sigmoid
@@ -443,7 +455,47 @@ function netLoss(target) {
 }
 
 //}}}
-//{{{  netForward()
+//{{{  netInitWeights()
+
+function netInitWeights() {
+
+  for (var h=0; h < netHiddenSize; h++) {
+    var hidden = neth[h];
+    for (var i=0; i < netInputSize; i++) {
+      hidden.weights[i] = Math.random() * 2 - 1;
+    }
+  }
+
+  for (var o=0; o < netOutputSize; o++) {
+    var output = neto[o];
+    for (var h=0; h < netHiddenSize; h++) {
+      output.weights[h] = Math.random() * 2 - 1;
+    }
+  }
+}
+
+//}}}
+//{{{  netResetGradientSums()
+
+function netResetGradientSums() {
+
+  for (var o=0; o < netOutputSize; o++) {
+    var output = neto[o];
+    for (var h=0; h < netHiddenSize; h++) {
+      output.gweightssum[h] = 0.0;
+    }
+  }
+
+  for (var h=0; h < netHiddenSize; h++) {
+    var hidden = neth[h];
+    for (var i=0; i < netInputSize; i++) {
+      hidden.gweightssum[i] = 0.0;
+    }
+  }
+}
+
+//}}}
+//{{{  netForward()             nnue
 //
 //  hidden.in is accumulated by decodeFen().
 //
@@ -466,27 +518,7 @@ function netForward() {
 }
 
 //}}}
-//{{{  netInitWeights()
-
-function netInitWeights() {
-
-  for (var h=0; h < netHiddenSize; h++) {
-    var hidden = neth[h];
-    for (var i=0; i < netInputSize; i++) {
-      hidden.weights[i] = Math.random() * 2 - 1;
-    }
-  }
-
-  for (var o=0; o < netOutputSize; o++) {
-    var output = neto[o];
-    for (var h=0; h < netHiddenSize; h++) {
-      output.weights[h] = Math.random() * 2 - 1;
-    }
-  }
-}
-
-//}}}
-//{{{  netCalcGradients()
+//{{{  netCalcGradients()       nnue
 
 function netCalcGradients(targets) {
 
@@ -521,34 +553,14 @@ function netCalcGradients(targets) {
 
   for (var h=0; h < netHiddenSize; h++) {
     var hidden = neth[h];
-    for (var i=0; i < netInputSize; i++) {
-      hidden.gweights[i] = hidden.gin * neti[i];
+    for (var i=0; i < inNum; i++) {
+      hidden.gweights[inList[i]] = hidden.gin * neti[inList[i]];
     }
   }
 }
 
 //}}}
-//{{{  netResetGradientSums()
-
-function netResetGradientSums() {
-
-  for (var o=0; o < netOutputSize; o++) {
-    var output = neto[o];
-    for (var h=0; h < netHiddenSize; h++) {
-      output.gweightssum[h] = 0.0;
-    }
-  }
-
-  for (var h=0; h < netHiddenSize; h++) {
-    var hidden = neth[h];
-    for (var i=0; i < netInputSize; i++) {
-      hidden.gweightssum[i] = 0.0;
-    }
-  }
-}
-
-//}}}
-//{{{  netAccumulateGradients()
+//{{{  netAccumulateGradients() nnue
 
 function netAccumulateGradients() {
 
@@ -561,8 +573,8 @@ function netAccumulateGradients() {
 
   for (var h=0; h < netHiddenSize; h++) {
     var hidden = neth[h];
-    for (var i=0; i < netInputSize; i++) {
-      hidden.gweightssum[i] += hidden.gweights[i];
+    for (var i=0; i < inNum; i++) {
+      hidden.gweightssum[inList[i]] += hidden.gweights[inList[i]];
     }
   }
 }
