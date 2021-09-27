@@ -1,7 +1,7 @@
-//"use strict"
 //
-// https://github.com/op12no2
-// testing and tuning results in testing/testing.log
+// https://github.com/op12no2/lozza
+//
+// A hand-coded Javascript chess engine inspired by Fabien Letouzey's Fruit 2.1.
 //
 
 var BUILD = "2.1";
