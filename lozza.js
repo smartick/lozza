@@ -1,18 +1,13 @@
+//"use strict"
 //
-// A hand-coded Javascript chess engine inspired by Fabien Letouzey's Fruit 2.1.
-// https://github.com/op12no2/Lozza
+// https://github.com/op12no2
+// testing and tuning results in testing/testing.log
 //
 
-var BUILD = "2.1";
+var BUILD = "2.0";
 
 //{{{  history
 /*
-
-2.1 21/09/21 Full retune.
-2.1 16/09/21 Fix bench command.
-2.1 16/09/21 Add xray term to eval.
-2.1 08/09/21 Don't tune attack and passed pawn curves.
-2.1 08/09/21 Remove mobility offsets.
 
 2.0 19/02/21 Add imbalance terms when no pawns.
 2.0 17/02/21 Tune all eval params.
@@ -214,10 +209,10 @@ var BUILD = "2.1";
 //}}}
 //{{{  detect host
 
-const HOST_WEB     = 0;
-const HOST_NODEJS  = 1;
-const HOST_CONSOLE = 2;
-const HOSTS        = ['Web','Node','Console'];
+var HOST_WEB     = 0;
+var HOST_NODEJS  = 1;
+var HOST_CONSOLE = 2;
+var HOSTS        = ['Web','Node','Console'];
 
 var lozzaHost = HOST_WEB;
 
@@ -232,14 +227,6 @@ else if ((typeof WorkerGlobalScope) == 'undefined')
 //}}}
 //{{{  funcs
 
-//{{{  wbmap
-
-function wbmap (sq) {
-  var m = (143-sq)/12|0;
-  return 12*m + sq%12;
-}
-
-//}}}
 //{{{  myround
 
 function myround(x) {
@@ -254,68 +241,87 @@ function myround(x) {
 
 //{{{  ev indexes
 
-const iPAWN_DOUBLED_S       = 0;
-const iPAWN_DOUBLED_E       = 1;
-const iPAWN_ISOLATED_S      = 2;
-const iPAWN_ISOLATED_E      = 3;
-const iPAWN_BACKWARD_S      = 4;
-const iPAWN_BACKWARD_E      = 5;
-const iPAWN_PASSED_OFFSET_S = 6;
-const iPAWN_PASSED_OFFSET_E = 7;
-const iPAWN_PASSED_MULT_S   = 8;
-const iPAWN_PASSED_MULT_E   = 9;
-const iTWOBISHOPS_S         = 10;
-const iTWOBISHOPS_E         = 11;
-const iROOK7TH_S            = 12;
-const iROOK7TH_E            = 13;
-const iROOKOPEN_S           = 14;
-const iROOKOPEN_E           = 15;
-const iQUEEN7TH_S           = 16;
-const iQUEEN7TH_E           = 17;
-const iTRAPPED              = 18;
-const iKING_PENALTY         = 19;
-const iPAWN_OFFSET_S        = 20;
-const iPAWN_OFFSET_E        = 21;
-const iPAWN_MULT_S          = 22;
-const iPAWN_MULT_E          = 23;
-const iPAWN_PASS_FREE       = 24;
-const iPAWN_PASS_UNSTOP     = 25;
-const iPAWN_PASS_KING1      = 26;
-const iPAWN_PASS_KING2      = 27;
-const iTEMPO_S              = 28;
-const iTEMPO_E              = 29;
-const iSHELTERM             = 30;
+var iMOB_NS               = 0;
+var iMOB_NE               = 1;
+var iMOB_BS               = 2;
+var iMOB_BE               = 3;
+var iMOB_RS               = 4;
+var iMOB_RE               = 5;
+var iMOB_QS               = 6;
+var iMOB_QE               = 7;
+var iATT_N                = 8;
+var iATT_B                = 9;
+var iATT_R                = 10;
+var iATT_Q                = 11;
+var iATT_M                = 12;
+var iPAWN_DOUBLED_S       = 13;
+var iPAWN_DOUBLED_E       = 14;
+var iPAWN_ISOLATED_S      = 15;
+var iPAWN_ISOLATED_E      = 16;
+var iPAWN_BACKWARD_S      = 17;
+var iPAWN_BACKWARD_E      = 18;
+var iPAWN_PASSED_OFFSET_S = 19;
+var iPAWN_PASSED_OFFSET_E = 20;
+var iPAWN_PASSED_MULT_S   = 21;
+var iPAWN_PASSED_MULT_E   = 22;
+var iTWOBISHOPS_S         = 23;
+var iROOK7TH_S            = 24;
+var iROOK7TH_E            = 25;
+var iROOKOPEN_S           = 26;
+var iROOKOPEN_E           = 27;
+var iQUEEN7TH_S           = 28;
+var iQUEEN7TH_E           = 29;
+var iTRAPPED              = 30;
+var iKING_PENALTY         = 31;
+var iPAWN_OFFSET_S        = 32;
+var iPAWN_OFFSET_E        = 33;
+var iPAWN_MULT_S          = 34;
+var iPAWN_MULT_E          = 35;
+var iPAWN_PASS_FREE       = 36;
+var iPAWN_PASS_UNSTOP     = 37;
+var iPAWN_PASS_KING1      = 38;
+var iPAWN_PASS_KING2      = 39;
+var iMOBOFF_NS            = 40;
+var iMOBOFF_NE            = 41;
+var iMOBOFF_BS            = 42;
+var iMOBOFF_BE            = 43;
+var iMOBOFF_RS            = 44;
+var iMOBOFF_RE            = 45;
+var iTWOBISHOPS_E         = 46;
+var iTEMPO_S              = 47;
+var iTEMPO_E              = 48;
+var iSHELTERM             = 49;
 
 //}}}
 
-const MAX_PLY         = 100;                // limited by lozza.board.ttDepth bits.
-const MAX_MOVES       = 250;
-const INFINITY        = 30000;              // limited by lozza.board.ttScore bits.
-const MATE            = 20000;
-const MINMATE         = MATE - 2*MAX_PLY;
-const CONTEMPT        = 0;
-const NULL_Y          = 1;
-const NULL_N          = 0;
-const INCHECK_UNKNOWN = MATE + 1;
-const TTSCORE_UNKNOWN = MATE + 2;
-const ASP_MAX         = 75;
-const ASP_DELTA       = 3;
-const ASP_MIN         = 10;
-const EMPTY           = 0;
-const UCI_FMT         = 0;
-const SAN_FMT         = 1;
+var MAX_PLY         = 100;                // limited by lozza.board.ttDepth bits.
+var MAX_MOVES       = 250;
+var INFINITY        = 30000;              // limited by lozza.board.ttScore bits.
+var MATE            = 20000;
+var MINMATE         = MATE - 2*MAX_PLY;
+var CONTEMPT        = 0;
+var NULL_Y          = 1;
+var NULL_N          = 0;
+var INCHECK_UNKNOWN = MATE + 1;
+var TTSCORE_UNKNOWN = MATE + 2;
+var ASP_MAX         = 75;
+var ASP_DELTA       = 3;
+var ASP_MIN         = 10;
+var EMPTY           = 0;
+var UCI_FMT         = 0;
+var SAN_FMT         = 1;
 
-const WHITE   = 0x0;                // toggle with: ~turn & COLOR_MASK
-const BLACK   = 0x8;
-const I_WHITE = 0;                  // 0/1 colour index, compute with: turn >>> 3
-const I_BLACK = 1;
-const M_WHITE = 1;
-const M_BLACK = -1;                 // +1/-1 colour multiplier, compute with: (-turn >> 31) | 1
+var WHITE   = 0x0;                // toggle with: ~turn & COLOR_MASK
+var BLACK   = 0x8;
+var I_WHITE = 0;                  // 0/1 colour index, compute with: turn >>> 3
+var I_BLACK = 1;
+var M_WHITE = 1;
+var M_BLACK = -1;                 // +1/-1 colour multiplier, compute with: (-turn >> 31) | 1
 
-const PIECE_MASK = 0x7;
-const COLOR_MASK = 0x8;
+var PIECE_MASK = 0x7;
+var COLOR_MASK = 0x8;
 
-const VALUE_PAWN = 100;             // safe - tuning root
+var VALUE_PAWN = 100;             // safe - tuning root
 
 const TTSIZE = 1 << 22;
 const TTMASK = TTSIZE - 1;
@@ -323,80 +329,80 @@ const TTMASK = TTSIZE - 1;
 const PTTSIZE = 1 << 14;
 const PTTMASK = PTTSIZE - 1;
 
-const TT_EMPTY  = 0;
-const TT_EXACT  = 1;
-const TT_BETA   = 2;
-const TT_ALPHA  = 3;
+var TT_EMPTY  = 0;
+var TT_EXACT  = 1;
+var TT_BETA   = 2;
+var TT_ALPHA  = 3;
 
-const PTT_EXACT = 1;
-const PTT_WHOME = 2;
-const PTT_BHOME = 4;
-const PTT_WPASS = 8;
-const PTT_BPASS = 16;
+var PTT_EXACT = 1;
+var PTT_WHOME = 2;
+var PTT_BHOME = 4;
+var PTT_WPASS = 8;
+var PTT_BPASS = 16;
 
 //                                 Killer?
 // max            9007199254740992
 //
 
-const BASE_HASH       =  40000012000;  // no
-const BASE_PROMOTES   =  40000011000;  // no
-const BASE_GOODTAKES  =  40000010000;  // no
-const BASE_EVENTAKES  =  40000009000;  // no
-const BASE_EPTAKES    =  40000008000;  // no
-const BASE_MATEKILLER =  40000007000;
-const BASE_MYKILLERS  =  40000006000;
-const BASE_GPKILLERS  =  40000005000;
-const BASE_CASTLING   =  40000004000;  // yes
-const BASE_BADTAKES   =  40000003000;  // yes
-const BASE_HISSLIDE   =  20000002000;  // yes
-const BASE_PSTSLIDE   =         1000;  // yes
+var BASE_HASH       =  40000012000;  // no
+var BASE_PROMOTES   =  40000011000;  // no
+var BASE_GOODTAKES  =  40000010000;  // no
+var BASE_EVENTAKES  =  40000009000;  // no
+var BASE_EPTAKES    =  40000008000;  // no
+var BASE_MATEKILLER =  40000007000;
+var BASE_MYKILLERS  =  40000006000;
+var BASE_GPKILLERS  =  40000005000;
+var BASE_CASTLING   =  40000004000;  // yes
+var BASE_BADTAKES   =  40000003000;  // yes
+var BASE_HISSLIDE   =  20000002000;  // yes
+var BASE_PSTSLIDE   =         1000;  // yes
 
-const BASE_LMR        = BASE_BADTAKES;
+var BASE_LMR        = BASE_BADTAKES;
 
-const MOVE_TO_BITS      = 0;
-const MOVE_FR_BITS      = 8;
-const MOVE_TOOBJ_BITS   = 16;
-const MOVE_FROBJ_BITS   = 20;
-const MOVE_PROMAS_BITS  = 29;
+var MOVE_TO_BITS      = 0;
+var MOVE_FR_BITS      = 8;
+var MOVE_TOOBJ_BITS   = 16;
+var MOVE_FROBJ_BITS   = 20;
+var MOVE_PROMAS_BITS  = 29;
 
-const MOVE_TO_MASK       = 0x000000FF;
-const MOVE_FR_MASK       = 0x0000FF00;
-const MOVE_TOOBJ_MASK    = 0x000F0000;
-const MOVE_FROBJ_MASK    = 0x00F00000;
-const MOVE_PAWN_MASK     = 0x01000000;
-const MOVE_EPTAKE_MASK   = 0x02000000;
-const MOVE_EPMAKE_MASK   = 0x04000000;
-const MOVE_CASTLE_MASK   = 0x08000000;
-const MOVE_PROMOTE_MASK  = 0x10000000;
-const MOVE_PROMAS_MASK   = 0x60000000;  // NBRQ.
-const MOVE_SPARE2_MASK   = 0x80000000;
+var MOVE_TO_MASK       = 0x000000FF;
+var MOVE_FR_MASK       = 0x0000FF00;
+var MOVE_TOOBJ_MASK    = 0x000F0000;
+var MOVE_FROBJ_MASK    = 0x00F00000;
+var MOVE_PAWN_MASK     = 0x01000000;
+var MOVE_EPTAKE_MASK   = 0x02000000;
+var MOVE_EPMAKE_MASK   = 0x04000000;
+var MOVE_CASTLE_MASK   = 0x08000000;
+var MOVE_PROMOTE_MASK  = 0x10000000;
+var MOVE_PROMAS_MASK   = 0x60000000;  // NBRQ.
+var MOVE_SPARE2_MASK   = 0x80000000;
 
-const MOVE_SPECIAL_MASK  = MOVE_CASTLE_MASK | MOVE_PROMOTE_MASK | MOVE_EPTAKE_MASK | MOVE_EPMAKE_MASK; // need extra work in make move.
-const KEEPER_MASK        = MOVE_CASTLE_MASK | MOVE_PROMOTE_MASK | MOVE_EPTAKE_MASK | MOVE_TOOBJ_MASK;  // futility etc.
+var MOVE_SPECIAL_MASK  = MOVE_CASTLE_MASK | MOVE_PROMOTE_MASK | MOVE_EPTAKE_MASK | MOVE_EPMAKE_MASK; // need extra work in make move.
+var KEEPER_MASK        = MOVE_CASTLE_MASK | MOVE_PROMOTE_MASK | MOVE_EPTAKE_MASK | MOVE_TOOBJ_MASK;  // futility etc.
 
-const NULL   = 0;
-const PAWN   = 1;
-const KNIGHT = 2;
-const BISHOP = 3;
-const ROOK   = 4;
-const QUEEN  = 5;
-const KING   = 6;
-const EDGE   = 7;
-const NO_Z   = 8;
+var NULL   = 0;
+var PAWN   = 1;
+var KNIGHT = 2;
+var BISHOP = 3;
+var ROOK   = 4;
+var QUEEN  = 5;
+var KING   = 6;
+var EDGE   = 7;
+var NO_Z   = 8;
 
-const W_PAWN   = PAWN;
-const W_KNIGHT = KNIGHT;
-const W_BISHOP = BISHOP;
-const W_ROOK   = ROOK;
-const W_QUEEN  = QUEEN;
-const W_KING   = KING;
+var W_PAWN   = PAWN;
+var W_KNIGHT = KNIGHT;
+var W_BISHOP = BISHOP;
+var W_ROOK   = ROOK;
+var W_QUEEN  = QUEEN;
+var W_KING   = KING;
 
-const B_PAWN   = PAWN   | BLACK;
-const B_KNIGHT = KNIGHT | BLACK;
-const B_BISHOP = BISHOP | BLACK;
-const B_ROOK   = ROOK   | BLACK;
-const B_QUEEN  = QUEEN  | BLACK;
-const B_KING   = KING   | BLACK;
+var B_PAWN   = PAWN   | BLACK;
+var B_KNIGHT = KNIGHT | BLACK;
+var B_BISHOP = BISHOP | BLACK;
+var B_ROOK   = ROOK   | BLACK;
+var B_QUEEN  = QUEEN  | BLACK;
+var B_KING   = KING   | BLACK;
 
 //
 // E == EMPTY, X = OFF BOARD, - == CANNOT HAPPEN
@@ -406,76 +412,76 @@ const B_KING   = KING   | BLACK;
 //               E  P  N  B  R  Q  K  X  -  P  N  B  R  Q  K  -
 //
 
-const IS_O      = [0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0];
-const IS_E      = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-const IS_OE     = [1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0];
-const IS_KN     = [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0];
-const IS_K      = [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0];
-const IS_N      = [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0];
-const IS_P      = [0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0];
+var IS_O      = [0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0];
+var IS_E      = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+var IS_OE     = [1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0];
+var IS_KN     = [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0];
+var IS_K      = [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0];
+var IS_N      = [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0];
+var IS_P      = [0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0];
 
-const IS_NBRQKE = [1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0]
-const IS_RQKE   = [1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0]
-const IS_QKE    = [1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0]
+var IS_NBRQKE = [1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0]
+var IS_RQKE   = [1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0]
+var IS_QKE    = [1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0]
 
-const IS_W      = [0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-const IS_WE     = [1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-const IS_WP     = [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-const IS_WN     = [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-const IS_WB     = [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-const IS_WBQ    = [0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-const IS_WRQ    = [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+var IS_W      = [0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+var IS_WE     = [1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+var IS_WP     = [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+var IS_WN     = [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+var IS_WB     = [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+var IS_WBQ    = [0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+var IS_WRQ    = [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-const IS_B      = [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0];
-const IS_BE     = [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0];
-const IS_BP     = [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0];
-const IS_BN     = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0];
-const IS_BB     = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0];
-const IS_BBQ    = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0];
-const IS_BRQ    = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0];
+var IS_B      = [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0];
+var IS_BE     = [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0];
+var IS_BP     = [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0];
+var IS_BN     = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0];
+var IS_BB     = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0];
+var IS_BBQ    = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0];
+var IS_BRQ    = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0];
 
-const PPHASE = 0;
-const NPHASE = 1;
-const BPHASE = 1;
-const RPHASE = 2;
-const QPHASE = 4;
-const VPHASE = [0,PPHASE,NPHASE,BPHASE,RPHASE,QPHASE,0];
-const TPHASE = PPHASE*16 + NPHASE*4 + BPHASE*4 + RPHASE*4 + QPHASE*2;
-const EPHASE = 16;  //  Don't do Q futility after this.
+var PPHASE = 0;
+var NPHASE = 1;
+var BPHASE = 1;
+var RPHASE = 2;
+var QPHASE = 4;
+var VPHASE = [0,PPHASE,NPHASE,BPHASE,RPHASE,QPHASE,0];
+var TPHASE = PPHASE*16 + NPHASE*4 + BPHASE*4 + RPHASE*4 + QPHASE*2;
+var EPHASE = 16;  //  Don't do Q futility after this.
 
-const W_PROMOTE_SQ = [0,26, 27, 28, 29, 30, 31, 32, 33];
-const B_PROMOTE_SQ = [0,110,111,112,113,114,115,116,117];
+var W_PROMOTE_SQ = [0,26, 27, 28, 29, 30, 31, 32, 33];
+var B_PROMOTE_SQ = [0,110,111,112,113,114,115,116,117];
 
-const A1 = 110, B1 = 111, C1 = 112, D1 = 113, E1 = 114, F1 = 115, G1 = 116, H1 = 117;
-const A8 = 26,  B8 = 27,  C8 = 28,  D8 = 29,  E8 = 30,  F8 = 31,  G8 = 32,  H8 = 33;
+var A1 = 110, B1 = 111, C1 = 112, D1 = 113, E1 = 114, F1 = 115, G1 = 116, H1 = 117;
+var A8 = 26,  B8 = 27,  C8 = 28,  D8 = 29,  E8 = 30,  F8 = 31,  G8 = 32,  H8 = 33;
 
-const SQA1 = 110, SQB1 = 111, SQC1 = 112, SQD1 = 113, SQE1 = 114, SQF1 = 115, SQG1 = 116, SQH1 = 117;
-const SQA2 = 98,  SQB2 = 99,  SQC2 = 100, SQD2 = 101, SQE2 = 102, SQF2 = 103, SQG2 = 104, SQH2 = 105;
-const SQA3 = 86,  SQB3 = 87,  SQC3 = 88,  SQD3 = 89,  SQE3 = 90,  SQF3 = 91,  SQG3 = 92,  SQH3 = 93;
-const SQA4 = 74,  SQB4 = 75,  SQC4 = 76,  SQD4 = 77,  SQE4 = 78,  SQF4 = 79,  SQG4 = 80,  SQH4 = 81;
-const SQA5 = 62,  SQB5 = 63,  SQC5 = 64,  SQD5 = 65,  SQE5 = 66,  SQF5 = 67,  SQG5 = 68,  SQH5 = 69;
-const SQA6 = 50,  SQB6 = 51,  SQC6 = 52,  SQD6 = 53,  SQE6 = 54,  SQF6 = 55,  SQG6 = 56,  SQH6 = 57;
-const SQA7 = 38,  SQB7 = 39,  SQC7 = 40,  SQD7 = 41,  SQE7 = 42,  SQF7 = 43,  SQG7 = 44,  SQH7 = 45;
-const SQA8 = 26,  SQB8 = 27,  SQC8 = 28,  SQD8 = 29,  SQE8 = 30,  SQF8 = 31,  SQG8 = 32,  SQH8 = 33;
+var SQA1 = 110, SQB1 = 111, SQC1 = 112, SQD1 = 113, SQE1 = 114, SQF1 = 115, SQG1 = 116, SQH1 = 117;
+var SQA2 = 98,  SQB2 = 99,  SQC2 = 100, SQD2 = 101, SQE2 = 102, SQF2 = 103, SQG2 = 104, SQH2 = 105;
+var SQA3 = 86,  SQB3 = 87,  SQC3 = 88,  SQD3 = 89,  SQE3 = 90,  SQF3 = 91,  SQG3 = 92,  SQH3 = 93;
+var SQA4 = 74,  SQB4 = 75,  SQC4 = 76,  SQD4 = 77,  SQE4 = 78,  SQF4 = 79,  SQG4 = 80,  SQH4 = 81;
+var SQA5 = 62,  SQB5 = 63,  SQC5 = 64,  SQD5 = 65,  SQE5 = 66,  SQF5 = 67,  SQG5 = 68,  SQH5 = 69;
+var SQA6 = 50,  SQB6 = 51,  SQC6 = 52,  SQD6 = 53,  SQE6 = 54,  SQF6 = 55,  SQG6 = 56,  SQH6 = 57;
+var SQA7 = 38,  SQB7 = 39,  SQC7 = 40,  SQD7 = 41,  SQE7 = 42,  SQF7 = 43,  SQG7 = 44,  SQH7 = 45;
+var SQA8 = 26,  SQB8 = 27,  SQC8 = 28,  SQD8 = 29,  SQE8 = 30,  SQF8 = 31,  SQG8 = 32,  SQH8 = 33;
 
-const MOVE_E1G1 = MOVE_CASTLE_MASK | (W_KING << MOVE_FROBJ_BITS) | (E1 << MOVE_FR_BITS) | G1;
-const MOVE_E1C1 = MOVE_CASTLE_MASK | (W_KING << MOVE_FROBJ_BITS) | (E1 << MOVE_FR_BITS) | C1;
-const MOVE_E8G8 = MOVE_CASTLE_MASK | (B_KING << MOVE_FROBJ_BITS) | (E8 << MOVE_FR_BITS) | G8;
-const MOVE_E8C8 = MOVE_CASTLE_MASK | (B_KING << MOVE_FROBJ_BITS) | (E8 << MOVE_FR_BITS) | C8;
+var MOVE_E1G1 = MOVE_CASTLE_MASK | (W_KING << MOVE_FROBJ_BITS) | (E1 << MOVE_FR_BITS) | G1;
+var MOVE_E1C1 = MOVE_CASTLE_MASK | (W_KING << MOVE_FROBJ_BITS) | (E1 << MOVE_FR_BITS) | C1;
+var MOVE_E8G8 = MOVE_CASTLE_MASK | (B_KING << MOVE_FROBJ_BITS) | (E8 << MOVE_FR_BITS) | G8;
+var MOVE_E8C8 = MOVE_CASTLE_MASK | (B_KING << MOVE_FROBJ_BITS) | (E8 << MOVE_FR_BITS) | C8;
 
-const QPRO = (QUEEN-2)  << MOVE_PROMAS_BITS | MOVE_PROMOTE_MASK;
-const RPRO = (ROOK-2)   << MOVE_PROMAS_BITS | MOVE_PROMOTE_MASK;
-const BPRO = (BISHOP-2) << MOVE_PROMAS_BITS | MOVE_PROMOTE_MASK;
-const NPRO = (KNIGHT-2) << MOVE_PROMAS_BITS | MOVE_PROMOTE_MASK;
+var QPRO = (QUEEN-2)  << MOVE_PROMAS_BITS | MOVE_PROMOTE_MASK;
+var RPRO = (ROOK-2)   << MOVE_PROMAS_BITS | MOVE_PROMOTE_MASK;
+var BPRO = (BISHOP-2) << MOVE_PROMAS_BITS | MOVE_PROMOTE_MASK;
+var NPRO = (KNIGHT-2) << MOVE_PROMAS_BITS | MOVE_PROMOTE_MASK;
 
-const WHITE_RIGHTS_KING  = 0x00000001;
-const WHITE_RIGHTS_QUEEN = 0x00000002;
-const BLACK_RIGHTS_KING  = 0x00000004;
-const BLACK_RIGHTS_QUEEN = 0x00000008;
-const WHITE_RIGHTS       = WHITE_RIGHTS_QUEEN | WHITE_RIGHTS_KING;
-const BLACK_RIGHTS       = BLACK_RIGHTS_QUEEN | BLACK_RIGHTS_KING;
+var WHITE_RIGHTS_KING  = 0x00000001;
+var WHITE_RIGHTS_QUEEN = 0x00000002;
+var BLACK_RIGHTS_KING  = 0x00000004;
+var BLACK_RIGHTS_QUEEN = 0x00000008;
+var WHITE_RIGHTS       = WHITE_RIGHTS_QUEEN | WHITE_RIGHTS_KING;
+var BLACK_RIGHTS       = BLACK_RIGHTS_QUEEN | BLACK_RIGHTS_KING;
 
-const MASK_RIGHTS = [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
+var  MASK_RIGHTS =  [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
                      15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
                      15, 15, ~8, 15, 15, 15, ~12,15, 15, ~4, 15, 15,
                      15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
@@ -488,26 +494,26 @@ const MASK_RIGHTS = [15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
                      15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
                      15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15];
 
-const WP_OFFSET_ORTH  = -12;
-const WP_OFFSET_DIAG1 = -13;
-const WP_OFFSET_DIAG2 = -11;
+var WP_OFFSET_ORTH  = -12;
+var WP_OFFSET_DIAG1 = -13;
+var WP_OFFSET_DIAG2 = -11;
 
-const BP_OFFSET_ORTH  = 12;
-const BP_OFFSET_DIAG1 = 13;
-const BP_OFFSET_DIAG2 = 11;
+var BP_OFFSET_ORTH  = 12;
+var BP_OFFSET_DIAG1 = 13;
+var BP_OFFSET_DIAG2 = 11;
 
-const KNIGHT_OFFSETS  = [25,-25,23,-23,14,-14,10,-10];
-const BISHOP_OFFSETS  = [11,-11,13,-13];
-const ROOK_OFFSETS    =               [1,-1,12,-12];
-const QUEEN_OFFSETS   = [11,-11,13,-13,1,-1,12,-12];
-const KING_OFFSETS    = [11,-11,13,-13,1,-1,12,-12];
+var KNIGHT_OFFSETS  = [25,-25,23,-23,14,-14,10,-10];
+var BISHOP_OFFSETS  = [11,-11,13,-13];
+var ROOK_OFFSETS    =               [1,-1,12,-12];
+var QUEEN_OFFSETS   = [11,-11,13,-13,1,-1,12,-12];
+var KING_OFFSETS    = [11,-11,13,-13,1,-1,12,-12];
 
-const OFFSETS = [0,0,KNIGHT_OFFSETS,BISHOP_OFFSETS,ROOK_OFFSETS,QUEEN_OFFSETS,KING_OFFSETS];
-const LIMITS  = [0,1,1,             8,             8,           8,            1];
+var OFFSETS = [0,0,KNIGHT_OFFSETS,BISHOP_OFFSETS,ROOK_OFFSETS,QUEEN_OFFSETS,KING_OFFSETS];
+var LIMITS  = [0,1,1,             8,             8,           8,            1];
 
-const RANK_VECTOR  = [0,1,2,2,4,5,6];  // for move sorting.
+var RANK_VECTOR  = [0,1,2,2,4,5,6];  // for move sorting.
 
-const B88 = [26, 27, 28, 29, 30, 31, 32, 33,
+var  B88 =  [26, 27, 28, 29, 30, 31, 32, 33,
              38, 39, 40, 41, 42, 43, 44, 45,
              50, 51, 52, 53, 54, 55, 56, 57,
              62, 63, 64, 65, 66, 67, 68, 69,
@@ -516,7 +522,7 @@ const B88 = [26, 27, 28, 29, 30, 31, 32, 33,
              98, 99, 100,101,102,103,104,105,
              110,111,112,113,114,115,116,117];
 
-const COORDS = ['??', '??', '??', '??', '??', '??', '??', '??', '??', '??', '??', '??',
+var COORDS =   ['??', '??', '??', '??', '??', '??', '??', '??', '??', '??', '??', '??',
                 '??', '??', '??', '??', '??', '??', '??', '??', '??', '??', '??', '??',
                 '??', '??', 'a8', 'b8', 'c8', 'd8', 'e8', 'f8', 'g8', 'h8', '??', '??',
                 '??', '??', 'a7', 'b7', 'c7', 'd7', 'e7', 'f7', 'g7', 'h7', '??', '??',
@@ -529,99 +535,87 @@ const COORDS = ['??', '??', '??', '??', '??', '??', '??', '??', '??', '??', '??'
                 '??', '??', '??', '??', '??', '??', '??', '??', '??', '??', '??', '??',
                 '??', '??', '??', '??', '??', '??', '??', '??', '??', '??', '??', '??'];
 
-const NAMES    = ['-','P','N','B','R','Q','K','-'];
-const PROMOTES = ['n','b','r','q'];                  // 0-3 encoded in move.
+var NAMES    = ['-','P','N','B','R','Q','K','-'];
+var PROMOTES = ['n','b','r','q'];                  // 0-3 encoded in move.
 
-const RANK =     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 8, 8, 8, 8, 8, 8, 8, 8, 0, 0,
-                  0, 0, 7, 7, 7, 7, 7, 7, 7, 7, 0, 0,
-                  0, 0, 6, 6, 6, 6, 6, 6, 6, 6, 0, 0,
-                  0, 0, 5, 5, 5, 5, 5, 5, 5, 5, 0, 0,
-                  0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0,
-                  0, 0, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0,
-                  0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0,
-                  0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+var  RANK =  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 8, 8, 8, 8, 8, 8, 8, 8, 0, 0,
+              0, 0, 7, 7, 7, 7, 7, 7, 7, 7, 0, 0,
+              0, 0, 6, 6, 6, 6, 6, 6, 6, 6, 0, 0,
+              0, 0, 5, 5, 5, 5, 5, 5, 5, 5, 0, 0,
+              0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0,
+              0, 0, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0,
+              0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0,
+              0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-const FILE =     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 0, 0,
-                  0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 0, 0,
-                  0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 0, 0,
-                  0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 0, 0,
-                  0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 0, 0,
-                  0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 0, 0,
-                  0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 0, 0,
-                  0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+var  FILE =  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 0, 0,
+              0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 0, 0,
+              0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 0, 0,
+              0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 0, 0,
+              0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 0, 0,
+              0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 0, 0,
+              0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 0, 0,
+              0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-const CORNERS =  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+var  CORNERS=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-const WSQUARE =  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0,
-                  0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0,
-                  0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0,
-                  0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0,
-                  0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0,
-                  0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0,
-                  0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0,
-                  0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+var  WSQUARE=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0,
+              0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0,
+              0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0,
+              0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0,
+              0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0,
+              0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0,
+              0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0,
+              0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-const BSQUARE =  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0,
-                  0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0,
-                  0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0,
-                  0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0,
-                  0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0,
-                  0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0,
-                  0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0,
-                  0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+var  BSQUARE=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0,
+              0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0,
+              0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0,
+              0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0,
+              0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0,
+              0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0,
+              0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0,
+              0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-const CENTRES =  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0,
-                  0, 0, 3, 2, 2, 2, 2, 2, 2, 3, 0, 0,
-                  0, 0, 3, 2, 1, 1, 1, 1, 2, 3, 0, 0,
-                  0, 0, 3, 2, 1, 0, 0, 1, 2, 3, 0, 0,
-                  0, 0, 3, 2, 1, 0, 0, 1, 2, 3, 0, 0,
-                  0, 0, 3, 2, 1, 1, 1, 1, 2, 3, 0, 0,
-                  0, 0, 3, 2, 2, 2, 2, 2, 2, 3, 0, 0,
-                  0, 0, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+var NULL_PST =        [0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+                       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0];
 
-const NULL_PST = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
 var MAP = [];
 
@@ -657,14 +651,13 @@ var STARRAY = Array(144);
 var WKZONES = Array(144);
 var BKZONES = Array(144);
 var DIST    = Array(144);
-var XRAY    = Array(144);
 
 //}}}
 //{{{  random numbers
 
 var nextRandom = 0;
 
-const RANDOMS = [
+var randoms = [
 756905668, -1084175557, 1878823061, -625318968, -621181864, -570058847, -133173404, -505062315, 521670451, 771225885,
 1849313641, 1186661906, -799682966, -225168994, 1939521286, 1659516860, 1390348927, 2015136119, -998381781, 1293648901,
 1928880860, 424858752, -1586845067, 2029930516, 2143349043, 725089750, -1358272902, 1638516675, -1689963160, 816003714,
@@ -1071,100 +1064,155 @@ const RANDOMS = [
 
 //{{{  tuned params
 
-// data=c:/projects/chessdata/sf14quiet-labeled.epd
-// err=0.020062836532085262
-// last update Mon Sep 27 2021 08:20:54 GMT+0100 (British Summer Time)
+var VALUE_VECTOR = [0,100,348,353,540,1054,10000];
 
-const VALUE_VECTOR   = [0,100,359,361,552,1066,10000];
-const WPAWN_PSTS     = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-15,-5,0,5,5,0,-5,-15,0,0,0,0,65,119,77,109,111,86,38,-7,0,0,0,0,-6,14,28,22,65,69,33,8,0,0,0,0,-16,11,-11,20,18,14,8,-34,0,0,0,0,-33,-30,-3,5,2,7,-20,-40,0,0,0,0,-29,-32,-14,-16,-11,8,10,-20,0,0,0,0,-41,-26,-43,-35,-51,8,10,-35,0,0,0,0,-15,-5,0,5,5,0,-5,-15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-const WPAWN_PSTE     = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,17,21,26,35,25,7,34,47,0,0,0,0,11,9,0,-6,-15,-12,4,9,0,0,0,0,3,-9,-10,-29,-25,-15,-7,-2,0,0,0,0,0,-4,-17,-26,-19,-17,-10,-7,0,0,0,0,-12,-10,-16,-14,-9,-13,-23,-18,0,0,0,0,-4,-10,2,-2,8,-6,-17,-17,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-const WKNIGHT_PSTS   = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-148,-76,-38,-35,39,-121,-30,-74,0,0,0,0,-55,-21,57,37,18,71,-12,-6,0,0,0,0,-24,36,25,57,74,84,41,52,0,0,0,0,15,26,18,38,36,73,29,47,0,0,0,0,7,21,28,19,29,28,27,12,0,0,0,0,-24,6,16,36,44,28,34,-13,0,0,0,0,-18,-28,-2,15,22,17,6,0,0,0,0,0,-87,-8,-20,2,18,6,-4,-26,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-const WKNIGHT_PSTE   = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-47,-42,-17,-23,-32,-28,-55,-104,0,0,0,0,-30,-14,-32,-6,-11,-42,-32,-53,0,0,0,0,-28,-28,-3,-9,-30,-16,-34,-55,0,0,0,0,-31,-14,6,0,5,-13,-11,-35,0,0,0,0,-30,-18,-1,6,2,2,-9,-32,0,0,0,0,-42,-17,-15,-4,-7,-24,-29,-36,0,0,0,0,-59,-36,-27,-24,-25,-34,-35,-61,0,0,0,0,-51,-69,-40,-41,-46,-39,-70,-100,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-const WBISHOP_PSTS   = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-29,-21,-102,-56,-43,-69,-29,-19,0,0,0,0,-28,10,-11,-22,15,5,59,-59,0,0,0,0,-31,32,18,29,24,58,34,-16,0,0,0,0,2,6,14,36,27,11,12,-9,0,0,0,0,15,6,8,28,24,9,14,22,0,0,0,0,15,36,27,21,23,37,37,23,0,0,0,0,25,33,25,7,18,29,62,19,0,0,0,0,0,29,16,10,17,15,-1,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-const WBISHOP_PSTE   = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-22,-30,-7,-19,-14,-11,-27,-41,0,0,0,0,-16,-23,-16,-18,-22,-23,-28,-18,0,0,0,0,-8,-28,-16,-26,-31,-30,-22,-18,0,0,0,0,-29,-10,-18,-18,-18,-19,-22,-25,0,0,0,0,-32,-22,-12,-14,-22,-22,-29,-42,0,0,0,0,-36,-29,-25,-23,-17,-29,-37,-35,0,0,0,0,-45,-52,-37,-28,-30,-33,-47,-55,0,0,0,0,-50,-38,-47,-34,-36,-38,-38,-41,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-const WROOK_PSTS     = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,22,31,13,31,27,1,20,37,0,0,0,0,9,9,37,50,49,51,-24,24,0,0,0,0,2,16,11,22,9,29,44,3,0,0,0,0,-23,-14,6,23,2,18,-19,-21,0,0,0,0,-32,-23,-12,-4,-5,-9,1,-22,0,0,0,0,-37,-13,-12,-14,7,1,4,-24,0,0,0,0,-36,-12,-3,3,1,10,-18,-79,0,0,0,0,-5,-10,2,13,14,17,-42,-9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-const WROOK_PSTE     = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,38,34,39,34,37,42,41,34,0,0,0,0,25,28,26,18,12,14,35,20,0,0,0,0,40,40,42,41,37,29,23,31,0,0,0,0,43,40,38,27,30,32,33,36,0,0,0,0,36,34,32,26,19,22,16,22,0,0,0,0,23,18,15,18,8,12,6,12,0,0,0,0,18,10,12,9,6,5,7,29,0,0,0,0,8,14,15,8,3,2,26,-8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-const WQUEEN_PSTS    = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-10,-10,7,10,59,60,66,36,0,0,0,0,-10,-27,7,3,-14,33,13,59,0,0,0,0,-15,-8,1,-12,10,62,32,51,0,0,0,0,-20,-29,-20,-15,-13,-9,-2,-3,0,0,0,0,-4,-32,-5,-19,-4,-14,-8,-7,0,0,0,0,-22,12,-3,4,6,9,18,1,0,0,0,0,-13,7,22,15,23,20,18,14,0,0,0,0,-1,-3,10,23,-2,-9,-21,-24,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-const WQUEEN_PSTE    = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,35,40,44,25,25,1,17,0,0,0,0,1,27,39,46,74,31,24,7,0,0,0,0,9,33,27,86,68,37,43,17,0,0,0,0,42,44,44,58,76,63,73,61,0,0,0,0,2,49,24,62,31,50,53,36,0,0,0,0,9,-30,15,3,5,14,9,14,0,0,0,0,-19,-19,-37,-16,-20,-36,-52,-47,0,0,0,0,-38,-32,-29,-45,-4,-28,-26,-44,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-const WKING_PSTS     = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-77,48,33,-12,-90,-72,14,-25,0,0,0,0,44,22,4,3,-24,19,8,-60,0,0,0,0,36,34,35,-43,-12,23,55,-15,0,0,0,0,-13,-10,-5,-44,-44,-41,-14,-68,0,0,0,0,-17,25,-18,-55,-63,-40,-35,-68,0,0,0,0,20,28,-6,-33,-28,-20,20,-19,0,0,0,0,31,67,26,-38,-23,11,52,37,0,0,0,0,-12,69,60,-35,45,-15,58,26,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-const WKING_PSTE     = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-110,-65,-39,-46,-17,-3,-28,-60,0,0,0,0,-35,-4,7,-2,14,21,14,-4,0,0,0,0,-9,11,5,17,14,29,24,4,0,0,0,0,-16,5,11,20,17,26,18,2,0,0,0,0,-31,-19,4,12,16,9,0,-13,0,0,0,0,-44,-25,-11,-2,0,-4,-17,-24,0,0,0,0,-51,-43,-26,-13,-12,-21,-33,-45,0,0,0,0,-71,-64,-57,-37,-60,-34,-58,-73,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-const BPAWN_PSTS     = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-15,-5,0,5,5,0,-5,-15,0,0,0,0,-41,-26,-43,-35,-51,8,10,-35,0,0,0,0,-29,-32,-14,-16,-11,8,10,-20,0,0,0,0,-33,-30,-3,5,2,7,-20,-40,0,0,0,0,-16,11,-11,20,18,14,8,-34,0,0,0,0,-6,14,28,22,65,69,33,8,0,0,0,0,65,119,77,109,111,86,38,-7,0,0,0,0,-15,-5,0,5,5,0,-5,-15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-const BPAWN_PSTE     = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-4,-10,2,-2,8,-6,-17,-17,0,0,0,0,-12,-10,-16,-14,-9,-13,-23,-18,0,0,0,0,0,-4,-17,-26,-19,-17,-10,-7,0,0,0,0,3,-9,-10,-29,-25,-15,-7,-2,0,0,0,0,11,9,0,-6,-15,-12,4,9,0,0,0,0,17,21,26,35,25,7,34,47,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-const BKNIGHT_PSTS   = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-87,-8,-20,2,18,6,-4,-26,0,0,0,0,-18,-28,-2,15,22,17,6,0,0,0,0,0,-24,6,16,36,44,28,34,-13,0,0,0,0,7,21,28,19,29,28,27,12,0,0,0,0,15,26,18,38,36,73,29,47,0,0,0,0,-24,36,25,57,74,84,41,52,0,0,0,0,-55,-21,57,37,18,71,-12,-6,0,0,0,0,-148,-76,-38,-35,39,-121,-30,-74,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-const BKNIGHT_PSTE   = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-51,-69,-40,-41,-46,-39,-70,-100,0,0,0,0,-59,-36,-27,-24,-25,-34,-35,-61,0,0,0,0,-42,-17,-15,-4,-7,-24,-29,-36,0,0,0,0,-30,-18,-1,6,2,2,-9,-32,0,0,0,0,-31,-14,6,0,5,-13,-11,-35,0,0,0,0,-28,-28,-3,-9,-30,-16,-34,-55,0,0,0,0,-30,-14,-32,-6,-11,-42,-32,-53,0,0,0,0,-47,-42,-17,-23,-32,-28,-55,-104,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-const BBISHOP_PSTS   = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,29,16,10,17,15,-1,6,0,0,0,0,25,33,25,7,18,29,62,19,0,0,0,0,15,36,27,21,23,37,37,23,0,0,0,0,15,6,8,28,24,9,14,22,0,0,0,0,2,6,14,36,27,11,12,-9,0,0,0,0,-31,32,18,29,24,58,34,-16,0,0,0,0,-28,10,-11,-22,15,5,59,-59,0,0,0,0,-29,-21,-102,-56,-43,-69,-29,-19,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-const BBISHOP_PSTE   = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-50,-38,-47,-34,-36,-38,-38,-41,0,0,0,0,-45,-52,-37,-28,-30,-33,-47,-55,0,0,0,0,-36,-29,-25,-23,-17,-29,-37,-35,0,0,0,0,-32,-22,-12,-14,-22,-22,-29,-42,0,0,0,0,-29,-10,-18,-18,-18,-19,-22,-25,0,0,0,0,-8,-28,-16,-26,-31,-30,-22,-18,0,0,0,0,-16,-23,-16,-18,-22,-23,-28,-18,0,0,0,0,-22,-30,-7,-19,-14,-11,-27,-41,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-const BROOK_PSTS     = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-5,-10,2,13,14,17,-42,-9,0,0,0,0,-36,-12,-3,3,1,10,-18,-79,0,0,0,0,-37,-13,-12,-14,7,1,4,-24,0,0,0,0,-32,-23,-12,-4,-5,-9,1,-22,0,0,0,0,-23,-14,6,23,2,18,-19,-21,0,0,0,0,2,16,11,22,9,29,44,3,0,0,0,0,9,9,37,50,49,51,-24,24,0,0,0,0,22,31,13,31,27,1,20,37,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-const BROOK_PSTE     = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,8,14,15,8,3,2,26,-8,0,0,0,0,18,10,12,9,6,5,7,29,0,0,0,0,23,18,15,18,8,12,6,12,0,0,0,0,36,34,32,26,19,22,16,22,0,0,0,0,43,40,38,27,30,32,33,36,0,0,0,0,40,40,42,41,37,29,23,31,0,0,0,0,25,28,26,18,12,14,35,20,0,0,0,0,38,34,39,34,37,42,41,34,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-const BQUEEN_PSTS    = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,-3,10,23,-2,-9,-21,-24,0,0,0,0,-13,7,22,15,23,20,18,14,0,0,0,0,-22,12,-3,4,6,9,18,1,0,0,0,0,-4,-32,-5,-19,-4,-14,-8,-7,0,0,0,0,-20,-29,-20,-15,-13,-9,-2,-3,0,0,0,0,-15,-8,1,-12,10,62,32,51,0,0,0,0,-10,-27,7,3,-14,33,13,59,0,0,0,0,-10,-10,7,10,59,60,66,36,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-const BQUEEN_PSTE    = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-38,-32,-29,-45,-4,-28,-26,-44,0,0,0,0,-19,-19,-37,-16,-20,-36,-52,-47,0,0,0,0,9,-30,15,3,5,14,9,14,0,0,0,0,2,49,24,62,31,50,53,36,0,0,0,0,42,44,44,58,76,63,73,61,0,0,0,0,9,33,27,86,68,37,43,17,0,0,0,0,1,27,39,46,74,31,24,7,0,0,0,0,6,35,40,44,25,25,1,17,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-const BKING_PSTS     = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-12,69,60,-35,45,-15,58,26,0,0,0,0,31,67,26,-38,-23,11,52,37,0,0,0,0,20,28,-6,-33,-28,-20,20,-19,0,0,0,0,-17,25,-18,-55,-63,-40,-35,-68,0,0,0,0,-13,-10,-5,-44,-44,-41,-14,-68,0,0,0,0,36,34,35,-43,-12,23,55,-15,0,0,0,0,44,22,4,3,-24,19,8,-60,0,0,0,0,-77,48,33,-12,-90,-72,14,-25,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-const BKING_PSTE     = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-71,-64,-57,-37,-60,-34,-58,-73,0,0,0,0,-51,-43,-26,-13,-12,-21,-33,-45,0,0,0,0,-44,-25,-11,-2,0,-4,-17,-24,0,0,0,0,-31,-19,4,12,16,9,0,-13,0,0,0,0,-16,5,11,20,17,26,18,2,0,0,0,0,-9,11,5,17,14,29,24,4,0,0,0,0,-35,-4,7,-2,14,21,14,-4,0,0,0,0,-110,-65,-39,-46,-17,-3,-28,-60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-const WOUTPOST       = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,20,33,31,50,27,43,0,0,0,0,0,0,16,23,34,23,47,47,0,0,0,0,0,0,17,22,23,26,24,18,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-const BOUTPOST       = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,17,22,23,26,24,18,0,0,0,0,0,0,16,23,34,23,47,47,0,0,0,0,0,0,20,33,31,50,27,43,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-const EV             = [21,12,16,13,13,7,0,-2,49,99,35,59,13,27,22,-4,-8,26,43,2,6,12,69,101,97,775,45,28,4,5,2];
-const ATTACKS        = [0,0,1,1,3,2];
-const WSTORM         = [0,0,0,27,8,7,-9,0,0,6];
-const WSHELTER       = [0,0,0,6,12,12,30,22,0,29];
-const MOBILITY_S     = [0,0,7,9,5,3];
-const MOBILITY_E     = [0,0,-1,2,2,3];
-const IMBALN_S       = [-81,29,0,-3,-2,-5,-1,13,29];
-const IMBALN_E       = [-103,-47,-26,-18,-9,5,22,35,35];
-const IMBALB_S       = [-63,8,-4,1,5,3,5,10,17];
-const IMBALB_E       = [-3,-25,-16,-15,-13,-5,3,10,23];
-const IMBALR_S       = [50,19,-8,-11,-12,-11,-6,-1,5];
-const IMBALR_E       = [-6,-21,-1,1,4,12,17,27,41];
-const IMBALQ_S       = [-12,-14,-7,0,3,7,3,-1,-12];
-const IMBALQ_E       = [-43,-30,-9,-8,-6,1,11,11,9];
-const XRAY_S         = [0,0,0,6,-3,-2,0];
-const XRAY_E         = [0,0,0,2,-9,13,0];
+var WPAWN_PSTS = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-15,-5,0,5,5,0,-5,-15,0,0,0,0,33,91,54,81,84,73,28,-28,0,0,0,0,-8,1,15,8,47,63,30,-15,0,0,0,0,-20,4,-11,10,7,3,4,-35,0,0,0,0,-32,-27,-5,4,1,4,-22,-38,0,0,0,0,-26,-24,-9,-10,-5,5,9,-19,0,0,0,0,-36,-18,-34,-24,-40,9,10,-32,0,0,0,0,-15,-5,0,5,5,0,-5,-15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var WKNIGHT_PSTS = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-158,-80,-45,-45,28,-109,-42,-86,0,0,0,0,-71,-40,60,28,9,52,0,-22,0,0,0,0,-41,48,28,55,86,98,56,48,0,0,0,0,1,24,8,35,29,71,26,35,0,0,0,0,-1,18,17,12,29,24,27,5,0,0,0,0,-16,2,16,33,48,24,35,-7,0,0,0,0,-12,-31,3,13,19,28,17,6,0,0,0,0,-104,-5,-28,-12,20,4,-3,-5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var WBISHOP_PSTS = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-48,-11,-111,-65,-45,-66,-5,-16,0,0,0,0,-29,11,-28,-33,17,15,71,-69,0,0,0,0,-26,32,32,17,16,49,33,-3,0,0,0,0,1,6,10,44,25,20,6,1,0,0,0,0,6,13,11,30,30,2,11,18,0,0,0,0,8,27,24,19,27,40,29,21,0,0,0,0,17,28,21,9,16,30,54,9,0,0,0,0,-13,21,13,10,18,12,-15,-3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var WROOK_PSTS = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,17,27,12,28,30,7,7,21,0,0,0,0,-5,5,25,33,38,36,-13,8,0,0,0,0,-6,2,6,10,-3,17,40,-1,0,0,0,0,-29,-22,3,14,5,20,-20,-30,0,0,0,0,-36,-27,-12,-5,4,-10,3,-30,0,0,0,0,-40,-16,-5,-8,9,0,-3,-29,0,0,0,0,-33,-11,-8,3,9,10,-5,-59,0,0,0,0,-7,-5,6,15,15,12,-29,-8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var WQUEEN_PSTS = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-25,-2,12,5,60,46,50,47,0,0,0,0,-16,-40,-2,11,-24,34,34,47,0,0,0,0,-8,-14,7,-21,21,56,42,50,0,0,0,0,-31,-29,-26,-25,-6,-3,-1,-8,0,0,0,0,-5,-36,-9,-15,-4,-5,-5,-2,0,0,0,0,-19,10,-3,4,9,3,13,7,0,0,0,0,-20,5,18,14,22,27,10,25,0,0,0,0,11,1,8,20,1,0,-12,-33,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var WKING_PSTS = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-85,37,15,-17,-88,-64,12,-15,0,0,0,0,32,21,-11,-7,-32,4,-6,-50,0,0,0,0,31,23,22,-50,-14,25,57,-8,0,0,0,0,-10,5,-9,-46,-43,-33,-5,-53,0,0,0,0,-27,28,-25,-58,-56,-35,-22,-54,0,0,0,0,17,27,2,-22,-24,-9,24,-6,0,0,0,0,30,61,24,-29,-8,18,52,42,0,0,0,0,-1,60,42,-29,40,-9,53,29,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var WPAWN_PSTE = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,9,16,10,30,5,32,40,0,0,0,0,13,10,4,-10,-19,-11,9,13,0,0,0,0,6,-6,-11,-25,-20,-14,-4,3,0,0,0,0,3,-3,-16,-20,-16,-17,-10,-5,0,0,0,0,-9,-10,-16,-12,-8,-12,-20,-15,0,0,0,0,-3,-11,3,-5,14,-5,-16,-16,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var WKNIGHT_PSTE = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-61,-57,-25,-44,-44,-46,-80,-113,0,0,0,0,-42,-24,-37,-12,-21,-41,-44,-71,0,0,0,0,-40,-36,-5,-9,-31,-25,-40,-63,0,0,0,0,-32,-15,9,3,11,-12,-16,-37,0,0,0,0,-30,-29,2,10,3,3,-9,-34,0,0,0,0,-37,-15,-12,-4,-8,-14,-34,-36,0,0,0,0,-57,-34,-23,-18,-19,-33,-42,-64,0,0,0,0,-37,-61,-40,-29,-44,-40,-62,-94,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var WBISHOP_PSTE = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-32,-40,-21,-26,-19,-23,-41,-45,0,0,0,0,-22,-30,-18,-27,-27,-24,-38,-27,0,0,0,0,-14,-30,-27,-29,-27,-31,-26,-16,0,0,0,0,-29,-18,-17,-20,-16,-23,-25,-23,0,0,0,0,-32,-26,-15,-14,-26,-18,-33,-36,0,0,0,0,-33,-28,-20,-24,-19,-30,-30,-35,0,0,0,0,-39,-38,-34,-25,-23,-34,-41,-52,0,0,0,0,-43,-33,-38,-29,-33,-32,-30,-35,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var WROOK_PSTE = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,35,28,34,30,33,30,30,28,0,0,0,0,26,21,18,13,3,16,29,24,0,0,0,0,34,34,29,30,25,21,19,21,0,0,0,0,37,31,35,20,22,25,24,35,0,0,0,0,33,33,31,24,14,18,12,20,0,0,0,0,26,22,12,15,6,9,10,11,0,0,0,0,20,14,15,15,6,6,4,23,0,0,0,0,14,19,16,11,8,11,17,-7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var WQUEEN_PSTE = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-9,27,32,34,32,30,10,28,0,0,0,0,-17,13,21,31,59,30,20,16,0,0,0,0,-10,15,11,69,62,40,39,22,0,0,0,0,26,33,34,58,63,50,66,51,0,0,0,0,-10,42,25,57,35,39,42,30,0,0,0,0,11,-29,18,5,5,23,22,22,0,0,0,0,-17,-25,-24,-13,-12,-23,-40,-32,0,0,0,0,-37,-35,-24,-34,5,-32,-21,-47,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var WKING_PSTE = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-135,-64,-32,-52,-27,0,-31,-39,0,0,0,0,-27,-15,-4,0,8,21,0,-4,0,0,0,0,-14,0,-2,7,6,37,28,-2,0,0,0,0,-19,3,9,13,14,23,16,-6,0,0,0,0,-34,-23,6,12,15,10,-5,-19,0,0,0,0,-37,-23,-7,1,4,-1,-14,-26,0,0,0,0,-49,-40,-18,-10,-7,-17,-30,-44,0,0,0,0,-81,-63,-46,-31,-57,-31,-54,-75,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var BPAWN_PSTS = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-15,-5,0,5,5,0,-5,-15,0,0,0,0,-36,-18,-34,-24,-40,9,10,-32,0,0,0,0,-26,-24,-9,-10,-5,5,9,-19,0,0,0,0,-32,-27,-5,4,1,4,-22,-38,0,0,0,0,-20,4,-11,10,7,3,4,-35,0,0,0,0,-8,1,15,8,47,63,30,-15,0,0,0,0,33,91,54,81,84,73,28,-28,0,0,0,0,-15,-5,0,5,5,0,-5,-15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var BKNIGHT_PSTS = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-104,-5,-28,-12,20,4,-3,-5,0,0,0,0,-12,-31,3,13,19,28,17,6,0,0,0,0,-16,2,16,33,48,24,35,-7,0,0,0,0,-1,18,17,12,29,24,27,5,0,0,0,0,1,24,8,35,29,71,26,35,0,0,0,0,-41,48,28,55,86,98,56,48,0,0,0,0,-71,-40,60,28,9,52,0,-22,0,0,0,0,-158,-80,-45,-45,28,-109,-42,-86,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var BBISHOP_PSTS = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-13,21,13,10,18,12,-15,-3,0,0,0,0,17,28,21,9,16,30,54,9,0,0,0,0,8,27,24,19,27,40,29,21,0,0,0,0,6,13,11,30,30,2,11,18,0,0,0,0,1,6,10,44,25,20,6,1,0,0,0,0,-26,32,32,17,16,49,33,-3,0,0,0,0,-29,11,-28,-33,17,15,71,-69,0,0,0,0,-48,-11,-111,-65,-45,-66,-5,-16,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var BROOK_PSTS = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-7,-5,6,15,15,12,-29,-8,0,0,0,0,-33,-11,-8,3,9,10,-5,-59,0,0,0,0,-40,-16,-5,-8,9,0,-3,-29,0,0,0,0,-36,-27,-12,-5,4,-10,3,-30,0,0,0,0,-29,-22,3,14,5,20,-20,-30,0,0,0,0,-6,2,6,10,-3,17,40,-1,0,0,0,0,-5,5,25,33,38,36,-13,8,0,0,0,0,17,27,12,28,30,7,7,21,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var BQUEEN_PSTS = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,11,1,8,20,1,0,-12,-33,0,0,0,0,-20,5,18,14,22,27,10,25,0,0,0,0,-19,10,-3,4,9,3,13,7,0,0,0,0,-5,-36,-9,-15,-4,-5,-5,-2,0,0,0,0,-31,-29,-26,-25,-6,-3,-1,-8,0,0,0,0,-8,-14,7,-21,21,56,42,50,0,0,0,0,-16,-40,-2,11,-24,34,34,47,0,0,0,0,-25,-2,12,5,60,46,50,47,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var BKING_PSTS = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,60,42,-29,40,-9,53,29,0,0,0,0,30,61,24,-29,-8,18,52,42,0,0,0,0,17,27,2,-22,-24,-9,24,-6,0,0,0,0,-27,28,-25,-58,-56,-35,-22,-54,0,0,0,0,-10,5,-9,-46,-43,-33,-5,-53,0,0,0,0,31,23,22,-50,-14,25,57,-8,0,0,0,0,32,21,-11,-7,-32,4,-6,-50,0,0,0,0,-85,37,15,-17,-88,-64,12,-15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var BPAWN_PSTE = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3,-11,3,-5,14,-5,-16,-16,0,0,0,0,-9,-10,-16,-12,-8,-12,-20,-15,0,0,0,0,3,-3,-16,-20,-16,-17,-10,-5,0,0,0,0,6,-6,-11,-25,-20,-14,-4,3,0,0,0,0,13,10,4,-10,-19,-11,9,13,0,0,0,0,6,9,16,10,30,5,32,40,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var BKNIGHT_PSTE = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-37,-61,-40,-29,-44,-40,-62,-94,0,0,0,0,-57,-34,-23,-18,-19,-33,-42,-64,0,0,0,0,-37,-15,-12,-4,-8,-14,-34,-36,0,0,0,0,-30,-29,2,10,3,3,-9,-34,0,0,0,0,-32,-15,9,3,11,-12,-16,-37,0,0,0,0,-40,-36,-5,-9,-31,-25,-40,-63,0,0,0,0,-42,-24,-37,-12,-21,-41,-44,-71,0,0,0,0,-61,-57,-25,-44,-44,-46,-80,-113,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var BBISHOP_PSTE = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-43,-33,-38,-29,-33,-32,-30,-35,0,0,0,0,-39,-38,-34,-25,-23,-34,-41,-52,0,0,0,0,-33,-28,-20,-24,-19,-30,-30,-35,0,0,0,0,-32,-26,-15,-14,-26,-18,-33,-36,0,0,0,0,-29,-18,-17,-20,-16,-23,-25,-23,0,0,0,0,-14,-30,-27,-29,-27,-31,-26,-16,0,0,0,0,-22,-30,-18,-27,-27,-24,-38,-27,0,0,0,0,-32,-40,-21,-26,-19,-23,-41,-45,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var BROOK_PSTE = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,14,19,16,11,8,11,17,-7,0,0,0,0,20,14,15,15,6,6,4,23,0,0,0,0,26,22,12,15,6,9,10,11,0,0,0,0,33,33,31,24,14,18,12,20,0,0,0,0,37,31,35,20,22,25,24,35,0,0,0,0,34,34,29,30,25,21,19,21,0,0,0,0,26,21,18,13,3,16,29,24,0,0,0,0,35,28,34,30,33,30,30,28,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var BQUEEN_PSTE = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-37,-35,-24,-34,5,-32,-21,-47,0,0,0,0,-17,-25,-24,-13,-12,-23,-40,-32,0,0,0,0,11,-29,18,5,5,23,22,22,0,0,0,0,-10,42,25,57,35,39,42,30,0,0,0,0,26,33,34,58,63,50,66,51,0,0,0,0,-10,15,11,69,62,40,39,22,0,0,0,0,-17,13,21,31,59,30,20,16,0,0,0,0,-9,27,32,34,32,30,10,28,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var BKING_PSTE = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-81,-63,-46,-31,-57,-31,-54,-75,0,0,0,0,-49,-40,-18,-10,-7,-17,-30,-44,0,0,0,0,-37,-23,-7,1,4,-1,-14,-26,0,0,0,0,-34,-23,6,12,15,10,-5,-19,0,0,0,0,-19,3,9,13,14,23,16,-6,0,0,0,0,-14,0,-2,7,6,37,28,-2,0,0,0,0,-27,-15,-4,0,8,21,0,-4,0,0,0,0,-135,-64,-32,-52,-27,0,-31,-39,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var WOUTPOST = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,17,17,14,23,23,23,0,0,0,0,0,0,12,19,28,17,36,46,0,0,0,0,0,0,18,21,21,18,26,22,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var BOUTPOST = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,18,21,21,18,26,22,0,0,0,0,0,0,12,19,28,17,36,46,0,0,0,0,0,0,17,17,14,23,23,23,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+var EV = [5,-1,7,2,4,2,2,4,1,1,4,3,21,5,10,13,13,9,9,-3,-1,49,99,23,7,26,18,-1,-3,20,42,7,3,14,56,102,91,793,40,26,1,-1,0,0,0,0,61,21,21,2];
+
+var imbalN_S = [-91,1,1,-2,2,-1,0,8,22];
+
+var imbalN_E = [-89,-26,-16,-10,-3,2,15,23,23];
+
+var imbalB_S = [-30,-2,3,2,1,4,4,9,12];
+
+var imbalB_E = [20,-14,-11,-8,-10,-6,-3,-2,14];
+
+var imbalR_S = [32,5,-2,-6,-7,-8,-4,-4,-3];
+
+var imbalR_E = [2,-5,1,3,2,5,8,15,23];
+
+var imbalQ_S = [2,-7,-4,2,2,2,-1,-3,-17];
+
+var imbalQ_E = [-16,-13,-1,-3,-7,-5,0,-4,-7];
+
+var WSHELTER = [0,0,0,7,12,13,36,9,0,28];
+
+var WSTORM = [0,0,0,35,7,4,-8,-1,0,5];
+
+var ATT_W = [0,0.01,0.41999999999999993,0.78,1.11,1.5200000000000005,0.97,0.99];
+
+var PAWN_PASSED = [0,0,0,0,0.1,0.30000000000000004,0.6999999999999998,1.2000000000000126,0];
+
+// bestErr=0.05580612020741582
+
+// last update Tue Feb 16 2021 05:37:57 GMT+0000 (Greenwich Mean Time)
 
 //}}}
 //{{{  ev assignments
 
-const PAWN_DOUBLED_S       = EV[iPAWN_DOUBLED_S];
-const PAWN_DOUBLED_E       = EV[iPAWN_DOUBLED_E];
-const PAWN_ISOLATED_S      = EV[iPAWN_ISOLATED_S];
-const PAWN_ISOLATED_E      = EV[iPAWN_ISOLATED_E];
-const PAWN_BACKWARD_S      = EV[iPAWN_BACKWARD_S];
-const PAWN_BACKWARD_E      = EV[iPAWN_BACKWARD_E];
-const PAWN_PASSED_OFFSET_S = EV[iPAWN_PASSED_OFFSET_S];
-const PAWN_PASSED_OFFSET_E = EV[iPAWN_PASSED_OFFSET_E];
-const PAWN_PASSED_MULT_S   = EV[iPAWN_PASSED_MULT_S];
-const PAWN_PASSED_MULT_E   = EV[iPAWN_PASSED_MULT_E];
-const TWOBISHOPS_S         = EV[iTWOBISHOPS_S];
-const TWOBISHOPS_E         = EV[iTWOBISHOPS_E];
-const ROOK7TH_S            = EV[iROOK7TH_S];
-const ROOK7TH_E            = EV[iROOK7TH_E];
-const ROOKOPEN_S           = EV[iROOKOPEN_S];
-const ROOKOPEN_E           = EV[iROOKOPEN_E];
-const QUEEN7TH_S           = EV[iQUEEN7TH_S];
-const QUEEN7TH_E           = EV[iQUEEN7TH_E];
-const TRAPPED              = EV[iTRAPPED];
-const KING_PENALTY         = EV[iKING_PENALTY];
-const PAWN_OFFSET_S        = EV[iPAWN_OFFSET_S];
-const PAWN_OFFSET_E        = EV[iPAWN_OFFSET_E];
-const PAWN_MULT_S          = EV[iPAWN_MULT_S];
-const PAWN_MULT_E          = EV[iPAWN_MULT_E];
-const PAWN_PASS_FREE       = EV[iPAWN_PASS_FREE];
-const PAWN_PASS_UNSTOP     = EV[iPAWN_PASS_UNSTOP];
-const PAWN_PASS_KING1      = EV[iPAWN_PASS_KING1];
-const PAWN_PASS_KING2      = EV[iPAWN_PASS_KING2];
-const TEMPO_S              = EV[iTEMPO_S];
-const TEMPO_E              = EV[iTEMPO_E];
-const SHELTERM             = EV[iSHELTERM];
+var MOB_NS               = EV[iMOB_NS];
+var MOB_NE               = EV[iMOB_NE];
+var MOB_BS               = EV[iMOB_BS];
+var MOB_BE               = EV[iMOB_BE];
+var MOB_RS               = EV[iMOB_RS];
+var MOB_RE               = EV[iMOB_RE];
+var MOB_QS               = EV[iMOB_QS];
+var MOB_QE               = EV[iMOB_QE];
+var ATT_N                = EV[iATT_N];
+var ATT_B                = EV[iATT_B];
+var ATT_R                = EV[iATT_R];
+var ATT_Q                = EV[iATT_Q];
+var ATT_M                = EV[iATT_M];
+var PAWN_DOUBLED_S       = EV[iPAWN_DOUBLED_S];
+var PAWN_DOUBLED_E       = EV[iPAWN_DOUBLED_E];
+var PAWN_ISOLATED_S      = EV[iPAWN_ISOLATED_S];
+var PAWN_ISOLATED_E      = EV[iPAWN_ISOLATED_E];
+var PAWN_BACKWARD_S      = EV[iPAWN_BACKWARD_S];
+var PAWN_BACKWARD_E      = EV[iPAWN_BACKWARD_E];
+var PAWN_PASSED_OFFSET_S = EV[iPAWN_PASSED_OFFSET_S];
+var PAWN_PASSED_OFFSET_E = EV[iPAWN_PASSED_OFFSET_E];
+var PAWN_PASSED_MULT_S   = EV[iPAWN_PASSED_MULT_S];
+var PAWN_PASSED_MULT_E   = EV[iPAWN_PASSED_MULT_E];
+var TWOBISHOPS_S         = EV[iTWOBISHOPS_S];
+var ROOK7TH_S            = EV[iROOK7TH_S];
+var ROOK7TH_E            = EV[iROOK7TH_E];
+var ROOKOPEN_S           = EV[iROOKOPEN_S];
+var ROOKOPEN_E           = EV[iROOKOPEN_E];
+var QUEEN7TH_S           = EV[iQUEEN7TH_S];
+var QUEEN7TH_E           = EV[iQUEEN7TH_E];
+var TRAPPED              = EV[iTRAPPED];
+var KING_PENALTY         = EV[iKING_PENALTY];
+var PAWN_OFFSET_S        = EV[iPAWN_OFFSET_S];
+var PAWN_OFFSET_E        = EV[iPAWN_OFFSET_E];
+var PAWN_MULT_S          = EV[iPAWN_MULT_S];
+var PAWN_MULT_E          = EV[iPAWN_MULT_E];
+var PAWN_PASS_FREE       = EV[iPAWN_PASS_FREE];
+var PAWN_PASS_UNSTOP     = EV[iPAWN_PASS_UNSTOP];
+var PAWN_PASS_KING1      = EV[iPAWN_PASS_KING1];
+var PAWN_PASS_KING2      = EV[iPAWN_PASS_KING2];
+var MOBOFF_NS            = EV[iMOBOFF_NS];
+var MOBOFF_NE            = EV[iMOBOFF_NE];
+var MOBOFF_BS            = EV[iMOBOFF_BS];
+var MOBOFF_BE            = EV[iMOBOFF_BE];
+var MOBOFF_RS            = EV[iMOBOFF_RS];
+var MOBOFF_RE            = EV[iMOBOFF_RE];
+var TWOBISHOPS_E         = EV[iTWOBISHOPS_E];
+var TEMPO_S              = EV[iTEMPO_S];
+var TEMPO_E              = EV[iTEMPO_E];
+var SHELTERM             = EV[iSHELTERM];
 
 //}}}
 //{{{  pst lists
 
-const WE_PST = [NULL_PST, WPAWN_PSTE,  WKNIGHT_PSTE, WBISHOP_PSTE, WROOK_PSTE, WQUEEN_PSTE, WKING_PSTE]; // end eval.
-const WS_PST = [NULL_PST, WPAWN_PSTS,  WKNIGHT_PSTS, WBISHOP_PSTS, WROOK_PSTS, WQUEEN_PSTS, WKING_PSTS]; // opening/middle eval.
+var WE_PST = [NULL_PST, WPAWN_PSTE,  WKNIGHT_PSTE, WBISHOP_PSTE, WROOK_PSTE, WQUEEN_PSTE, WKING_PSTE]; // end eval.
+var WS_PST = [NULL_PST, WPAWN_PSTS,  WKNIGHT_PSTS, WBISHOP_PSTS, WROOK_PSTS, WQUEEN_PSTS, WKING_PSTS]; // opening/middle eval.
 
-const BS_PST = [NULL_PST, BPAWN_PSTS,  BKNIGHT_PSTS, BBISHOP_PSTS, BROOK_PSTS, BQUEEN_PSTS, BKING_PSTS];
-const BE_PST = [NULL_PST, BPAWN_PSTE,  BKNIGHT_PSTE, BBISHOP_PSTE, BROOK_PSTE, BQUEEN_PSTE, BKING_PSTE];
+var BS_PST = [NULL_PST, BPAWN_PSTS,  BKNIGHT_PSTS, BBISHOP_PSTS, BROOK_PSTS, BQUEEN_PSTS, BKING_PSTS];
+var BE_PST = [NULL_PST, BPAWN_PSTE,  BKNIGHT_PSTE, BBISHOP_PSTE, BROOK_PSTE, BQUEEN_PSTE, BKING_PSTE];
 
-const WM_PST = [NULL_PST, WPAWN_PSTE,  WKNIGHT_PSTE, WBISHOP_PSTE, WROOK_PSTE, WQUEEN_PSTE, WKING_PSTE]; // move ordering.
-const BM_PST = [NULL_PST, BPAWN_PSTE,  BKNIGHT_PSTE, BBISHOP_PSTE, BROOK_PSTE, BQUEEN_PSTE, BKING_PSTE];
+var WM_PST = [NULL_PST, WPAWN_PSTE,  WKNIGHT_PSTE, WBISHOP_PSTE, WROOK_PSTE, WQUEEN_PSTE, WKING_PSTE]; // move ordering.
+var BM_PST = [NULL_PST, BPAWN_PSTE,  BKNIGHT_PSTE, BBISHOP_PSTE, BROOK_PSTE, BQUEEN_PSTE, BKING_PSTE];
 
 //}}}
 
@@ -1358,96 +1406,6 @@ function lozChess () {
       DIST[i][j] = Math.max(Math.abs(rankI-rankJ),Math.abs(fileI-fileJ));
     }
   }
-  
-  //}}}
-  //{{{  init XRAY
-  //
-  // king sq, piece, piece sq => DIST <= 1 somewhere on xray
-  //
-  
-  for (var i=0; i < 144; i++) {
-    XRAY[i] = Array(6);
-    for (var j=0; j < 6; j++) {
-      XRAY[i][j] = Array(144);
-      for (var k=0; k < 144; k++) {
-        XRAY[i][j][k] = 0;
-      }
-    }
-  }
-  
-  for (var i=0; i < B88.length; i++) {
-    var ksq = B88[i];
-    for (var j=0; j < B88.length; j++) {
-      var psq = B88[j];
-      //{{{  bishop
-      
-      if (DIST[ksq][psq] <= 1)
-        XRAY[ksq][BISHOP][psq] = 1;
-      else {
-        for (var k=0; k < BISHOP_OFFSETS.length; k++) {
-          var msq = psq;
-          for (s=0; s < 8; s++) {
-            msq += BISHOP_OFFSETS[k];
-            if (this.board.b[msq] == EDGE)
-              break;
-            else if (DIST[ksq][msq] <= 1) {
-              XRAY[ksq][BISHOP][psq] = 1;
-              break;
-            }
-          }
-          if (XRAY[ksq][BISHOP][psq] == 1)
-            break;
-        }
-      }
-      
-      //}}}
-      //{{{  rook
-      
-      if (DIST[ksq][psq] <= 1)
-        XRAY[ksq][ROOK][psq] = 1;
-      else {
-        for (var k=0; k < ROOK_OFFSETS.length; k++) {
-          var msq = psq;
-          for (s=0; s < 8; s++) {
-            msq += ROOK_OFFSETS[k];
-            if (this.board.b[msq] == EDGE)
-              break;
-            else if (DIST[ksq][msq] <= 1) {
-              XRAY[ksq][ROOK][psq] = 1;
-              break;
-            }
-          }
-          if (XRAY[ksq][ROOK][psq] == 1)
-            break;
-        }
-      }
-      
-      //}}}
-      //{{{  queen
-      
-      if (DIST[ksq][psq] <= 1)
-        XRAY[ksq][QUEEN][psq] = 1;
-      else {
-        for (var k=0; k < QUEEN_OFFSETS.length; k++) {
-          var msq = psq;
-          for (s=0; s < 8; s++) {
-            msq += QUEEN_OFFSETS[k];
-            if (this.board.b[msq] == EDGE)
-              break;
-            else if (DIST[ksq][msq] <= 1) {
-              XRAY[ksq][QUEEN][psq] = 1;
-              break;
-            }
-          }
-          if (XRAY[ksq][QUEEN][psq] == 1)
-            break;
-        }
-      }
-      
-      //}}}
-    }
-  }
-  
   
   //}}}
 
@@ -4012,16 +3970,12 @@ lozBoard.prototype.formatMove = function (move, fmt) {
 //}}}
 //{{{  .evaluate
 
-const MOB_NIS = IS_NBRQKE;
-const MOB_BIS = IS_NBRQKE;
-const MOB_RIS = IS_RQKE;
-const MOB_QIS = IS_QKE;
+var MOB_NIS = IS_NBRQKE;
+var MOB_BIS = IS_NBRQKE;
+var MOB_RIS = IS_RQKE;
+var MOB_QIS = IS_QKE;
 
-const PAWN_PASSED = [0,0,0,0,0.1,0.3,0.6,1.0,0];
-
-const ATT_M = 21;
-const ATT_L = 7;
-const ATT_W = [0,0,0.5,0.75,0.88,0.94,0.97,0.99];
+var ATT_L = 7;
 
 lozBoard.prototype.evaluate = function (turn) {
 
@@ -4706,9 +4660,6 @@ lozBoard.prototype.evaluate = function (turn) {
   var queensS = 0;
   var queensE = 0;
   
-  var xrayS = 0;
-  var xrayE = 0;
-  
   //{{{  white
   
   var mob     = 0;
@@ -4743,14 +4694,10 @@ lozBoard.prototype.evaluate = function (turn) {
     if (frObj == W_PAWN)
       continue;
   
-    frRank  = RANK[fr];
-    frFile  = FILE[fr];
-    frBits  = (frFile-1) << 2;
-    frMask  = 0xF << frBits;
-    frPiece = frObj & PIECE_MASK;
-  
-    xrayS += XRAY[bKingSq][frPiece][fr] * XRAY_S[frPiece];
-    xrayE += XRAY[bKingSq][frPiece][fr] * XRAY_E[frPiece];
+    frRank = RANK[fr];
+    frFile = FILE[fr];
+    frBits = (frFile-1) << 2;
+    frMask = 0xF << frBits;
   
     if (frObj == W_KNIGHT) {
       //{{{  N
@@ -4767,12 +4714,12 @@ lozBoard.prototype.evaluate = function (turn) {
       to = fr+25; mob += MOB_NIS[b[to]]; att += BKZ[to] * MOB_NIS[b[to]];
       to = fr-25; mob += MOB_NIS[b[to]]; att += BKZ[to] * MOB_NIS[b[to]];
       
-      mobS += mob * MOBILITY_S[KNIGHT];
-      mobE += mob * MOBILITY_E[KNIGHT];
+      mobS += mob * MOB_NS - MOBOFF_NS;
+      mobE += mob * MOB_NE - MOBOFF_NE;
       
       if (att) {
         attackN++;
-        attackV += ATTACKS[KNIGHT];
+        attackV += ATT_N;
       }
       
       //{{{  outpost
@@ -4790,8 +4737,8 @@ lozBoard.prototype.evaluate = function (turn) {
       
       //}}}
       
-      knightsS += IMBALN_S[wNumPawns];
-      knightsE += IMBALN_E[wNumPawns];
+      knightsS += imbalN_S[wNumPawns];
+      knightsE += imbalN_E[wNumPawns];
       
       //}}}
     }
@@ -4807,19 +4754,19 @@ lozBoard.prototype.evaluate = function (turn) {
       to = fr + 13;  while (!b[to]) {att += BKZ[to]; to += 13; mob++;} mob += MOB_BIS[b[to]]; att += BKZ[to] * MOB_BIS[b[to]];
       to = fr - 13;  while (!b[to]) {att += BKZ[to]; to -= 13; mob++;} mob += MOB_BIS[b[to]]; att += BKZ[to] * MOB_BIS[b[to]];
       
-      mobS += mob * MOBILITY_S[BISHOP];
-      mobE += mob * MOBILITY_E[BISHOP];
+      mobS += mob * MOB_BS - MOBOFF_BS;
+      mobE += mob * MOB_BE - MOBOFF_BE;
       
       if (att) {
         attackN++;
-        attackV += ATTACKS[BISHOP];
+        attackV += ATT_B;
       }
       
       wBishop += WSQUARE[fr];
       bBishop += BSQUARE[fr];
       
-      bishopsS += IMBALB_S[wNumPawns];
-      bishopsE += IMBALB_E[wNumPawns];
+      bishopsS += imbalB_S[wNumPawns];
+      bishopsE += imbalB_E[wNumPawns];
       
       //}}}
     }
@@ -4835,12 +4782,12 @@ lozBoard.prototype.evaluate = function (turn) {
       to = fr + 12;  while (!b[to]) {att += BKZ[to]; to += 12; mob++;} mob += MOB_RIS[b[to]]; att += BKZ[to] * MOB_RIS[b[to]];
       to = fr - 12;  while (!b[to]) {att += BKZ[to]; to -= 12; mob++;} mob += MOB_RIS[b[to]]; att += BKZ[to] * MOB_RIS[b[to]];
       
-      mobS += mob * MOBILITY_S[ROOK];
-      mobE += mob * MOBILITY_E[ROOK];
+      mobS += mob * MOB_RS - MOBOFF_RS;
+      mobE += mob * MOB_RE - MOBOFF_RE;
       
       if (att) {
         attackN++;
-        attackV += ATTACKS[ROOK];
+        attackV += ATT_R;
       }
       
       //{{{  7th
@@ -4877,8 +4824,8 @@ lozBoard.prototype.evaluate = function (turn) {
       
       //}}}
       
-      rooksS += IMBALR_S[wNumPawns];
-      rooksE += IMBALR_E[wNumPawns];
+      rooksS += imbalR_S[wNumPawns];
+      rooksE += imbalR_E[wNumPawns];
       
       //}}}
     }
@@ -4899,12 +4846,12 @@ lozBoard.prototype.evaluate = function (turn) {
       to = fr + 13;  while (!b[to]) {att += BKZ[to]; to += 13; mob++;} mob += MOB_QIS[b[to]]; att += BKZ[to] * MOB_QIS[b[to]];
       to = fr - 13;  while (!b[to]) {att += BKZ[to]; to -= 13; mob++;} mob += MOB_QIS[b[to]]; att += BKZ[to] * MOB_QIS[b[to]];
       
-      mobS += mob * MOBILITY_S[QUEEN];
-      mobE += mob * MOBILITY_E[QUEEN];
+      mobS += mob * MOB_QS;
+      mobE += mob * MOB_QE;
       
       if (att) {
         attackN++;
-        attackV += ATTACKS[QUEEN];
+        attackV += ATT_Q;
       }
       
       //{{{  7th rank
@@ -4916,8 +4863,8 @@ lozBoard.prototype.evaluate = function (turn) {
       
       //}}}
       
-      queensS += IMBALQ_S[wNumPawns];
-      queensE += IMBALQ_E[wNumPawns];
+      queensS += imbalQ_S[wNumPawns];
+      queensE += imbalQ_E[wNumPawns];
       
       //}}}
     }
@@ -4979,10 +4926,6 @@ lozBoard.prototype.evaluate = function (turn) {
     frFile  = FILE[fr];
     frBits  = (frFile-1) << 2;
     frMask  = 0xF << frBits;
-    frPiece = frObj & PIECE_MASK;
-  
-    xrayS -= XRAY[wKingSq][frPiece][fr] * XRAY_S[frPiece];
-    xrayE -= XRAY[wKingSq][frPiece][fr] * XRAY_E[frPiece];
   
     if (frObj == B_KNIGHT) {
       //{{{  N
@@ -4999,12 +4942,12 @@ lozBoard.prototype.evaluate = function (turn) {
       to = fr+25; mob += MOB_NIS[b[to]]; att += WKZ[to] * MOB_NIS[b[to]];
       to = fr-25; mob += MOB_NIS[b[to]]; att += WKZ[to] * MOB_NIS[b[to]];
       
-      mobS -= mob * MOBILITY_S[KNIGHT];
-      mobE -= mob * MOBILITY_E[KNIGHT];
+      mobS -= mob * MOB_NS + MOBOFF_NS;
+      mobE -= mob * MOB_NE + MOBOFF_NE;
       
       if (att) {
         attackN++;
-        attackV += ATTACKS[KNIGHT];
+        attackV += ATT_N;
       }
       
       //{{{  outpost
@@ -5022,8 +4965,8 @@ lozBoard.prototype.evaluate = function (turn) {
       
       //}}}
       
-      knightsS -= IMBALN_S[bNumPawns];
-      knightsE -= IMBALN_E[bNumPawns];
+      knightsS -= imbalN_S[bNumPawns];
+      knightsE -= imbalN_E[bNumPawns];
       
       //}}}
     }
@@ -5039,19 +4982,19 @@ lozBoard.prototype.evaluate = function (turn) {
       to = fr + 13;  while (!b[to]) {att += WKZ[to]; to += 13; mob++;} mob += MOB_BIS[b[to]]; att += WKZ[to] * MOB_BIS[b[to]];
       to = fr - 13;  while (!b[to]) {att += WKZ[to]; to -= 13; mob++;} mob += MOB_BIS[b[to]]; att += WKZ[to] * MOB_BIS[b[to]];
       
-      mobS -= mob * MOBILITY_S[BISHOP];
-      mobE -= mob * MOBILITY_E[BISHOP];
+      mobS -= mob * MOB_BS + MOBOFF_BS;
+      mobE -= mob * MOB_BE + MOBOFF_BE;
       
       if (att) {
         attackN++;
-        attackV += ATTACKS[BISHOP];
+        attackV += ATT_B;
       }
       
       wBishop += WSQUARE[fr];
       bBishop += BSQUARE[fr];
       
-      bishopsS -= IMBALB_S[bNumPawns];
-      bishopsE -= IMBALB_E[bNumPawns];
+      bishopsS -= imbalB_S[bNumPawns];
+      bishopsE -= imbalB_E[bNumPawns];
       
       //}}}
     }
@@ -5067,12 +5010,12 @@ lozBoard.prototype.evaluate = function (turn) {
       to = fr + 12;  while (!b[to]) {att += WKZ[to]; to += 12; mob++;} mob += MOB_RIS[b[to]]; att += WKZ[to] * MOB_RIS[b[to]];
       to = fr - 12;  while (!b[to]) {att += WKZ[to]; to -= 12; mob++;} mob += MOB_RIS[b[to]]; att += WKZ[to] * MOB_RIS[b[to]];
       
-      mobS -= mob * MOBILITY_S[ROOK];
-      mobE -= mob * MOBILITY_E[ROOK];
+      mobS -= mob * MOB_RS + MOBOFF_RS;
+      mobE -= mob * MOB_RE + MOBOFF_RE;
       
       if (att) {
         attackN++;
-        attackV += ATTACKS[ROOK];
+        attackV += ATT_R;
       }
       
       //{{{  7th rank
@@ -5109,8 +5052,8 @@ lozBoard.prototype.evaluate = function (turn) {
       
       //}}}
       
-      rooksS -= IMBALR_S[bNumPawns];
-      rooksE -= IMBALR_E[bNumPawns];
+      rooksS -= imbalR_S[bNumPawns];
+      rooksE -= imbalR_E[bNumPawns];
       
       //}}}
     }
@@ -5131,12 +5074,12 @@ lozBoard.prototype.evaluate = function (turn) {
       to = fr + 13;  while (!b[to]) {att += WKZ[to]; to += 13; mob++;} mob += MOB_QIS[b[to]]; att += WKZ[to] * MOB_QIS[b[to]];
       to = fr - 13;  while (!b[to]) {att += WKZ[to]; to -= 13; mob++;} mob += MOB_QIS[b[to]]; att += WKZ[to] * MOB_QIS[b[to]];
       
-      mobS -= mob * MOBILITY_S[QUEEN];
-      mobE -= mob * MOBILITY_E[QUEEN];
+      mobS -= mob * MOB_QS;
+      mobE -= mob * MOB_QE;
       
       if (att) {
         attackN++;
-        attackV += ATTACKS[QUEEN];
+        attackV += ATT_Q;
       }
       
       //{{{  7th rank
@@ -5148,8 +5091,8 @@ lozBoard.prototype.evaluate = function (turn) {
       
       //}}}
       
-      queensS -= IMBALQ_S[bNumPawns];
-      queensE -= IMBALQ_E[bNumPawns];
+      queensS -= imbalQ_S[bNumPawns];
+      queensE -= imbalQ_E[bNumPawns];
       
       //}}}
     }
@@ -5313,9 +5256,6 @@ lozBoard.prototype.evaluate = function (turn) {
   evalS += kingS;
   evalE += kingE;
   
-  evalS += xrayS;
-  evalE += xrayE;
-  
   var e = (evalS * (TPHASE - phase) + evalE * phase) / TPHASE;
   
   e = myround(e) | 0;
@@ -5324,21 +5264,20 @@ lozBoard.prototype.evaluate = function (turn) {
   //{{{  verbose
   
   if (this.verbose) {
-    uci.send('info string', 'phased eval =', e);
-    uci.send('info string', 'phase =',       phase);
-    uci.send('info string', 'evaluation =',  evalS, evalE);
-    uci.send('info string', 'trapped =',     trappedS, trappedE);
-    uci.send('info string', 'mobility =',    mobS, mobE);
-    uci.send('info string', 'attacks =',     attS, attE);
-    uci.send('info string', 'xray =',        xrayS, xrayE);
-    uci.send('info string', 'material =',    this.runningEvalS, this.runningEvalE);
-    uci.send('info string', 'kings =',       kingS, kingE);
-    uci.send('info string', 'queens =',      queensS, queensE);
-    uci.send('info string', 'rooks =',       rooksS, rooksE);
-    uci.send('info string', 'bishops =',     bishopsS, bishopsE);
-    uci.send('info string', 'knights =',     knightsS, knightsE);
-    uci.send('info string', 'pawns =',       pawnsS, pawnsE);
-    uci.send('info string', 'tempo =',       tempoS, tempoE);
+    uci.send('info string','phased eval =',e);
+    uci.send('info string','phase =',phase);
+    uci.send('info string','evaluation =',evalS,evalE);
+    uci.send('info string','trapped =',trappedS,trappedE);
+    uci.send('info string','mobility =',mobS,mobE);
+    uci.send('info string','attacks =',attS,attE);
+    uci.send('info string','material =',this.runningEvalS,this.runningEvalE);
+    uci.send('info string','kings =',kingS,kingE);
+    uci.send('info string','queens =',queensS,queensE);
+    uci.send('info string','rooks =',rooksS,rooksE);
+    uci.send('info string','bishops =',bishopsS,bishopsE);
+    uci.send('info string','knights =',knightsS,knightsE);
+    uci.send('info string','pawns =',pawnsS,pawnsE);
+    uci.send('info string','tempo =',tempoS,tempoE);
   }
   
   //}}}
@@ -5354,7 +5293,7 @@ lozBoard.prototype.evaluate = function (turn) {
 
 lozBoard.prototype.rand32 = function () {
 
-  var r = RANDOMS[nextRandom];
+  var r = randoms[nextRandom];
 
   nextRandom++;
 
@@ -6229,7 +6168,6 @@ function lozUCI () {
   this.tokens    = [];
   this.command   = '';
   this.spec      = {};
-  this.spec.id   = 'noname';
   this.debugging = false;
   this.nodefs    = 0;
   this.numMoves  = 0;
