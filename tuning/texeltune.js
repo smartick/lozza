@@ -6771,10 +6771,10 @@ function calcErr (param) {
 
     var s = sigmoid(e);
 
-    if (isNaN(e) || isNaN(p) || isNaN(s) || s > 1.0 || p > 1.0 || s < 0.0 || p < 0.0) {
-      console.log('nan eek',p,s,e);
-      process.exit();
-    }
+    //if (isNaN(e) || isNaN(p) || isNaN(s) || s > 1.0 || p > 1.0 || s < 0.0 || p < 0.0) {
+      //console.log('nan eek',p,s,e);
+      //process.exit();
+    //}
 
     err += ((p-s)*(p-s));
   }
@@ -7083,7 +7083,7 @@ function grunt () {
   //}}}
   //{{{  tune params
   
-  //saveparams();
+  saveparams();
   
   iter     = 1;          // num full iters (trying all params)
   thisErr  = 0;
@@ -7118,16 +7118,15 @@ function grunt () {
         changes++;
         log(p,i);
         saveparams();
-        continue
+        continue;
       }
       
       p.a[p.i] = p.a[p.i] - p.inc;
       
       //}}}
-    
-      p.inc = -p.inc;
-    
       //{{{  try -p.inc
+      
+      p.inc = -p.inc;
       
       p.a[p.i] = p.a[p.i] + p.inc;
       
@@ -7139,10 +7138,12 @@ function grunt () {
         better = 1;
         log(p,i);
         saveparams();
-        continue
+        continue;
       }
       
       p.a[p.i] = p.a[p.i] - p.inc;
+      
+      p.inc = -p.inc;
       
       //}}}
     
