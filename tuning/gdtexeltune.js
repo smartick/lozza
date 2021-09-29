@@ -1067,7 +1067,7 @@ var randoms = [
 
 //{{{  tuned params
 
-var VALUE_VECTOR = [0,100,348,353,540,1054,10000];
+var VALUE_VECTOR = [0,100,348,353,540,1050,10000];
 
 var WPAWN_PSTS = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-15,-5,0,5,5,0,-5,-15,0,0,0,0,33,91,54,81,84,73,28,-28,0,0,0,0,-8,1,15,8,47,63,30,-15,0,0,0,0,-20,4,-11,10,7,3,4,-35,0,0,0,0,-32,-27,-5,4,1,4,-22,-38,0,0,0,0,-26,-24,-9,-10,-5,5,9,-19,0,0,0,0,-36,-18,-34,-24,-40,9,10,-32,0,0,0,0,-15,-5,0,5,5,0,-5,-15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
 
@@ -6689,7 +6689,7 @@ var epds   = [];
 var params = [];
 
 var gK            = 3.2;
-var gLearningRate = 0.1;
+var gLearningRate = 1;
 var gResultParam  = 5;
 var gEpdFile      = 'c:/projects/chessdata/quiet-labeled.epd';
 var gOutFile      = 'gdtexeltune.txt';
@@ -6838,9 +6838,6 @@ function getprob (r) {
 
 function loga (a,s) {
 
-  for (var i=0; i < a.length; i++)
-    a[i] = myround(a[i]) | 0;
-
   return 'var ' + s + ' = [' + a.toString() + '];\r\n';
 }
 
@@ -6884,8 +6881,12 @@ function grunt () {
   
   var epoch      = 0;
   var numParams  = params.length;
-  var batchSize  = 100;
-  var numBatches = 7250;
+  var batchSize  = 1000;
+  var numBatches = epds.length / batchSize | 0;
+  
+  console.log('num params =', numParams);
+  console.log('batch size =', batchSize);
+  console.log('num batches =', numBatches);
   
   console.log(epoch,VALUE_VECTOR.toString());
   
@@ -6954,7 +6955,7 @@ function grunt () {
         var p  = params[i];
         var gr = p.gr / batchSize;
         var lr = gLearningRate / (Math.sqrt(p.ag) + 1e-8);
-        p.a[p.i] -= 0.1 * gr; //hack
+        p.a[p.i] -= lr * gr;
       }
       
       //}}}
