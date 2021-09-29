@@ -1,9 +1,9 @@
 
 var maxPositions   = 1000000000;
-//var netInputSize   = 768;
-var netInputSize   = 40960;
+var netInputSize   = 768;
+//var netInputSize   = 40960;
 var netHiddenSize  = 16;
-var learningRate   = 0.001;
+var learningRate   = 0.1;
 var batchSize      = 100;
 
 //{{{  file formats
@@ -429,6 +429,18 @@ function dsigmoid(x) {
   return sigmoid(x) * (1.0 - sigmoid(x));
 }
 
+function sigmoid2(x) {
+  var a = 0.004025;
+  return (1.0 / (1.0 + Math.pow(10,-a*x)));
+}
+
+function dsigmoid2(x) {
+  var a = 0.00978599;
+  var b = Math.exp(a * x);
+  return (a * b) / ((b + 1) * (b + 1));
+}
+
+
 //}}}
 //{{{  relu
 
@@ -438,6 +450,17 @@ function relu(x) {
 
 function drelu(x) {
   return 1.0;
+}
+
+//}}}
+//{{{  leelaEval
+
+function leelaEval(s) {
+
+  s = (s - 0.5) + 2;
+
+  return 111.714640912 * tan(1.5620688421 * s);
+
 }
 
 //}}}
@@ -462,14 +485,14 @@ function netInitWeights() {
   for (var h=0; h < netHiddenSize; h++) {
     var hidden = neth[h];
     for (var i=0; i < netInputSize; i++) {
-      hidden.weights[i] = Math.random() * 2 - 1;
+      hidden.weights[i] = 1 * (Math.random() * 2 - 1);
     }
   }
 
   for (var o=0; o < netOutputSize; o++) {
     var output = neto[o];
     for (var h=0; h < netHiddenSize; h++) {
-      output.weights[h] = Math.random() * 2 - 1;
+      output.weights[h] = 1 * (Math.random() * 2 - 1);
     }
   }
 }
@@ -613,13 +636,13 @@ function netSaveWeights () {
   out += '\r\n\r\n';
 
   for (var h=0; h < netHiddenSize; h++) {
-    out = out + 'neth['+h+'] = [' + neth[h].weights.toString();
+    out = out + 'neth['+h+'].weights = [' + neth[h].weights.toString();
     out = out + '];\r\n';
     out = out + '\r\n';
   }
 
   for (var o=0; o < netOutputSize; o++) {
-    out = out + 'neto['+o+'] = [' + neto[o].weights.toString();
+    out = out + 'neto['+o+'].weights = [' + neto[o].weights.toString();
     out = out + '];\r\n';
     out = out + '\r\n';
   }
@@ -699,7 +722,7 @@ function grunt () {
   //{{{  tune
   
   var numBatches    = epds.length / batchSize | 0;
-  var testPositions = epds.length * 0.2 | 0;
+  var testPositions = epds.length * 1.0 | 0;
   var numEpochs     = 100000;
   
   console.log('input layer size =',netInputSize);
@@ -717,9 +740,6 @@ function grunt () {
     var t1 = Date.now();
     
     for (var i=0; i < testPositions; i++) {
-    
-      if (i % 10000 == 0)
-        process.stdout.write(i+'\r');
     
       var epd = epds[i];
     
@@ -741,14 +761,11 @@ function grunt () {
     
     for (var batch=0; batch < numBatches; batch++) {
     
-      if (batch % 100 == 0)
-        process.stdout.write('epoch = ' + epoch + ' batch = ' + batch+'\r');
-    
       netResetGradientSums();
     
-      for (var i=0; i < batchSize; i++) {
+      for (var i=batch*batchSize; i < (batch+1)*batchSize; i++) {
     
-        var epd = epds[(Math.random()*epds.length)|0];
+        var epd = epds[i];
     
         decodeFEN(epd.board, epd.stm);
     
