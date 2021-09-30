@@ -1,16 +1,15 @@
-//{{{  // https://github.com/op12no2/lozza
+//{{{  //"use strict"
+//"use strict"
 //
-// https://github.com/op12no2/lozza
+// https://github.com/op12no2
+// testing and tuning results in testing/testing.log
 //
-// A hand-coded Javascript chess engine inspired by Fabien Letouzey's Fruit 2.1.
 //
 
-var BUILD = "2.1";
+var BUILD = "2.0";
 
 //{{{  history
 /*
-
-2.1 27/09/21 Set mob offsets to 0 while buggy.
 
 2.0 19/02/21 Add imbalance terms when no pawns.
 2.0 17/02/21 Tune all eval params.
@@ -1067,7 +1066,7 @@ var randoms = [
 
 //{{{  tuned params
 
-var VALUE_VECTOR = [0,100,348,353,540,1050,10000];
+var VALUE_VECTOR = [0,100,348,353,540,1054,10000];
 
 var WPAWN_PSTS = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-15,-5,0,5,5,0,-5,-15,0,0,0,0,33,91,54,81,84,73,28,-28,0,0,0,0,-8,1,15,8,47,63,30,-15,0,0,0,0,-20,4,-11,10,7,3,4,-35,0,0,0,0,-32,-27,-5,4,1,4,-22,-38,0,0,0,0,-26,-24,-9,-10,-5,5,9,-19,0,0,0,0,-36,-18,-34,-24,-40,9,10,-32,0,0,0,0,-15,-5,0,5,5,0,-5,-15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
 
@@ -1121,7 +1120,7 @@ var WOUTPOST = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 
 var BOUTPOST = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,18,21,21,18,26,22,0,0,0,0,0,0,12,19,28,17,36,46,0,0,0,0,0,0,17,17,14,23,23,23,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
 
-var EV = [5,-1,7,2,4,2,2,4,1,1,4,3,21,5,10,13,13,9,9,-3,-1,49,99,23,7,26,18,-1,-3,20,42,7,3,14,56,102,91,793,40,26,0,0,0,0,0,0,61,21,21,2];
+var EV = [5,-1,7,2,4,2,2,4,1,1,4,3,21,5,10,13,13,9,9,-3,-1,49,99,23,7,26,18,-1,-3,20,42,7,3,14,56,102,91,793,40,26,1,-1,0,0,0,0,61,21,21,2];
 
 var imbalN_S = [-91,1,1,-2,2,-1,0,8,22];
 
@@ -3981,60 +3980,6 @@ var MOB_QIS = IS_QKE;
 var ATT_L = 7;
 
 lozBoard.prototype.evaluate = function (turn) {
-  //{{{  ev assignments
-  
-  var MOB_NS               = EV[iMOB_NS];
-  var MOB_NE               = EV[iMOB_NE];
-  var MOB_BS               = EV[iMOB_BS];
-  var MOB_BE               = EV[iMOB_BE];
-  var MOB_RS               = EV[iMOB_RS];
-  var MOB_RE               = EV[iMOB_RE];
-  var MOB_QS               = EV[iMOB_QS];
-  var MOB_QE               = EV[iMOB_QE];
-  var ATT_N                = EV[iATT_N];
-  var ATT_B                = EV[iATT_B];
-  var ATT_R                = EV[iATT_R];
-  var ATT_Q                = EV[iATT_Q];
-  var ATT_M                = EV[iATT_M];
-  var PAWN_DOUBLED_S       = EV[iPAWN_DOUBLED_S];
-  var PAWN_DOUBLED_E       = EV[iPAWN_DOUBLED_E];
-  var PAWN_ISOLATED_S      = EV[iPAWN_ISOLATED_S];
-  var PAWN_ISOLATED_E      = EV[iPAWN_ISOLATED_E];
-  var PAWN_BACKWARD_S      = EV[iPAWN_BACKWARD_S];
-  var PAWN_BACKWARD_E      = EV[iPAWN_BACKWARD_E];
-  var PAWN_PASSED_OFFSET_S = EV[iPAWN_PASSED_OFFSET_S];
-  var PAWN_PASSED_OFFSET_E = EV[iPAWN_PASSED_OFFSET_E];
-  var PAWN_PASSED_MULT_S   = EV[iPAWN_PASSED_MULT_S];
-  var PAWN_PASSED_MULT_E   = EV[iPAWN_PASSED_MULT_E];
-  var TWOBISHOPS_S         = EV[iTWOBISHOPS_S];
-  var ROOK7TH_S            = EV[iROOK7TH_S];
-  var ROOK7TH_E            = EV[iROOK7TH_E];
-  var ROOKOPEN_S           = EV[iROOKOPEN_S];
-  var ROOKOPEN_E           = EV[iROOKOPEN_E];
-  var QUEEN7TH_S           = EV[iQUEEN7TH_S];
-  var QUEEN7TH_E           = EV[iQUEEN7TH_E];
-  var TRAPPED              = EV[iTRAPPED];
-  var KING_PENALTY         = EV[iKING_PENALTY];
-  var PAWN_OFFSET_S        = EV[iPAWN_OFFSET_S];
-  var PAWN_OFFSET_E        = EV[iPAWN_OFFSET_E];
-  var PAWN_MULT_S          = EV[iPAWN_MULT_S];
-  var PAWN_MULT_E          = EV[iPAWN_MULT_E];
-  var PAWN_PASS_FREE       = EV[iPAWN_PASS_FREE];
-  var PAWN_PASS_UNSTOP     = EV[iPAWN_PASS_UNSTOP];
-  var PAWN_PASS_KING1      = EV[iPAWN_PASS_KING1];
-  var PAWN_PASS_KING2      = EV[iPAWN_PASS_KING2];
-  var MOBOFF_NS            = EV[iMOBOFF_NS];
-  var MOBOFF_NE            = EV[iMOBOFF_NE];
-  var MOBOFF_BS            = EV[iMOBOFF_BS];
-  var MOBOFF_BE            = EV[iMOBOFF_BE];
-  var MOBOFF_RS            = EV[iMOBOFF_RS];
-  var MOBOFF_RE            = EV[iMOBOFF_RE];
-  var TWOBISHOPS_E         = EV[iTWOBISHOPS_E];
-  var TEMPO_S              = EV[iTEMPO_S];
-  var TEMPO_E              = EV[iTEMPO_E];
-  var SHELTERM             = EV[iSHELTERM];
-  
-  //}}}
 
   //this.hashCheck(turn);
 
@@ -6669,390 +6614,96 @@ if (lozzaHost == HOST_NODEJS) {
 //}}}
 
 //}}}
-
 //
-// copy lozza.js above
-// then copy ev assigns fold to evaluate() and turn off hash
+// copy lozza.js above here.
+// redirect e and q into a file for different versions to check e/q is not broken.
 //
-// credits:-
-//   https://github.com/AndyGrant/Ethereal/blob/master/Tuning.pdf
-//   https://machinelearningmastery.com/gradient-descent-with-adagrad-from-scratch/
+// TURN OFF PAWN HASH
 //
 
-//{{{  globals
+//{{{  lozza globals
 
 fs    = lozza.uci.nodefs;
 uci   = lozza.uci;
 board = lozza.board;
 
-var epds   = [];
-var params = [];
-
-var gK            = 3.2;
-var gLearningRate = 1;
-var gResultParam  = 5;
-var gEpdFile      = 'c:/projects/chessdata/quiet-labeled.epd';
-var gOutFile      = 'gdtexeltune.txt';
-var gMaxPositions = 1000000;
-
 //}}}
-//{{{  functions
 
-//{{{  findK
+console.log('hello world! wait...');
 
-function findK () {
+//{{{  get the epds
+//
+// quiet-labeled.epd
+// rnb1kbnr/pp1pppp1/7p/2q5/5P2/N1P1P3/P2P2PP/R1BQKBNR w KQkq - c9 "1/2-1/2"
+// 0                                                   1 2    3 4  5
 
-  var min  = INFINITY;
-  var step = 1.0;
-  var x    = 1.0;
+var data  = fs.readFileSync('c:/projects/chessdata/quiet-labeled.epd', 'utf8');
+var lines = data.split('\n');
+var epds  = [];
 
-  while (1) {
-    gK = x;
-    var err = calcErr();
-    if (err <  min) {
-      console.log('k',gK,'err',err,'step',step);
-      min = err;
-      x += step;
-    }
-    else {
-      x -= step;
-      step = step / 10;
-      x += step;
-      console.log('new step',step);
-    }
-  }
+data = '';  //release.
+
+for (var i=0; i < lines.length; i++) {
+
+  if (i % 100000 == 0)
+    process.stdout.write(i+'\r');
+
+  var line = lines[i];
+
+  line = line.replace(/(\r\n|\n|\r|;|")/gm,'');
+  line = line.trim();
+
+  if (!line)
+    continue;
+
+  var parts = line.split(' ');
+
+  epds.push({eval:   0,
+             board:  parts[0],
+             turn:   parts[1],
+             rights: parts[2],
+             ep:     parts[3],
+             fmvn:   0,
+             hmvc:   0,
+             prob:   parts[5]});
 }
 
-//}}}
-//{{{  addp
+lines = []; // release
 
-function addp (id,a,i) {
-  params.push({id: id, a: a, i: i, gr: 0, ag: 0});
-}
+console.log('positions =',epds.length);
 
 //}}}
-//{{{  myround
+//{{{  evaluate
 
-function myround(x) {
-  return Math.sign(x) * Math.round(Math.abs(x));
-}
+lozza.newGameInit();
 
-//}}}
-//{{{  wbmap
+console.log(BUILD);
 
-function wbmap (sq) {
-  var m = (143-sq)/12|0;
-  return 12*m + sq%12;
-}
+for (var i=0; i < epds.length; i++) {
 
-//}}}
-//{{{  sigmoid
+  var epd = epds[i];
 
-function sigmoid (x) {
-  return 1.0 / (1.0 + Math.exp(-gK*x/400.0));
-}
+  uci.spec.board    = epd.board;
+  uci.spec.turn     = epd.turn;
+  uci.spec.rights   = epd.rights;
+  uci.spec.ep       = epd.ep;
+  uci.spec.fmc      = epd.fmvn;
+  uci.spec.hmc      = epd.hmvc;
+  uci.spec.id       = 'id' + i;
+  uci.spec.moves    = [];
 
-//}}}
-//{{{  calcErr
+  lozza.position();
 
-function calcErr () {
+  var e = board.evaluate(board.turn);
 
-  //{{{  update black arrays
-  
-  for (var i=0; i < 144; i++) {
-    BPAWN_PSTS[wbmap(i)]   = WPAWN_PSTS[i];
-    BPAWN_PSTE[wbmap(i)]   = WPAWN_PSTE[i];
-    BKNIGHT_PSTS[wbmap(i)] = WKNIGHT_PSTS[i];
-    BKNIGHT_PSTE[wbmap(i)] = WKNIGHT_PSTE[i];
-    BBISHOP_PSTS[wbmap(i)] = WBISHOP_PSTS[i];
-    BBISHOP_PSTE[wbmap(i)] = WBISHOP_PSTE[i];
-    BROOK_PSTS[wbmap(i)]   = WROOK_PSTS[i];
-    BROOK_PSTE[wbmap(i)]   = WROOK_PSTE[i];
-    BQUEEN_PSTS[wbmap(i)]  = WQUEEN_PSTS[i];
-    BQUEEN_PSTE[wbmap(i)]  = WQUEEN_PSTE[i];
-    BKING_PSTS[wbmap(i)]   = WKING_PSTS[i];
-    BKING_PSTE[wbmap(i)]   = WKING_PSTE[i];
-    BOUTPOST[wbmap(i)]     = WOUTPOST[i];
-  }
-  
-  //}}}
+  if (board.turn == BLACK)
+    e = -e;  // undo negamax.
 
-  var err = 0;
-  var num = epds.length;
-
-  for (var i=0; i < num; i++) {
-
-    var epd = epds[i];
-
-    uci.spec.board    = epd.board;
-    uci.spec.turn     = epd.turn;
-    uci.spec.rights   = epd.rights;
-    uci.spec.ep       = epd.ep;
-    uci.spec.fmc      = 0;
-    uci.spec.hmc      = 0;
-    uci.spec.id       = '';
-    uci.spec.moves    = [];
-
-    lozza.position();
-
-    var pr = epd.prob;
-    var ev = board.evaluate(board.turn);
-
-    if (board.turn == BLACK)
-      ev = -ev;
-
-    var sg = sigmoid(ev);
-
-    if (isNaN(ev) || isNaN(pr) || isNaN(sg) || sg > 1.0 || pr > 1.0 || sg < 0.0 || pr < 0.0) {
-      console.log('nan eek',pr,sg,ev);
-      process.exit();
-    }
-    err += ((pr-sg)*(pr-sg));
-  }
-
-  return err / num;
-}
-
-//}}}
-//{{{  getprob
-
-function getprob (r) {
-  if (r == '[0.5]')
-    return 0.5;
-  else if (r == '[1.0]')
-    return 1.0;
-  else if (r == '[0.0]')
-    return 0.0;
-  else if (r == '"1/2-1/2";')
-    return 0.5;
-  else if (r == '"1-0";')
-    return 1.0;
-  else if (r == '"0-1";')
-    return 0.0;
-  else
-    console.log('unknown result',r);
-}
-
-//}}}
-//{{{  loga
-
-function loga (a,s) {
-
-  return 'var ' + s + ' = [' + a.toString() + '];\r\n';
-}
-
-//}}}
-//{{{  saveparams
-
-function saveparams () {
-
-  var d   = new Date();
-  var out = '//{{{  tuned params\r\n\r\n';
-
-  out += '// data=' + gEpdFile;
-  out += '\r\n';
-  out += '// last update '+d;
-  out += '\r\n\r\n';
-
-  out += loga(VALUE_VECTOR, 'VALUE_VECTOR');
-
-  out = out + '\r\n//}}}\r\n\r\n';
-
-  fs.writeFileSync(gOutFile,out);
-}
-
-//}}}
-//{{{  grunt
-
-function grunt () {
-
-  lozza.newGameInit();
-
-  //findK();
-
-  //{{{  create params
-  
-  for (var i=KNIGHT; i<=QUEEN; i++) {
-    addp('p', VALUE_VECTOR, i);
-  }
-  
-  //}}}
-  //{{{  tune params
-  
-  var epoch      = 0;
-  var numParams  = params.length;
-  var batchSize  = 1000;
-  var numBatches = epds.length / batchSize | 0;
-  
-  console.log('num params =', numParams);
-  console.log('batch size =', batchSize);
-  console.log('num batches =', numBatches);
-  
-  console.log(epoch,VALUE_VECTOR.toString());
-  
-  while (1) {
-  
-    epoch++;
-  
-    for (var batch=0; batch < numBatches; batch++) {
-      //{{{  reset gradient and adagrad sums
-      
-      for (var i=0; i < numParams; i++) {
-        var p = params[i];
-        p.gr = 0;
-        p.ag = 0;
-      }
-      
-      //}}}
-      //{{{  accumulate gradients
-      
-      for (var i=batch*batchSize; i < (batch+1)*batchSize; i++) {
-      
-        var epd = epds[i];
-      
-        uci.spec.board    = epd.board;
-        uci.spec.turn     = epd.turn;
-        uci.spec.rights   = epd.rights;
-        uci.spec.ep       = epd.ep;
-        uci.spec.fmc      = 0;
-        uci.spec.hmc      = 0;
-        uci.spec.id       = 'id' + j;
-        uci.spec.moves    = [];
-      
-        lozza.position();
-      
-        var pr = epd.prob;
-      
-        var ev = board.evaluate(board.turn);
-        if (board.turn == BLACK)
-          ev = -ev;  // undo negamax.
-      
-        var sg = sigmoid(ev);
-      
-        for (var j=0; j < numParams; j++) {
-          var p = params[j];
-          //{{{  get input weight iw
-          
-          var iw = 0;
-          
-          if (p.id == 'p') {
-            iw = board.wCounts[p.i] - board.bCounts[p.i];     // i is the piece index
-          }
-          else
-            console.log('unknown param type',p.t);
-          
-          //}}}
-          var gr = iw * ((gK / 200) * sg * (1 - sg)) * (sg - pr);
-          p.gr += gr;
-          p.ag += gr * gr;
-        }
-      }
-      
-      //}}}
-      //{{{  apply mean gradients
-      
-      for (var i=0; i < numParams; i++) {
-        var p  = params[i];
-        var gr = p.gr / batchSize;
-        var lr = gLearningRate / (Math.sqrt(p.ag) + 1e-8);
-        p.a[p.i] -= lr * gr;
-      }
-      
-      //}}}
-    }
-  
-    var err = calcErr();
-  
-    saveparams();
-  
-    console.log(epoch,err,VALUE_VECTOR.toString());
-  }
-  
-  //}}}
-
-  process.exit();
+  if (epd.prob == '0-1' && e > 0)
+    console.log(epd.board,epd.turn,epd.rights,epd.ep,epd.prob,e);
 }
 
 //}}}
 
-//}}}
-
-//{{{  check sigmoid
-
-//for (var i=-600;i<=600;i+=100) {
-  //console.log(i,sigmoid(i));
-//}
-
-//}}}
-//{{{  kick it off
-
-var thisPosition = 0;
-
-const readline = require('readline');
-
-const rl = readline.createInterface({
-    input: fs.createReadStream(gEpdFile),
-    output: process.stdout,
-    crlfDelay: Infinity,
-    terminal: false
-});
-
-rl.on('line', function (line) {
-
-  thisPosition += 1;
-
-  if (thisPosition <= gMaxPositions) {
-
-    line = line.replace(/(\r\n|\n|\r)/gm,'');
-
-    var parts = line.split(' ');
-
-    epds.push({board:  parts[0],
-               turn:   parts[1],
-               rights: parts[2],
-               ep:     parts[3],
-               prob:   getprob(parts[gResultParam])});
-  }
-});
-
-rl.on('close', function(){
-  console.log('positions =',epds.length);
-  //{{{  count win, lose, draw
-  //
-  // Just to make sure the file has been parsed OK.
-  //
-  
-  var wins = 0;
-  var loss = 0;
-  var draw = 0;
-  
-  for (var i=0; i < epds.length; i++) {
-  
-    if (i % 100000 == 0)
-      process.stdout.write(i+'\r');
-  
-    var epd = epds[i];
-  
-    if (epd.prob == 1.0)
-      wins++;
-  
-    else if (epd.prob == 0.0)
-      loss++;
-  
-    else if (epd.prob == 0.5)
-      draw++;
-    else {
-      console.log('not a prob',epd.prob);
-      process.exit();
-    }
-  }
-  
-  console.log('wins =',wins,'losses =',loss,'draws =',draw);
-  console.log('error check =',epds.length - wins - draw - loss,'(should be 0)');
-  
-  //}}}
-  grunt();
-});
-
-//}}}
+process.exit();
 

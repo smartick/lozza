@@ -2,7 +2,7 @@
 var maxPositions   = 1000000000;
 var netInputSize   = 768;
 //var netInputSize   = 40960;
-var netHiddenSize  = 16;
+var netHiddenSize  = 2;
 var learningRate   = 0.1;
 var batchSize      = 100;
 
@@ -82,7 +82,7 @@ chStm['b'] = BLACK;
 
 var epds    = [];
 var outputs = [];
-var debug   = 1;
+var debug   = 0;
 
 //{{{  getprob
 
@@ -725,6 +725,9 @@ function grunt () {
   var testPositions = epds.length * 1.0 | 0;
   var numEpochs     = 100000;
   
+  var loss     = 100;
+  var lastLoss = 100;
+  
   console.log('input layer size =',netInputSize);
   console.log('hidden layer size =',netHiddenSize);
   console.log('batch size =',batchSize);
@@ -732,12 +735,32 @@ function grunt () {
   console.log('test positions =',testPositions);
   console.log('learning rate =',learningRate);
   
-  for (var epoch=0; epoch < numEpochs; epoch++) {
-    //{{{  test
-    
+  //{{{  get random error
+  
+  for (var r=0; r<3; r++) {
+  
     var loss = 0;
+  
+    for (var i=0; i < testPositions; i++) {
+  
+      var epd = epds[i];
+  
+      neto[0].out = Math.random();
+  
+      var targets = [epd.prob];
+  
+      loss += netLoss(targets);
+    }
+  
+    console.log ('random loss =',loss/testPositions);
+  }
+  
+  //}}}
+  
+  for (var epoch=0; epoch < numEpochs; epoch++) {
+    //{{{  get loss
     
-    var t1 = Date.now();
+    lastLoss = loss;
     
     for (var i=0; i < testPositions; i++) {
     
@@ -752,9 +775,12 @@ function grunt () {
       loss += netLoss(targets);
     }
     
-    var t2 = Date.now();
+    loss = loss / testPositions;
     
-    console.log ('epoch =',epoch,'loss =',loss/testPositions,t2-t1,'ms',testPositions,'epds');
+    console.log ('epoch =',epoch,'loss =',loss,'lr =',learningRate);
+    
+    if (loss > lastLoss)
+      learningRate /= 10.0;
     
     //}}}
     //{{{  batched epoch
