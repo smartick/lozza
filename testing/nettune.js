@@ -2,26 +2,9 @@
 var maxPositions   = 1000000000;
 var netInputSize   = 768;
 //var netInputSize   = 40960;
-var netHiddenSize  = 2;
+var netHiddenSize  = 16;
 var learningRate   = 0.1;
 var batchSize      = 100;
-
-//{{{  file formats
-//
-// quiet-labeled.epd
-// rnb1kbnr/pp1pppp1/7p/2q5/5P2/N1P1P3/P2P2PP/R1BQKBNR w KQkq - c9 "1/2-1/2"
-// 0                                                   1 2    3 4  5
-//
-
-//
-// ethereal
-// 1rbr1nk1/1pN2p1p/5np1/p2p4/P2Pp3/1P2P1P1/3N1PBP/R4RK1 w - - 1 21 [1.0] 58
-// 0                                                     1 2 3 4 5  6
-//
-
-//}}}
-
-console.log('hello world! wait...');
 
 //{{{  constants
 
@@ -84,26 +67,6 @@ var epds    = [];
 var outputs = [];
 var debug   = 0;
 
-//{{{  getprob
-
-function getprob (r) {
-  if (r == '[0.5]')
-    return 0.5;
-  else if (r == '[1.0]')
-    return 1.0;
-  else if (r == '[0.0]')
-    return 0.0;
-  else if (r == '"12-12";')
-    return 0.5;
-  else if (r == '"1-0";')
-    return 1.0;
-  else if (r == '"0-1";')
-    return 0.0;
-  else
-    console.log('unknown result',r);
-}
-
-//}}}
 //{{{  decodeFEN
 //
 // Also accumulates the hidden.in nnue style and creates a list of input
@@ -721,9 +684,8 @@ function grunt () {
   //}}}
   //{{{  tune
   
-  var numBatches    = epds.length / batchSize | 0;
-  var testPositions = epds.length * 1.0 | 0;
-  var numEpochs     = 100000;
+  var numBatches = epds.length / batchSize | 0;
+  var numEpochs  = 100000;
   
   var loss     = 100;
   var lastLoss = 100;
@@ -732,7 +694,6 @@ function grunt () {
   console.log('hidden layer size =',netHiddenSize);
   console.log('batch size =',batchSize);
   console.log('batches per epoch =',numBatches);
-  console.log('test positions =',testPositions);
   console.log('learning rate =',learningRate);
   
   //{{{  get random error
@@ -741,7 +702,7 @@ function grunt () {
   
     var loss = 0;
   
-    for (var i=0; i < testPositions; i++) {
+    for (var i=0; i < epds.length; i++) {
   
       var epd = epds[i];
   
@@ -752,7 +713,7 @@ function grunt () {
       loss += netLoss(targets);
     }
   
-    console.log ('random loss =',loss/testPositions);
+    console.log ('random loss =',loss/epds.length);
   }
   
   //}}}
@@ -762,7 +723,7 @@ function grunt () {
     
     lastLoss = loss;
     
-    for (var i=0; i < testPositions; i++) {
+    for (var i=0; i < epds.length; i++) {
     
       var epd = epds[i];
     
@@ -775,7 +736,7 @@ function grunt () {
       loss += netLoss(targets);
     }
     
-    loss = loss / testPositions;
+    loss = loss / epds.length;
     
     console.log ('epoch =',epoch,'loss =',loss,'lr =',learningRate);
     
@@ -820,12 +781,7 @@ function grunt () {
 //}}}
 //{{{  kick it off
 
-//var epdfile     = 'c:/projects/chessdata/E13.04-Filtered.fens';
-//var resultparam = 6;
-
-var epdfile     = 'c:/projects/chessdata/quiet-labeled.epd';
-var resultparam = 5;
-
+var epdfile      = process.argv[2];
 var thisPosition = 0;
 
 const readline = require('readline');
@@ -849,13 +805,16 @@ rl.on('line', function (line) {
 
     line = line.replace(/(\/|\r\n|\n|\r)/gm,'');  // (inc removing / from fens)
 
-    //console.log(line);
-
     const parts = line.split(' ');
 
-    epds.push({board: parts[0].trim(),
-               stm:   parts[1].trim(),
-               prob:  getprob(parts[resultparam])});
+    if (parts.length != 7) {
+      console.log('file format', line);
+      process.exit();
+    }
+
+    epds.push({board: parts[0],
+               stm:   parts[1],
+               prob:  parseFloat(parts[4])});
   }
 });
 

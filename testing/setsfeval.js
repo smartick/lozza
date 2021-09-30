@@ -1,19 +1,18 @@
+//
+// Updates the sfeval in the given std epd file.
+//
 
-const { spawn }  = require("child_process");
+const { spawn } = require("child_process");
 
 var fs      = require('fs');
 var next    = 0;
-var epdfile = 'sf14quiet-labeled.epd';
+var epdfile = process.argv[2];
 
 process.stdin.setEncoding('utf8');
 
 //{{{  get the epds
-//
-// quiet-labeled.epd
-// rnb1kbnr/pp1pppp1/7p/2q5/5P2/N1P1P3/P2P2PP/R1BQKBNR w KQkq - c9 "1/2-1/2"
-// 0                                                   1 2    3 4  5
 
-var data  = fs.readFileSync('c:/projects/chessdata/quiet-labeled.epd', 'utf8');
+var data  = fs.readFileSync(epdfile, 'utf8');
 var lines = data.split('\n');
 var epds  = [];
 
@@ -31,19 +30,22 @@ for (var i=0; i < lines.length; i++) {
 
   var parts = line.split(' ');
 
-  epds.push({board:  parts[0],
-             turn:   parts[1],
-             rights: parts[2],
-             ep:     parts[3],
-             prob:   parts[5]});
+  if (parts.length != 7) {
+    console.log('file format',line);
+    process.exit();
+  }
+
+  epds.push({board:   parts[0],
+             turn:    parts[1],
+             rights:  parts[2],
+             ep:      parts[3],
+             prob:    parts[4],
+             lozeval: parts[5]});
 }
 
 lines = ''; // release
 
 //}}}
-
-if (fs.existsSync(epdfile))
-  fs.unlinkSync(epdfile)
 
 var child = spawn('c:\\projects\\chessdata\\engines\\stockfish\\sf.exe');
 
@@ -51,8 +53,30 @@ child.stdout.on('data', function (data) {
   var xdata  = data.toString();
   var xparts = xdata.split('Classical evaluation');
   if (xparts.length != 2) {
-    //console.log(next,xdata);
     if (xdata.includes("in check")) {
+      //{{{  use lozeval
+      
+      var epd = epds[next];
+      
+      var fen = epd.board + ' ' + epd.turn + ' ' + epd.rights + ' ' + epd.ep;
+      
+      console.log(fen, epd.prob, epd.lozeval, epd.lozeval);
+      
+      next++;
+      if (next >= epds.length)
+        process.exit();
+      
+      //{{{  kick
+      
+      var epd = epds[next];
+      var fen = epd.board + ' ' + epd.turn + ' ' + epd.rights + ' ' + epd.ep;
+      
+      child.stdin.write('position fen ' + fen + '\r\n');
+      child.stdin.write('eval\r\n');
+      
+      //}}}
+      
+      //}}}
       next++;
       if (next >= epds.length)
         process.exit();
@@ -92,7 +116,7 @@ child.stdout.on('data', function (data) {
     var seval2 = '' + eval2;
     var seval3 = '' + eval3;
     
-    fs.appendFileSync(epdfile, fen + ' c9 ' + epd.prob + ' sf14hce ' + seval1 + '; sf14nnue ' + seval2 + '; sf14hybrid ' + seval3 + ';\r\n');
+    console.log(fen, epd.prob, epd.lozeval, seval3);
     
     next++;
     if (next >= epds.length)
