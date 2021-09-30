@@ -1,7 +1,6 @@
 
 var maxPositions   = 1000000000;
 var netInputSize   = 768;
-//var netInputSize   = 40960;
 var netHiddenSize  = 16;
 var learningRate   = 1;
 var batchSize      = 100;
@@ -11,12 +10,12 @@ var batchSize      = 100;
 const WHITE = 0;
 const BLACK = 1;
 
-const KING   = 0;
-const QUEEN  = 1;
-const ROOK   = 2;
+const KING   = 6;
+const QUEEN  = 5;
+const ROOK   = 4;
 const BISHOP = 3;
-const KNIGHT = 4;
-const PAWN   = 5;
+const KNIGHT = 2;
+const PAWN   = 1;
 
 var chPce = [];
 var chCol = [];
@@ -88,263 +87,109 @@ function decodeFEN(board, stmStr) {
 
   inNum = 0;
 
-  if (netInputSize == 768) {
-    //{{{  768
-    
-    var stm = chStm[stmStr];
-    var sq  = 0;
-    
-    for (var j=0; j < board.length; j++) {
-    
-      var ch  = board.charAt(j);
-      var num = chNum[ch];
-      var col = 0;
-      var pce = 0;
-    
-      if (typeof(num) == 'undefined') {
-        //{{{  decode ch
-        
-        pce = chPce[ch];
-        col = chCol[ch];
-        
-        //}}}
-        //{{{  check stuff
-        
-        if (debug) {
-        
-          if (sq < 0) {
-            console.log('sq<0',sq);
-            process.exit();
-          }
-          else if (sq > 63) {
-            console.log('sq>63',sq);
-            process.exit();
-          }
-          else if (pce < 0) {
-            console.log('pce<0',pce);
-            process.exit();
-          }
-          else if (pce > 5) {
-            console.log('pce>5',pce);
-            process.exit();
-          }
-          else if (typeof(pce) == 'undefined') {
-            console.log('pceundef',pce);
-            process.exit();
-          }
-          else if (col < 0) {
-            console.log('col<0',col);
-            process.exit();
-          }
-          else if (col > 1) {
-            console.log('col>1',col);
-            process.exit();
-          }
-          else if (typeof(col) == 'undefined') {
-            console.log('colundef',col);
-            process.exit();
-          }
-          else if (stm < 0) {
-            console.log('stm<0',stm);
-            process.exit();
-          }
-          else if (stm > 1) {
-            console.log('stm>1',stm);
-            process.exit();
-          }
-          else if (typeof(stm) == 'undefined') {
-            console.log('stmundef',stm);
-            process.exit();
-          }
+  var stm = chStm[stmStr];
+  var sq  = 0;
+
+  for (var j=0; j < board.length; j++) {
+
+    var ch  = board.charAt(j);
+    var num = chNum[ch];
+    var col = 0;
+    var pce = 0;
+
+    if (typeof(num) == 'undefined') {
+      //{{{  decode ch
+      
+      pce = chPce[ch];
+      col = chCol[ch];
+      
+      //}}}
+      //{{{  check stuff
+      
+      if (debug) {
+      
+        if (sq < 0) {
+          console.log('sq<0',sq);
+          process.exit();
         }
-        
-        //}}}
-        //{{{  map to model
-        
-        if (col == WHITE)
-          x = 0   + pce * 64 + sq;
-        else
-          x = 384 + pce * 64 + sq;
-        
-        if (debug) {
-          if (isNaN(x)) {
-            console.log('xnan',x);
-            process.exit();
-          }
-          if (x >= 768) {
-            console.log('x>768',x);
-            process.exit();
-          }
-          if (x < 0) {
-            console.log('x-ve',x);
-            process.exit();
-          }
+        else if (sq > 63) {
+          console.log('sq>63',sq);
+          process.exit();
         }
-        
-        //}}}
-        neti[x] = 1.0;
-        for (var h=0; h < netHiddenSize; h++) {
-          var hidden = neth[h];
-          hidden.in += hidden.weights[x];
+        else if (pce < 1) {
+          console.log('pce<0',pce);
+          process.exit();
         }
-        inList[inNum] = x;
-        inNum++;
-        sq++;
+        else if (pce > 6) {
+          console.log('pce>5',pce);
+          process.exit();
+        }
+        else if (typeof(pce) == 'undefined') {
+          console.log('pceundef',pce);
+          process.exit();
+        }
+        else if (col < 0) {
+          console.log('col<0',col);
+          process.exit();
+        }
+        else if (col > 1) {
+          console.log('col>1',col);
+          process.exit();
+        }
+        else if (typeof(col) == 'undefined') {
+          console.log('colundef',col);
+          process.exit();
+        }
+        else if (stm < 0) {
+          console.log('stm<0',stm);
+          process.exit();
+        }
+        else if (stm > 1) {
+          console.log('stm>1',stm);
+          process.exit();
+        }
+        else if (typeof(stm) == 'undefined') {
+          console.log('stmundef',stm);
+          process.exit();
+        }
       }
-      else {
-        sq += num;
+      
+      //}}}
+      //{{{  map to model
+      
+      if (col == WHITE)
+        x = 0   + (pce-1) * 64 + sq;
+      else
+        x = 384 + (pce-1) * 64 + sq;
+      
+      if (debug) {
+        if (isNaN(x)) {
+          console.log('xnan',x);
+          process.exit();
+        }
+        if (x >= 768) {
+          console.log('x>768',x);
+          process.exit();
+        }
+        if (x < 0) {
+          console.log('x-ve',x);
+          process.exit();
+        }
       }
+      
+      //}}}
+      neti[x] = 1.0;
+      for (var h=0; h < netHiddenSize; h++) {
+        var hidden = neth[h];
+        hidden.in += hidden.weights[x];
+      }
+      inList[inNum] = x;
+      inNum++;
+      sq++;
     }
-    
-    //}}}
-  }
-  else if (netInputSize == 40960) {
-    //{{{  40960
-    
-    //{{{  find king squares
-    
-    var wKingSq = 0;
-    var bKingSq = 0;
-    
-    var stm = chStm[stmStr];
-    var sq  = 0;
-    
-    for (var j=0; j < board.length; j++) {
-    
-      var ch  = board.charAt(j);
-      var num = chNum[ch];
-      var col = 0;
-      var pce = 0;
-    
-      if (typeof(num) == 'undefined') {
-        pce = chPce[ch];
-        col = chCol[ch];
-        if (col == WHITE && pce == KING)
-          wKingSq = sq;
-        else if (col == BLACK && pce == KING)
-          bKingSq = sq;
-        sq++;
-      }
-      else {
-        sq += num;
-      }
+    else {
+      sq += num;
     }
-    
-    //}}}
-    //{{{  fill input layer;
-    
-    var stm = chStm[stmStr];
-    var sq  = 0;
-    
-    for (var j=0; j < board.length; j++) {
-    
-      var ch  = board.charAt(j);
-      var num = chNum[ch];
-      var col = 0;
-      var pce = 0;
-    
-      if (typeof(num) == 'undefined') {
-        //{{{  decode ch
-        
-        pce = chPce[ch];
-        col = chCol[ch];
-        
-        //}}}
-        //{{{  check stuff
-        
-        if (debug) {
-        
-          if (sq < 0) {
-            console.log('sq<0',sq);
-            process.exit();
-          }
-          else if (sq > 63) {
-            console.log('sq>63',sq);
-            process.exit();
-          }
-          else if (pce < 0) {
-            console.log('pce<0',pce);
-            process.exit();
-          }
-          else if (pce > 5) {
-            console.log('pce>5',pce);
-            process.exit();
-          }
-          else if (typeof(pce) == 'undefined') {
-            console.log('pceundef',pce);
-            process.exit();
-          }
-          else if (col < 0) {
-            console.log('col<0',col);
-            process.exit();
-          }
-          else if (col > 1) {
-            console.log('col>1',col);
-            process.exit();
-          }
-          else if (typeof(col) == 'undefined') {
-            console.log('colundef',col);
-            process.exit();
-          }
-          else if (stm < 0) {
-            console.log('stm<0',stm);
-            process.exit();
-          }
-          else if (stm > 1) {
-            console.log('stm>1',stm);
-            process.exit();
-          }
-          else if (typeof(stm) == 'undefined') {
-            console.log('stmundef',stm);
-            process.exit();
-          }
-        }
-        
-        //}}}
-        //{{{  map to model
-        
-        if (pce != KING) {
-          if (col == WHITE)
-            x = 0     + wKingSq * 64 + (pce-1) * 64 + sq;
-          else
-            x = 20480 + bKingSq * 64 + (pce-1) * 64 + sq;
-        
-          if (debug) {
-            if (isNaN(x)) {
-              console.log('xnan',x);
-              process.exit();
-            }
-            if (x >= 40960) {
-              console.log('x>40960',x);
-              process.exit();
-            }
-            if (x < 0) {
-              console.log('x-ve',x);
-              process.exit();
-            }
-          }
-        }
-        
-        //}}}
-        neti[x] = 1.0;
-        for (var h=0; h < netHiddenSize; h++) {
-          var hidden = neth[h];
-          hidden.in += hidden.weights[x];
-        }
-        sq++;
-      }
-      else {
-        sq += num;
-      }
-    }
-    
-    //}}}
-    
-    //}}}
-  }
-  else {
-    console.log('net input size');
-    process.exit();
   }
 }
 
@@ -599,13 +444,13 @@ function netSaveWeights () {
   out += '\r\n\r\n';
 
   for (var h=0; h < netHiddenSize; h++) {
-    out = out + 'neth['+h+'].weights = [' + neth[h].weights.toString();
+    out = out + 'this.h1['+h+'].weights = [' + neth[h].weights.toString();
     out = out + '];\r\n';
     out = out + '\r\n';
   }
 
   for (var o=0; o < netOutputSize; o++) {
-    out = out + 'neto['+o+'].weights = [' + neto[o].weights.toString();
+    out = out + 'this.o1.weights = [' + neto[o].weights.toString();
     out = out + '];\r\n';
     out = out + '\r\n';
   }
@@ -734,9 +579,6 @@ function grunt () {
       var targets = [epd.prob];
     
       loss += netLoss(targets);
-    
-      //if (epoch > 1)
-        //console.log(epd.prob,epd.lozeval,leelaEval(neto[0].out));
     }
     
     loss = loss / epds.length;
