@@ -3,7 +3,7 @@ var maxPositions   = 1000000000;
 var netInputSize   = 768;
 //var netInputSize   = 40960;
 var netHiddenSize  = 16;
-var learningRate   = 0.1;
+var learningRate   = 1;
 var batchSize      = 100;
 
 //{{{  constants
@@ -422,7 +422,7 @@ function leelaEval(s) {
 
   s = (s - 0.5) + 2;
 
-  return 111.714640912 * tan(1.5620688421 * s);
+  return 111.714640912 * Math.tan(1.5620688421 * s);
 
 }
 
@@ -612,7 +612,7 @@ function netSaveWeights () {
 
   out = out + '\r\n//}}}\r\n\r\n';
 
-  fs.writeFileSync('nettune.txt',out);
+  fs.writeFileSync('nettune' + netHiddenSize + '.txt',out);
 }
 
 //}}}
@@ -621,8 +621,6 @@ function netSaveWeights () {
 //{{{  grunt
 
 function grunt () {
-
-  netInitWeights();
 
   console.log('positions =',epds.length);
 
@@ -718,6 +716,8 @@ function grunt () {
   
   //}}}
   
+  netInitWeights();
+  
   for (var epoch=0; epoch < numEpochs; epoch++) {
     //{{{  get loss
     
@@ -734,6 +734,9 @@ function grunt () {
       var targets = [epd.prob];
     
       loss += netLoss(targets);
+    
+      //if (epoch > 1)
+        //console.log(epd.prob,epd.lozeval,leelaEval(neto[0].out));
     }
     
     loss = loss / epds.length;
@@ -812,9 +815,11 @@ rl.on('line', function (line) {
       process.exit();
     }
 
-    epds.push({board: parts[0],
-               stm:   parts[1],
-               prob:  parseFloat(parts[4])});
+    epds.push({board:   parts[0],
+               stm:     parts[1],
+               lozeval: parseInt(parts[5]),
+               sfeval:  parseInt(parts[6]),
+               prob:    parseFloat(parts[4])});
   }
 });
 
