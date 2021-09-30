@@ -2,7 +2,7 @@
 var maxPositions   = 1000000000;
 var netInputSize   = 768;
 var netHiddenSize  = 16;
-var learningRate   = 1;
+var learningRate   = 0.1;
 var batchSize      = 100;
 
 //{{{  constants
@@ -436,10 +436,8 @@ function netApplyGradients(b,alpha) {
 function netSaveWeights () {
 
   var d   = new Date();
-  var out = '//{{{  net weights\r\n\r\n';
+  var out = '//{{{  network\r\n\r\n';
 
-  out += '// data=quiet_labelled.epd';
-  out += '\r\n';
   out += '// last update '+d;
   out += '\r\n\r\n';
 
@@ -585,8 +583,8 @@ function grunt () {
     
     console.log ('epoch =',epoch,'loss =',loss,'lr =',learningRate);
     
-    if (loss > lastLoss)
-      learningRate /= 10.0;
+    //if (loss > lastLoss)
+      //learningRate /= 10.0;
     
     //}}}
     //{{{  batched epoch
