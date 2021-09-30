@@ -4,6 +4,7 @@ var netInputSize   = 768;
 var netHiddenSize  = 16;
 var learningRate   = 0.1;
 var batchSize      = 100;
+var scale          = 0;
 
 //{{{  constants
 
@@ -261,6 +262,17 @@ function drelu(x) {
 }
 
 //}}}
+//{{{  linear
+
+function linear(x) {
+  return x;
+}
+
+function dlinear(x) {
+  return 1.0;
+}
+
+//}}}
 //{{{  leelaEval
 
 function leelaEval(s) {
@@ -344,7 +356,7 @@ function netForward() {
     for (var h=0; h < netHiddenSize; h++) {
       output.in += output.weights[h] * neth[h].out;
     }
-    output.out = sigmoid(output.in);
+    output.out = linear(output.in);
   }
 }
 
@@ -361,7 +373,7 @@ function netCalcGradients(targets) {
   for (var o=0; o < netOutputSize; o++) {
     var output = neto[o];
     output.gout = 2 * (output.out - targets[o]);
-    output.gin  = dsigmoid(output.in) * output.gout;
+    output.gin  = dlinear(output.in) * output.gout;
   }
 
   for (var o=0; o < netOutputSize; o++) {
@@ -439,7 +451,15 @@ function netSaveWeights () {
   var out = '//{{{  network\r\n\r\n';
 
   out += '// last update '+d;
-  out += '\r\n\r\n';
+  out += '\r\n';
+
+  out += '// hidden layer = ' + netHiddenSize;
+  out += '\r\n';
+
+  out += '// scale factor = ' + scale;
+  out += '\r\n';
+
+  out += '\r\n';
 
   for (var h=0; h < netHiddenSize; h++) {
     out = out + 'this.h1['+h+'].weights = [' + neth[h].weights.toString();
@@ -478,9 +498,6 @@ function grunt () {
   
   for (var i=0; i < epds.length; i++) {
   
-    if (i % 100000 == 0)
-      process.stdout.write(i+'\r');
-  
     var epd = epds[i];
   
     if (epd.prob == 1.0)
@@ -501,15 +518,54 @@ function grunt () {
   console.log('error check =',epds.length - wins - draw - loss,'(should be 0)');
   
   //}}}
+  //{{{  scale
+  
+  var min = 99999999;
+  var max = -99999999;
+  
+  for (var i=0; i < epds.length; i++) {
+  
+    var epd = epds[i];
+  
+    if (epd.lozeval > max)
+      max = epd.lozeval;
+  
+    if (epd.lozeval < min)
+      min = epd.lozeval;
+  }
+  
+  scale = Math.max(max,Math.abs(min));
+  
+  console.log('min',min,'max',max,'scale',scale)
+  
+  var min = 99999999;
+  var max = -99999999;
+  
+  for (var i=0; i < epds.length; i++) {
+    var epd     = epds[i];
+    epd.lozeval = epd.lozeval / scale;
+  }
+  
+  for (var i=0; i < epds.length; i++) {
+  
+    var epd = epds[i];
+  
+    if (epd.lozeval > max)
+      max = epd.lozeval;
+  
+    if (epd.lozeval < min)
+      min = epd.lozeval;
+  }
+  
+  console.log('min',min,'max',max)
+  
+  //}}}
   //{{{  check decoding
   
   debug  = 1;
   var t1 = Date.now();
   
   for (var i=0; i < epds.length; i++) {
-  
-    if (i % 100000 == 0)
-      process.stdout.write(i+'\r');
   
     var epd = epds[i];
   
@@ -551,9 +607,12 @@ function grunt () {
     
       netForward();
     
-      var targets = [epd.prob];
+      var targets = [epd.lozeval];
     
       loss += netLoss(targets);
+    
+      //if (epoch > 10)
+        //console.log(epd.lozeval,neto[0].out);
     }
     
     loss = loss / epds.length;
@@ -575,7 +634,7 @@ function grunt () {
     
         netForward()
     
-        var targets = [epd.prob];
+        var targets = [epd.lozeval];
     
         netCalcGradients(targets);
         netAccumulateGradients();
