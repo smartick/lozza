@@ -5731,8 +5731,8 @@ lozBoard.prototype.cleanPhase = function (p) {
 
 lozBoard.prototype.netwMove = function (p,fr,to) {
 
-  for (var h=0; h < NETH1SIZE; h++) {
-    var h = this.h1[h];
+  for (var i=0; i < NETH1SIZE; i++) {
+    var h = this.h1[i];
     h.sum -= h.weights[64*(p-1) + NETMAP[fr]];
     h.sum += h.weights[64*(p-1) + NETMAP[to]];
   }
@@ -5740,8 +5740,8 @@ lozBoard.prototype.netwMove = function (p,fr,to) {
 
 lozBoard.prototype.netbMove = function (p,fr,to) {
 
-  for (var h=0; h < NETH1SIZE; h++) {
-    var h = this.h1[h];
+  for (var i=0; i < NETH1SIZE; i++) {
+    var h = this.h1[i];
     h.sum -= h.weights[NETINOFF + 64*(p-1) + NETMAP[fr]];
     h.sum += h.weights[NETINOFF + 64*(p-1) + NETMAP[to]];
   }
@@ -5749,32 +5749,32 @@ lozBoard.prototype.netbMove = function (p,fr,to) {
 
 lozBoard.prototype.netwAdd = function (p,sq) {
 
-  for (var h=0; h < NETH1SIZE; h++) {
-    var h = this.h1[h];
+  for (var i=0; i < NETH1SIZE; i++) {
+    var h = this.h1[i];
     h.sum += h.weights[64*(p-1) + NETMAP[sq]];
   }
 }
 
 lozBoard.prototype.netbAdd = function (p,sq) {
 
-  for (var h=0; h < NETH1SIZE; h++) {
-    var h = this.h1[h];
+  for (var i=0; i < NETH1SIZE; i++) {
+    var h = this.h1[i];
     h.sum += h.weights[NETINOFF + 64*(p-1) + NETMAP[sq]];
   }
 }
 
 lozBoard.prototype.netwDel = function (p,sq) {
 
-  for (var h=0; h < NETH1SIZE; h++) {
-    var h = this.h1[h];
+  for (var i=0; i < NETH1SIZE; i++) {
+    var h = this.h1[i];
     h.sum -= h.weights[64*(p-1) + NETMAP[sq]];
   }
 }
 
 lozBoard.prototype.netbDel = function (p,sq) {
 
-  for (var h=0; h < NETH1SIZE; h++) {
-    var h = this.h1[h];
+  for (var i=0; i < NETH1SIZE; i++) {
+    var h = this.h1[i];
     h.sum -= h.weights[NETINOFF + 64*(p-1) + NETMAP[sq]];
   }
 }
@@ -5783,9 +5783,9 @@ lozBoard.prototype.netEval = function () {
 
   this.o1.sum = 0;
 
-  for (var h=0; h < NETH1SIZE; h++) {
-    var h = this.h1[h];
-    this.o1.sum += h.sum * this.o1.weights[h];
+  for (var i=0; i < NETH1SIZE; i++) {
+    var h = this.h1[i];
+    this.o1.sum += h.sum * this.o1.weights[i];
   }
 
   return this.o1.sum;
