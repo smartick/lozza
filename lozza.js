@@ -5734,7 +5734,7 @@ lozBoard.prototype.netwMove = function (p,fr,to) {
   for (var h=0; h < NETH1SIZE; h++) {
     var h = this.h1[h];
     h.sum -= h.weights[64*(p-1) + NETMAP[fr]];
-    h.sum += h.weights[64*(p-1) + NETMAP[fr]];
+    h.sum += h.weights[64*(p-1) + NETMAP[to]];
   }
 }
 
@@ -5743,7 +5743,7 @@ lozBoard.prototype.netbMove = function (p,fr,to) {
   for (var h=0; h < NETH1SIZE; h++) {
     var h = this.h1[h];
     h.sum -= h.weights[NETINOFF + 64*(p-1) + NETMAP[fr]];
-    h.sum += h.weights[NETINOFF + 64*(p-1) + NETMAP[fr]];
+    h.sum += h.weights[NETINOFF + 64*(p-1) + NETMAP[to]];
   }
 }
 

@@ -528,36 +528,13 @@ function grunt () {
   var numBatches = epds.length / batchSize | 0;
   var numEpochs  = 100000;
   
-  var loss     = 100;
-  var lastLoss = 100;
+  var loss = 0;
   
   console.log('input layer size =',netInputSize);
   console.log('hidden layer size =',netHiddenSize);
   console.log('batch size =',batchSize);
   console.log('batches per epoch =',numBatches);
   console.log('learning rate =',learningRate);
-  
-  //{{{  get random error
-  
-  for (var r=0; r<3; r++) {
-  
-    var loss = 0;
-  
-    for (var i=0; i < epds.length; i++) {
-  
-      var epd = epds[i];
-  
-      neto[0].out = Math.random();
-  
-      var targets = [epd.prob];
-  
-      loss += netLoss(targets);
-    }
-  
-    console.log ('random loss =',loss/epds.length);
-  }
-  
-  //}}}
   
   netInitWeights();
   
@@ -581,10 +558,7 @@ function grunt () {
     
     loss = loss / epds.length;
     
-    console.log ('epoch =',epoch,'loss =',loss,'lr =',learningRate);
-    
-    //if (loss > lastLoss)
-      //learningRate /= 10.0;
+    console.log ('epoch =',epoch,'loss =',loss);
     
     //}}}
     //{{{  batched epoch
