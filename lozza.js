@@ -9,6 +9,7 @@ var BUILD = "2.1";
 //{{{  history
 /*
 
+2.1 30/09/21 Add network.
 2.1 27/09/21 Set mob offsets to 0 while buggy.
 
 2.0 19/02/21 Add imbalance terms when no pawns.
