@@ -1,5 +1,5 @@
 
-var maxPositions   = 1000000000;
+var maxPositions   = 100000000;
 var netInputSize   = 768;
 var netHiddenSize  = 16;
 var numEpochs      = 2000;
