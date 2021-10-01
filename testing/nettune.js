@@ -2,7 +2,8 @@
 var maxPositions   = 1000000000;
 var netInputSize   = 768;
 var netHiddenSize  = 16;
-var learningRate   = 0.1;
+var numEpochs      = 2000;
+var learningRate   = 0.04;
 var batchSize      = 100;
 var scale          = 0;
 
@@ -455,22 +456,23 @@ function netSaveWeights () {
 
   out += '// hidden layer = ' + netHiddenSize;
   out += '\r\n';
-
-  out += '// scale factor = ' + scale;
   out += '\r\n';
 
+  out += 'this.netScale = ' + scale + ';';
   out += '\r\n';
+
+  //out += '\r\n';
 
   for (var h=0; h < netHiddenSize; h++) {
     out = out + 'this.h1['+h+'].weights = [' + neth[h].weights.toString();
     out = out + '];\r\n';
-    out = out + '\r\n';
+    //out = out + '\r\n';
   }
 
   for (var o=0; o < netOutputSize; o++) {
     out = out + 'this.o1.weights = [' + neto[o].weights.toString();
     out = out + '];\r\n';
-    out = out + '\r\n';
+    //out = out + '\r\n';
   }
 
   out = out + '\r\n//}}}\r\n\r\n';
@@ -582,7 +584,6 @@ function grunt () {
   //{{{  tune
   
   var numBatches = epds.length / batchSize | 0;
-  var numEpochs  = 100000;
   
   var loss = 0;
   
@@ -611,8 +612,11 @@ function grunt () {
     
       loss += netLoss(targets);
     
-      //if (epoch > 10)
-        //console.log(epd.lozeval,neto[0].out);
+      if (Math.random() < 0.0000001) {
+        console.log();
+        console.log(epd.board,epd.stm,'-','-',epd.lozeval*scale,neto[0].out*scale);
+        console.log();
+      }
     }
     
     loss = loss / epds.length;
@@ -648,6 +652,26 @@ function grunt () {
   }
   
   console.log('done');
+  //{{{  try net
+  
+  //console.log('output weights',neto[0].weights.toString());
+  
+  for (var i=0; i < 10; i++) {
+  
+    var epd = epds[i];
+  
+    decodeFEN(epd.board, epd.stm);
+  
+    netForward();
+  
+    console.log(epd.board,epd.stm,'-','-',epd.lozeval*scale,neto[0].out*scale);
+  
+    //for (var j=0; j < netHiddenSize; j++) {
+      //console.log(neth[j].in,neth[j].out);
+    //}
+  }
+  
+  //}}}
   
   //}}}
 }
