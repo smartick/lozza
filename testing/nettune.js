@@ -3,9 +3,10 @@ var maxPositions   = 100000000;
 var netInputSize   = 768;
 var netHiddenSize  = 16;
 var numEpochs      = 2000;
-var learningRate   = 0.04;
+var learningRate   = 0.01;
 var batchSize      = 100;
 var scale          = 0;
+var decay          = 0.01;
 
 //{{{  constants
 
@@ -585,7 +586,9 @@ function grunt () {
   
   var numBatches = epds.length / batchSize | 0;
   
-  var loss = 0;
+  var loss     = 0;
+  var bestLoss = 100;
+  var lr       = learningRate;
   
   console.log('input layer size =',netInputSize);
   console.log('hidden layer size =',netHiddenSize);
@@ -621,7 +624,15 @@ function grunt () {
     
     loss = loss / epds.length;
     
-    console.log ('epoch =',epoch,'loss =',loss);
+    var d = '+';
+    
+    if (loss < bestLoss) {
+      d = '-';
+      bestLoss = loss;
+      netSaveWeights();
+    }
+    
+    console.log ('epoch =',epoch,'loss =',loss,'lr =',lr,d);
     
     //}}}
     //{{{  batched epoch
@@ -644,11 +655,12 @@ function grunt () {
         netAccumulateGradients();
       }
     
-      netApplyGradients(batchSize,learningRate);
+      lr = learningRate * (1 / (1 + decay * epoch));
+    
+      netApplyGradients(batchSize,lr);
     }
     
     //}}}
-    netSaveWeights();
   }
   
   console.log('done');
