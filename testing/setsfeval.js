@@ -53,7 +53,7 @@ child.stdout.on('data', function (data) {
   var xdata  = data.toString();
   var xparts = xdata.split('Classical evaluation');
   if (xparts.length != 2) {
-    if (xdata.includes("in check")) {
+    if (true || xdata.includes("in check")) {
       //{{{  use lozeval
       
       var epd = epds[next];

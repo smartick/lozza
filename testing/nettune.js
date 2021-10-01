@@ -6,7 +6,7 @@ var numEpochs      = 2000;
 var learningRate   = 0.1;
 var batchSize      = 100;
 var scale          = 0;
-var decay          = 0.01;
+var decay          = 0.001;
 
 //{{{  constants
 
@@ -595,6 +595,7 @@ function grunt () {
   console.log('batch size =',batchSize);
   console.log('batches per epoch =',numBatches);
   console.log('learning rate =',learningRate);
+  console.log('decay rate =',decay);
   
   netInitWeights();
   
