@@ -98,8 +98,21 @@ else if (format == 'rebel') {
   
     var parts = line.split(' ');
   
-    var stm  = parts[1].trim();
-    var prob = parts[9].trim();
+    if (parts.length != 12)
+      continue;
+  
+    var stm  = parts[1];
+    var prob = parts[9];
+  
+    if (stm != 'w' && stm != 'b') {
+      console.log('stm',stm,line);
+      process.exit();
+    }
+  
+    if (prob != '0.0' && prob != '0.5' && prob != '1.0') {
+      console.log('prob',prob,line);
+      process.exit();
+    }
   
     if (stm == 'b') {
       if (prob == '0.0') {
