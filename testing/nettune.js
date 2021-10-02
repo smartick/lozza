@@ -2,10 +2,10 @@
 var maxPositions   = 100000000;
 var netInputSize   = 768;
 var netHiddenSize  = 16;
-var numEpochs      = 2000;
-var learningRate   = 0.1;
+var numEpochs      = 20000;
+var learningRate   = 0.001;
 var batchSize      = 100;
-var scale          = 0;
+var scale          = 100;
 var decay          = 0.001;
 
 //{{{  constants
@@ -523,44 +523,11 @@ function grunt () {
   //}}}
   //{{{  scale
   
-  var min = 99999999;
-  var max = -99999999;
-  
-  for (var i=0; i < epds.length; i++) {
-  
-    var epd = epds[i];
-  
-    if (epd.lozeval > max)
-      max = epd.lozeval;
-  
-    if (epd.lozeval < min)
-      min = epd.lozeval;
-  }
-  
-  scale = Math.max(max,Math.abs(min));
-  
-  console.log('min',min,'max',max,'scale',scale)
-  
-  var min = 99999999;
-  var max = -99999999;
-  
   for (var i=0; i < epds.length; i++) {
     var epd     = epds[i];
     epd.lozeval = epd.lozeval / scale;
+    epd.sfeval  = epd.sfeval  / scale;
   }
-  
-  for (var i=0; i < epds.length; i++) {
-  
-    var epd = epds[i];
-  
-    if (epd.lozeval > max)
-      max = epd.lozeval;
-  
-    if (epd.lozeval < min)
-      min = epd.lozeval;
-  }
-  
-  console.log('min',min,'max',max)
   
   //}}}
   //{{{  check decoding
@@ -618,7 +585,7 @@ function grunt () {
     
       if (Math.random() < 0.0000001) {
         console.log();
-        console.log(epd.board,epd.stm,'-','-',epd.lozeval*scale,neto[0].out*scale);
+        console.log(epd.board,epd.stm,'-','-',epd.lozeval*scale,epd.sfeval*scale,neto[0].out*scale);
         console.log();
       }
     }
@@ -666,9 +633,7 @@ function grunt () {
   
   console.log('done');
   //{{{  try net
-  
-  //console.log('output weights',neto[0].weights.toString());
-  
+  /*
   for (var i=0; i < 10; i++) {
   
     var epd = epds[i];
@@ -678,12 +643,8 @@ function grunt () {
     netForward();
   
     console.log(epd.board,epd.stm,'-','-',epd.lozeval*scale,neto[0].out*scale);
-  
-    //for (var j=0; j < netHiddenSize; j++) {
-      //console.log(neth[j].in,neth[j].out);
-    //}
   }
-  
+  */
   //}}}
   
   //}}}
@@ -727,9 +688,9 @@ rl.on('line', function (line) {
 
     epds.push({board:   parts[0],
                stm:     parts[1],
+               prob:    parseFloat(parts[4]),
                lozeval: parseInt(parts[5]),
-               sfeval:  parseInt(parts[6]),
-               prob:    parseFloat(parts[4])});
+               sfeval:  parseInt(parts[6])});
   }
 });
 
