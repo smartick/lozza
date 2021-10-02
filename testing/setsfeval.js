@@ -2,11 +2,48 @@
 // Updates the sfeval in the given std epd file.
 //
 
+//{{{  globals
+
 const { spawn } = require("child_process");
 
 var fs      = require('fs');
-var next    = 0;
+var next    = -1;
 var epdfile = process.argv[2];
+var child   = 0;
+
+//}}}
+//{{{  functions
+
+function getEval(s) {
+
+  var r = s.match(/Final evaluation(.*)\(white/);
+
+  if (r.length != 2) {
+    console.log('cannot get eval from',s);
+    process.exit();
+  }
+
+  var e1 = r[1].trim();
+  var e2 = parseFloat(e1);
+  var e3 = Math.round(e2 * 100) | 0;
+
+  return e3;
+}
+
+function kick () {
+
+  next++;
+  if (next >= epds.length)
+    process.exit();
+
+  var epd = epds[next];
+  var fen = epd.board + ' ' + epd.turn + ' ' + epd.rights + ' ' + epd.ep;
+
+  child.stdin.write('position fen ' + fen + '\r\n');
+  child.stdin.write('eval\r\n');
+}
+
+//}}}
 
 process.stdin.setEncoding('utf8');
 
@@ -47,102 +84,23 @@ lines = ''; // release
 
 //}}}
 
-var child = spawn('c:\\projects\\chessdata\\engines\\stockfish\\sf.exe');
+child = spawn('c:\\projects\\chessdata\\engines\\stockfish\\sf.exe');
 
 child.stdout.on('data', function (data) {
-  var xdata  = data.toString();
-  var xparts = xdata.split('Classical evaluation');
-  if (xparts.length != 2) {
-    if (true || xdata.includes("in check")) {
-      //{{{  use lozeval
-      
-      var epd = epds[next];
-      
-      var fen = epd.board + ' ' + epd.turn + ' ' + epd.rights + ' ' + epd.ep;
-      
-      console.log(fen, epd.prob, epd.lozeval, epd.lozeval);
-      
-      next++;
-      if (next >= epds.length)
-        process.exit();
-      
-      //{{{  kick
-      
-      var epd = epds[next];
-      var fen = epd.board + ' ' + epd.turn + ' ' + epd.rights + ' ' + epd.ep;
-      
-      child.stdin.write('position fen ' + fen + '\r\n');
-      child.stdin.write('eval\r\n');
-      
-      //}}}
-      
-      //}}}
-      next++;
-      if (next >= epds.length)
-        process.exit();
-      //{{{  kick
-      
-      var epd = epds[next];
-      var fen = epd.board + ' ' + epd.turn + ' ' + epd.rights + ' ' + epd.ep;
-      
-      child.stdin.write('position fen ' + fen + '\r\n');
-      child.stdin.write('eval\r\n');
-      
-      //}}}
+  var sfdata = data.toString();
+  if (!sfdata.includes("Final evaluation ")) {
+    if (sfdata.includes("in check")) {
+      kick();
     }
   }
   else {
-    //{{{  decode eval
-    
-    var epd = epds[next];
-    
-    xdata  = xparts[1].trim();
-    xdata  = xdata.replace(/(\r\n|\n|\r)/gm,'');
-    xdata  = xdata.trim();
-    xdata  = xdata.replace(/\s+/g, ' ');
-    xparts = xdata.split(' ');
-    
-    var xeval1  = xparts[0];
-    var xeval2  = xparts[4];
-    var xeval3  = xparts[8];
-    
-    var eval1 = Math.round(100 * parseFloat(xeval1));
-    var eval2 = Math.round(100 * parseFloat(xeval2));
-    var eval3 = Math.round(100 * parseFloat(xeval3));
-    
-    var fen = epd.board + ' ' + epd.turn + ' ' + epd.rights + ' ' + epd.ep;
-    
-    var seval1 = '' + eval1;
-    var seval2 = '' + eval2;
-    var seval3 = '' + eval3;
-    
-    console.log(fen, epd.prob, epd.lozeval, seval3);
-    
-    next++;
-    if (next >= epds.length)
-      process.exit();
-    
-    //{{{  kick
-    
-    var epd = epds[next];
-    var fen = epd.board + ' ' + epd.turn + ' ' + epd.rights + ' ' + epd.ep;
-    
-    child.stdin.write('position fen ' + fen + '\r\n');
-    child.stdin.write('eval\r\n');
-    
-    //}}}
-    
-    //}}}
+    var epd  = epds[next];
+    var fen  = epd.board + ' ' + epd.turn + ' ' + epd.rights + ' ' + epd.ep;
+    var eval = getEval(sfdata);
+    console.log(fen, epd.prob, epd.lozeval, eval);
+    kick();
   }
 });
 
-//{{{  kick
-
-var epd = epds[next];
-var fen = epd.board + ' ' + epd.turn + ' ' + epd.rights + ' ' + epd.ep;
-
-child.stdin.write('position fen ' + fen + '\r\n');
-child.stdin.write('eval\r\n');
-
-//}}}
+kick();
 
