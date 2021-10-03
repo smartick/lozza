@@ -1,13 +1,18 @@
-//"use strict"
 //
-// https://github.com/op12no2
-// testing and tuning results in testing/testing.log
+// https://github.com/op12no2/lozza
+//
+// A hand-coded Javascript chess engine inspired by Fabien Letouzey's Fruit 2.1.
 //
 
-var BUILD = "2.0";
+var BUILD       = "2.0a";
+var USEPAWNHASH = 1;
 
 //{{{  history
 /*
+
+2.0a 27/09/21 Fix timeouts.
+2.0a 27/09/21 Add USEPAWNHASH - useful when testing.
+2.0a 27/09/21 Set mob offsets to 0 while buggy.
 
 2.0 19/02/21 Add imbalance terms when no pawns.
 2.0 17/02/21 Tune all eval params.
@@ -1118,7 +1123,7 @@ var WOUTPOST = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 
 var BOUTPOST = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,18,21,21,18,26,22,0,0,0,0,0,0,12,19,28,17,36,46,0,0,0,0,0,0,17,17,14,23,23,23,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
 
-var EV = [5,-1,7,2,4,2,2,4,1,1,4,3,21,5,10,13,13,9,9,-3,-1,49,99,23,7,26,18,-1,-3,20,42,7,3,14,56,102,91,793,40,26,1,-1,0,0,0,0,61,21,21,2];
+var EV = [5,-1,7,2,4,2,2,4,1,1,4,3,21,5,10,13,13,9,9,-3,-1,49,99,23,7,26,18,-1,-3,20,42,7,3,14,56,102,91,793,40,26,0,0,0,0,0,0,61,21,21,2];
 
 var imbalN_S = [-91,1,1,-2,2,-1,0,8,22];
 
@@ -4098,7 +4103,7 @@ lozBoard.prototype.evaluate = function (turn) {
   var idx   = this.ploHash & PTTMASK;
   var flags = this.pttFlags[idx];
   
-  if ((flags & PTT_EXACT) && this.pttLo[idx] == this.ploHash && this.pttHi[idx] == this.phiHash) {
+  if (USEPAWNHASH && (flags & PTT_EXACT) && this.pttLo[idx] == this.ploHash && this.pttHi[idx] == this.phiHash) {
     //{{{  get tt
     
     pawnsS = this.pttScoreS[idx];
