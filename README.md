@@ -42,8 +42,10 @@ https://www.chessprogramming.org/Fruit
 
 https://www.chessprogramming.org/Main_Page
 
-https://cutechess.com/
+https://cutechess.com
 
-https://nodejs.org/en/
+https://nodejs.org/en
 
-http://ccrl.chessdom.com/ccrl/4040/
+http://ccrl.chessdom.com/ccrl/4040
+
+http://rebel13.nl/grl-best-40-15.html
