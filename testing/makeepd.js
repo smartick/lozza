@@ -1,19 +1,19 @@
 //
-// Read third part epd file and convert to std format used by tools in this folder (except epd_flip.js).
-// Std format is:-
+// Read third part epd file and convert to std format used by tools in this folder
+// (except epd_flip.js). Std format is:-
 //
 //   board turn rights ep prob lozeval sfeval
 //
 // prob is white/black relative (not stm relative).
 // lozeval and sfeval will be 0. Use setlozeval.js and setsfeval.js to update.
 //
-// Use: node makeepds.js > file
+// Use: node makeepds > file
 //
 // To get to the point of having loz and sf evals do:-
 //
-//   node makeepd.js > x
-//   node setlozeval.js x > y
-//   node setsfeval.js y > z
+//   node makeepd > x
+//   node setlozeval x > y
+//   node setsfeval y > z
 //   del x, y
 //
 

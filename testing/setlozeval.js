@@ -6623,6 +6623,8 @@ if (lozzaHost == HOST_NODEJS) {
 //
 // Updates the lozeval in the given std epd file.
 //
+// Use: node setlozeval epdfile
+//
 
 var fs       = lozza.uci.nodefs;
 var uci      = lozza.uci;

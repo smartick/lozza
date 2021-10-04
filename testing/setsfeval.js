@@ -1,6 +1,8 @@
 //
 // Updates the sfeval in the given std epd file.
 //
+// Use: node setsfeval epdfile
+//
 
 //{{{  globals
 

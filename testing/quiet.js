@@ -1,3 +1,4 @@
+//{{{  // https://github.com/op12no2/lozza
 //
 // https://github.com/op12no2/lozza
 //
@@ -5,16 +6,13 @@
 //
 
 var BUILD       = "2.1";
-var USEPAWNHASH = 1;
+var USEPAWNHASH = 0;
 
 //{{{  history
 /*
 
-2.1
-
-2.0a 27/09/21 Fix timeouts.
-2.0a 27/09/21 Add USEPAWNHASH - useful when testing.
-2.0a 27/09/21 Set mob offsets to 0 while buggy.
+2.1 27/09/21 Add USEPAWNHASH - useful when testing.
+2.1 27/09/21 Set mob offsets to 0 while buggy.
 
 2.0 19/02/21 Add imbalance terms when no pawns.
 2.0 17/02/21 Tune all eval params.
@@ -1903,7 +1901,7 @@ lozChess.prototype.alphabeta = function (node, depth, turn, alpha, beta, nullOK,
   var numSlides      = 0;
   var givesCheck     = INCHECK_UNKNOWN;
   var keeper         = false;
-  var doFutility     = !inCheck && depth <= 4 && (standPat + depth * 100) < alpha && !lonePawns;
+  var doFutility     = !inCheck && depth <= 4 && (standPat + depth * 120) < alpha && !lonePawns;
   var doLMR          = !inCheck && depth >= 3;
   var doLMP          = !pvNode && !inCheck && depth <= 2 && !lonePawns;
   var doIID          = !node.hashMove && pvNode && depth > 3;
@@ -3985,6 +3983,60 @@ var MOB_QIS = IS_QKE;
 var ATT_L = 7;
 
 lozBoard.prototype.evaluate = function (turn) {
+  //{{{  ev assignments
+  
+  var MOB_NS               = EV[iMOB_NS];
+  var MOB_NE               = EV[iMOB_NE];
+  var MOB_BS               = EV[iMOB_BS];
+  var MOB_BE               = EV[iMOB_BE];
+  var MOB_RS               = EV[iMOB_RS];
+  var MOB_RE               = EV[iMOB_RE];
+  var MOB_QS               = EV[iMOB_QS];
+  var MOB_QE               = EV[iMOB_QE];
+  var ATT_N                = EV[iATT_N];
+  var ATT_B                = EV[iATT_B];
+  var ATT_R                = EV[iATT_R];
+  var ATT_Q                = EV[iATT_Q];
+  var ATT_M                = EV[iATT_M];
+  var PAWN_DOUBLED_S       = EV[iPAWN_DOUBLED_S];
+  var PAWN_DOUBLED_E       = EV[iPAWN_DOUBLED_E];
+  var PAWN_ISOLATED_S      = EV[iPAWN_ISOLATED_S];
+  var PAWN_ISOLATED_E      = EV[iPAWN_ISOLATED_E];
+  var PAWN_BACKWARD_S      = EV[iPAWN_BACKWARD_S];
+  var PAWN_BACKWARD_E      = EV[iPAWN_BACKWARD_E];
+  var PAWN_PASSED_OFFSET_S = EV[iPAWN_PASSED_OFFSET_S];
+  var PAWN_PASSED_OFFSET_E = EV[iPAWN_PASSED_OFFSET_E];
+  var PAWN_PASSED_MULT_S   = EV[iPAWN_PASSED_MULT_S];
+  var PAWN_PASSED_MULT_E   = EV[iPAWN_PASSED_MULT_E];
+  var TWOBISHOPS_S         = EV[iTWOBISHOPS_S];
+  var ROOK7TH_S            = EV[iROOK7TH_S];
+  var ROOK7TH_E            = EV[iROOK7TH_E];
+  var ROOKOPEN_S           = EV[iROOKOPEN_S];
+  var ROOKOPEN_E           = EV[iROOKOPEN_E];
+  var QUEEN7TH_S           = EV[iQUEEN7TH_S];
+  var QUEEN7TH_E           = EV[iQUEEN7TH_E];
+  var TRAPPED              = EV[iTRAPPED];
+  var KING_PENALTY         = EV[iKING_PENALTY];
+  var PAWN_OFFSET_S        = EV[iPAWN_OFFSET_S];
+  var PAWN_OFFSET_E        = EV[iPAWN_OFFSET_E];
+  var PAWN_MULT_S          = EV[iPAWN_MULT_S];
+  var PAWN_MULT_E          = EV[iPAWN_MULT_E];
+  var PAWN_PASS_FREE       = EV[iPAWN_PASS_FREE];
+  var PAWN_PASS_UNSTOP     = EV[iPAWN_PASS_UNSTOP];
+  var PAWN_PASS_KING1      = EV[iPAWN_PASS_KING1];
+  var PAWN_PASS_KING2      = EV[iPAWN_PASS_KING2];
+  var MOBOFF_NS            = EV[iMOBOFF_NS];
+  var MOBOFF_NE            = EV[iMOBOFF_NE];
+  var MOBOFF_BS            = EV[iMOBOFF_BS];
+  var MOBOFF_BE            = EV[iMOBOFF_BE];
+  var MOBOFF_RS            = EV[iMOBOFF_RS];
+  var MOBOFF_RE            = EV[iMOBOFF_RE];
+  var TWOBISHOPS_E         = EV[iTWOBISHOPS_E];
+  var TEMPO_S              = EV[iTEMPO_S];
+  var TEMPO_E              = EV[iTEMPO_E];
+  var SHELTERM             = EV[iSHELTERM];
+  
+  //}}}
 
   //this.hashCheck(turn);
 
@@ -6617,4 +6669,82 @@ if (lozzaHost == HOST_NODEJS) {
 }
 
 //}}}
+
+//}}}
+//
+// Copy lozza.js above here.
+// Set USEPAWNHASH = 0.
+//
+// Filter out non-quiet positions from the given epd file, based on the Lozza in the
+// script above, not the lozeval in the epd file.  No values in the lines are changed.
+//
+// Use: node quiet epdfile
+//
+
+var fs       = lozza.uci.nodefs;
+var uci      = lozza.uci;
+var board    = lozza.board;
+var epdfile  = process.argv[2];
+
+const readline = require('readline');
+
+const rl = readline.createInterface({
+    input: fs.createReadStream(epdfile),
+    output: process.stdout,
+    crlfDelay: Infinity,
+    terminal: false
+});
+
+rl.on('line', function (line) {
+
+  line = line.replace(/(\r\n|\n|\r)/gm,'');
+
+  var parts = line.split(' ');
+
+  if (parts.length != 7) {
+    console.log('file format',line);
+    process.exit();
+  }
+
+  uci.spec.board    = parts[0];
+  uci.spec.turn     = parts[1];
+  uci.spec.rights   = parts[2];
+  uci.spec.ep       = parts[3];
+  uci.spec.fmc      = 0;
+  uci.spec.hmc      = 0;
+  uci.spec.id       = 'id';
+  uci.spec.moves    = [];
+
+  lozza.position();
+
+  var inCheck  = board.isKingAttacked(nextTurn);
+  if (inCheck) {
+    return;
+  }
+
+  var nextTurn = ~board.turn & COLOR_MASK;
+  var inCheck  = board.isKingAttacked(nextTurn);
+  if (inCheck) {
+    return;
+  }
+
+  var e = board.evaluate(board.turn);
+  var q = lozza.qSearch(lozza.rootNode,0,board.turn,-INFINITY,INFINITY);
+
+  if (isNaN(e)) {
+    console.log('nan e',e);
+    process.exit();
+  }
+  if (isNaN(q)) {
+    console.log('nan q',q);
+    process.exit();
+  }
+
+  if (Math.abs(q-e) < 100)
+    console.log(line);
+});
+
+rl.on('close', function(){
+  process.exit();
+});
 
