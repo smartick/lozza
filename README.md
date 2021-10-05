@@ -48,4 +48,4 @@ https://nodejs.org/en
 
 http://ccrl.chessdom.com/ccrl/4040
 
-http://rebel13.nl/grl-best-40-15.html
+http://rebel13.nl
