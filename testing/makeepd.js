@@ -1,6 +1,6 @@
 //
-// Read third part epd file and convert to std format used by tools in this folder
-// (except epd_flip.js). Std format is:-
+// Read third part epd file and convert to Lozza tools std format (except epd_flip.js).
+// Std format is:-
 //
 //   board turn rights ep prob lozeval sfeval
 //

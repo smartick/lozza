@@ -1,0 +1,187 @@
+
+//{{{  try
+
+//{{{  remove positions where e != q
+//
+// Remove positions where q != e so that we can use e in the testing.
+// Q search needs to be independent of TT and hisitory etc so that it
+// can be called with different positions OK. Or init a new game before
+// each call. Lozza Q is safe (I think). Ditto eval - needs to stay clear
+// of TT.
+//
+
+lozza.newGameInit();
+
+var epds2 = [];
+
+for (var i=0; i < epds.length; i++) {
+
+  var epd = epds[i];
+
+  uci.spec.board    = epd.board;
+  uci.spec.turn     = epd.turn;
+  uci.spec.rights   = epd.rights;
+  uci.spec.ep       = epd.ep;
+  uci.spec.fmc      = epd.fmvn;
+  uci.spec.hmc      = epd.hmvc;
+  uci.spec.id       = 'id' + i;
+  uci.spec.moves    = [];
+
+  lozza.position();
+
+  var e = board.evaluate(board.turn);
+  var q = lozza.qSearch(lozza.rootNode,0,board.turn,-INFINITY,INFINITY);
+
+  if (isNaN(e) || isNaN(q)) {
+    console.log('NaN');
+    process.exit();
+  }
+
+  if (e == q) {
+    epd.eval = e;
+    epds2.push(epd);
+  }
+}
+
+epds = []; // release
+
+console.log('usable (e==q) =',epds2.length);
+
+//}}}
+
+no pruning etc while ply (not depth) is < 5 say.
+
+dont reset h scores on position
+
+tune q futility ephase
+
+preserve depth collisions in tt but beware alpha/beta
+
+no tt at depth < 2 (inc q)
+
+no tt at ply 1
+
+add some randomness into move time and eval params etc
+
+always do nmp if at least a knight etc
+
+allow beta prune after null move
+
+relax some of the pawn constraints on searching reductions etc
+
+extend if nmp returns a mate score or panic somehow
+
+the beta/alpha mate predicates seem wrong - review
+
+test incheck unknown etc by always recalculating jic
+
+no futility if parent move is a capture
+
+futility guards for both alpha and beta mates scores
+
+varied r for nmp
+
+return score from nmp not beta
+
+increase time if one of top 2 root based moves changes and ply > n.
+
+validate beta pruning with 1 ply search
+
+dont save killers/his if in check
+
+make sure killers are slides in the imp
+
+if no pawans for b and w and abs running eval < 400. e = e/2
+
+eval feathering non linear
+
+eval feathering different start value
+
+//}}}
+//{{{  cutechess help
+
+'C:\Program Files (x86)\Cute Chess\cutechess-cli.6.txt'
+'C:\Program Files (x86)\Cute Chess\engines.json.5.txt'
+
+//}}}
+
+'lozza\trunk\lozza.js' - coalface
+
+//{{{  other lozzas
+
+'lozza\trunk\deadends\lozza3.js'
+'lozza\trunk\history\2.1\lozza.js'           - candidate dev
+'lozza\trunk\history\2.0\lozza.js'           - released dev
+'lozza\trunk\history\2.0\release\lozza.js'   - released public
+'lozza\trunk\history\2.0\release\readme.txt' - released public
+'lozza\trunk\history\2.0\release\lozza.bat'  - released public
+'lozza\trunk\history\1.18\lozza.js'          - released dev
+
+//}}}
+
+'lozza\trunk\testing\cctry.bat'
+'lozza\trunk\testing\engines.json'
+'lozza\trunk\testing\cctry.pgn'
+
+'lozza\trunk\testing\makeepd.js'
+'lozza\trunk\testing\quiet.js'                  - needs lozza.js
+'lozza\trunk\testing\count.js'
+'lozza\trunk\testing\setlozeval.js'             - needs lozza.js
+'lozza\trunk\testing\setsfeval.js'
+'lozza\trunk\testing\simex.js'                  - needs lozza.js
+
+'lozza\trunk\testing\gdtexeltune.js'            - needs lozza.js
+'lozza\trunk\testing\gdtexeltune.txt'           - needs lozza.js
+
+'lozza\trunk\testing\texeltune.js' epds         - needs lozza.js
+'lozza\trunk\testing\texeltune.txt'
+
+'lozza\trunk\testing\tuningresults.js'
+
+'lozza\trunk\testing\texeltune2.js' repds
+'lozza\trunk\testing\texeltune2.txt'
+
+'lozza\trunk\testing\texeltune3.js' qepds3
+'lozza\trunk\testing\texeltune3.txt'
+
+'lozza\trunk\testing\eval_flip.js'              - needs lozza.js
+
+----- toynet repo
+
+'toynet\trunk\toynet.js'
+
+----- lozza ui repo
+
+'lozza-ui\trunk\lozza.js' - UI
+
+'lozza-ui\trunk\index.htm'
+
+'lozza-ui\trunk\perft.htm'
+'lozza-ui\trunk\perft.js'
+
+'lozza-ui\trunk\ex.htm'
+'lozza-ui\trunk\ex.js'
+
+'lozza-ui\trunk\profile.htm'
+'lozza-ui\trunk\profile.js'
+
+'lozza-ui\trunk\playhelp.htm'
+'lozza-ui\trunk\play.htm'
+'lozza-ui\trunk\play.js'
+
+'lozza-ui\trunk\fenhelp.htm'
+'lozza-ui\trunk\fen.htm'
+'lozza-ui\trunk\fen.js'
+
+'lozza-ui\trunk\consolehelp.htm'
+'lozza-ui\trunk\console.htm'
+'lozza-ui\trunk\console.js'
+
+'lozza-ui\trunk\mate.htm'
+'lozza-ui\trunk\mate.js'
+
+----- roller engine repo
+
+'roller\trunk\roller.js'
+
+'C:\projects\myc\public_html\index.php'

@@ -1,5 +1,5 @@
 //
-// Updates the sfeval in the given std epd file.
+// Updates sfeval in the given std epd file.
 //
 // Use: node setsfeval epdfile
 //

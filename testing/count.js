@@ -1,5 +1,5 @@
 //
-// Count lines in file.
+// Count lines in a file.
 //
 // Use: node count file
 //
