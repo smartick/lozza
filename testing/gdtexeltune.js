@@ -6827,11 +6827,11 @@ function grunt () {
     return board.wCounts[BISHOP] - board.bCounts[BISHOP];
   });
   
-  addp(VALUE_VECTOR, KNIGHT, function () {
+  addp(VALUE_VECTOR, ROOK, function () {
     return board.wCounts[ROOK] - board.bCounts[ROOK];
   });
   
-  addp(VALUE_VECTOR, KNIGHT, function () {
+  addp(VALUE_VECTOR, QUEEN, function () {
     return board.wCounts[QUEEN] - board.bCounts[QUEEN];
   });
   
@@ -6851,13 +6851,13 @@ function grunt () {
   
   while (1) {
   
-    if (epoch % gErrStep == 0) {
+    //if (epoch % gErrStep == 0) {
       var err = calcErr();
       console.log(epoch,err,VALUE_VECTOR.toString());
-      saveparams();
-    }
-    else
-      process.stdout.write(epoch+'\r');
+      //saveparams();
+    //}
+    //else
+      //process.stdout.write(epoch+'\r');
   
     epoch++;
   
@@ -6895,6 +6895,7 @@ function grunt () {
       
         for (var j=0; j < numParams; j++) {
           var p = params[j];
+          //console.log(j,epd.board,epd.turn,epd.rights,epd.ep,'coeff',p.coeff());
           p.gr += p.coeff() * (sg * (1 - sg)) * (sg - pr);  // chain rule
         }
       }
