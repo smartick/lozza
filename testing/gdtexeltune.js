@@ -6659,11 +6659,18 @@ var gLearningRate = 0.1;
 var gEpdFile      = process.argv[2];
 var gOutFile      = 'gdtexeltune.txt';
 var gMaxPositions = 1000000;
-var gErrStep      = 10;
+var gErrStep      = 5;
 
 //}}}
 //{{{  functions
 
+//{{{  is
+
+function is (obj,sq) {
+  return (board.b[sq] == obj) | 0;
+}
+
+//}}}
 //{{{  findK
 
 function findK () {
@@ -6791,17 +6798,66 @@ function loga (a,s) {
 //}}}
 //{{{  saveparams
 
-function saveparams () {
+function saveparams (err) {
 
   var d   = new Date();
-  var out = '//{{{  tuned params\r\n\r\n';
+  var out = '//{{{  gd tuned params\r\n\r\n';
 
   out += '// data=' + gEpdFile;
+  out += '\r\n';
+  out += '// k='+gK;
+  out += '\r\n';
+  out += '// err='+err;
   out += '\r\n';
   out += '// last update '+d;
   out += '\r\n\r\n';
 
-  out += loga(VALUE_VECTOR, 'VALUE_VECTOR');
+  out += loga(VALUE_VECTOR,   'VALUE_VECTOR  ');
+
+  out += loga(WPAWN_PSTS,     'WPAWN_PSTS    ');
+  out += loga(WPAWN_PSTE,     'WPAWN_PSTE    ');
+  out += loga(WKNIGHT_PSTS,   'WKNIGHT_PSTS  ');
+  out += loga(WKNIGHT_PSTE,   'WKNIGHT_PSTE  ');
+  out += loga(WBISHOP_PSTS,   'WBISHOP_PSTS  ');
+  out += loga(WBISHOP_PSTE,   'WBISHOP_PSTE  ');
+  out += loga(WROOK_PSTS,     'WROOK_PSTS    ');
+  out += loga(WROOK_PSTE,     'WROOK_PSTE    ');
+  out += loga(WQUEEN_PSTS,    'WQUEEN_PSTS   ');
+  out += loga(WQUEEN_PSTE,    'WQUEEN_PSTE   ');
+  out += loga(WKING_PSTS,     'WKING_PSTS    ');
+  out += loga(WKING_PSTE,     'WKING_PSTE    ');
+
+  out += loga(BPAWN_PSTS,     'BPAWN_PSTS    ');
+  out += loga(BPAWN_PSTE,     'BPAWN_PSTE    ');
+  out += loga(BKNIGHT_PSTS,   'BKNIGHT_PSTS  ');
+  out += loga(BKNIGHT_PSTE,   'BKNIGHT_PSTE  ');
+  out += loga(BBISHOP_PSTS,   'BBISHOP_PSTS  ');
+  out += loga(BBISHOP_PSTE,   'BBISHOP_PSTE  ');
+  out += loga(BROOK_PSTS,     'BROOK_PSTS    ');
+  out += loga(BROOK_PSTE,     'BROOK_PSTE    ');
+  out += loga(BQUEEN_PSTS,    'BQUEEN_PSTS   ');
+  out += loga(BQUEEN_PSTE,    'BQUEEN_PSTE   ');
+  out += loga(BKING_PSTS,     'BKING_PSTS    ');
+  out += loga(BKING_PSTE,     'BKING_PSTE    ');
+
+  out += loga(WOUTPOST,       'WOUTPOST      ');
+  out += loga(BOUTPOST,       'BOUTPOST      ');
+
+  out += loga(EV,             'EV            ');
+
+  out += loga(WSTORM,         'WSTORM        ');
+  out += loga(WSHELTER,       'WSHELTER      ');
+  out += loga(ATT_W,          'ATT_W         ');
+  out += loga(PAWN_PASSED,    'PAWN_PASSED   ');
+
+  out += loga(imbalN_S,       'imbalN_S      ');
+  out += loga(imbalN_E,       'imbalN_E      ');
+  out += loga(imbalB_S,       'imbalB_S      ');
+  out += loga(imbalB_E,       'imbalB_E      ');
+  out += loga(imbalR_S,       'imbalR_S      ');
+  out += loga(imbalR_E,       'imbalR_E      ');
+  out += loga(imbalQ_S,       'imbalQ_S      ');
+  out += loga(imbalQ_E,       'imbalQ_E      ');
 
   out = out + '\r\n//}}}\r\n\r\n';
 
@@ -6819,21 +6875,31 @@ function grunt () {
 
   //{{{  create params
   
-  addp(VALUE_VECTOR, KNIGHT, function () {
-    return board.wCounts[KNIGHT] - board.bCounts[KNIGHT];
-  });
+  addp(VALUE_VECTOR, KNIGHT, function (piece,mg,eg) {return board.wCounts[KNIGHT] - board.bCounts[KNIGHT];});
+  addp(VALUE_VECTOR, BISHOP, function (piece,mg,eg) {return board.wCounts[BISHOP] - board.bCounts[BISHOP];});
+  addp(VALUE_VECTOR, ROOK,   function (piece,mg,eg) {return board.wCounts[ROOK]   - board.bCounts[ROOK];});
+  addp(VALUE_VECTOR, QUEEN,  function (piece,mg,eg) {return board.wCounts[QUEEN]  - board.bCounts[QUEEN];});
   
-  addp(VALUE_VECTOR, BISHOP, function () {
-    return board.wCounts[BISHOP] - board.bCounts[BISHOP];
-  });
+  for (var i=8; i < 56; i++) {
+    var sq = B88[i];
+    addp(WPAWN_PSTS, sq, function (sq,mg,eg) {return (is(W_PAWN,sq) - is(B_PAWN,wbmap(sq))) * mg;});
+    addp(WPAWN_PSTE, sq, function (sq,mg,eg) {return (is(W_PAWN,sq) - is(B_PAWN,wbmap(sq))) * eg;});
+  }
   
-  addp(VALUE_VECTOR, ROOK, function () {
-    return board.wCounts[ROOK] - board.bCounts[ROOK];
-  });
+  for (var i=0; i < 64; i++) {
+    var sq = B88[i];
+    addp(WKNIGHT_PSTS, sq, function (sq,mg,eg) {return (is(W_KNIGHT,sq) - is(B_KNIGHT,wbmap(sq))) * mg;});
+    addp(WKNIGHT_PSTS, sq, function (sq,mg,eg) {return (is(W_KNIGHT,sq) - is(B_KNIGHT,wbmap(sq))) * eg;});
+    addp(WBISHOP_PSTS, sq, function (sq,mg,eg) {return (is(W_BISHOP,sq) - is(B_BISHOP,wbmap(sq))) * mg;});
+    addp(WBISHOP_PSTS, sq, function (sq,mg,eg) {return (is(W_BISHOP,sq) - is(B_BISHOP,wbmap(sq))) * eg;});
+    addp(WROOK_PSTS,   sq, function (sq,mg,eg) {return (is(W_ROOK,sq)   - is(B_ROOK,  wbmap(sq))) * mg;});
+    addp(WROOK_PSTS,   sq, function (sq,mg,eg) {return (is(W_ROOK,sq)   - is(B_ROOK,  wbmap(sq))) * eg;});
+    addp(WQUEEN_PSTS,  sq, function (sq,mg,eg) {return (is(W_QUEEN,sq)  - is(B_QUEEN, wbmap(sq))) * mg;});
+    addp(WQUEEN_PSTS,  sq, function (sq,mg,eg) {return (is(W_QUEEN,sq)  - is(B_QUEEN, wbmap(sq))) * eg;});
+    addp(WKING_PSTS,   sq, function (sq,mg,eg) {return (is(W_KING,sq)   - is(B_KING,  wbmap(sq))) * mg;});
+    addp(WKING_PSTS,   sq, function (sq,mg,eg) {return (is(W_KING,sq)   - is(B_KING,  wbmap(sq))) * eg;});
+  }
   
-  addp(VALUE_VECTOR, QUEEN, function () {
-    return board.wCounts[QUEEN] - board.bCounts[QUEEN];
-  });
   
   //}}}
   //{{{  tune params
@@ -6842,6 +6908,7 @@ function grunt () {
   var numParams  = params.length;
   var batchSize  = 1000;
   var numBatches = epds.length / batchSize | 0;
+  var err        = 0;
   
   console.log('num params =', numParams);
   console.log('batch size =', batchSize);
@@ -6851,13 +6918,14 @@ function grunt () {
   
   while (1) {
   
-    //if (epoch % gErrStep == 0) {
-      var err = calcErr();
-      console.log(epoch,err,VALUE_VECTOR.toString());
-      //saveparams();
-    //}
-    //else
-      //process.stdout.write(epoch+'\r');
+    if (epoch % gErrStep == 0) {
+      err = calcErr();
+      console.log(epoch,err);
+      saveparams(err);
+    }
+    else {
+      process.stdout.write(epoch+'\r');
+    }
   
     epoch++;
   
@@ -6891,12 +6959,14 @@ function grunt () {
         if (board.turn == BLACK)
           ev = -ev;  // undo negamax.
       
-        var sg = sigmoid(ev);
+        var sg    = sigmoid(ev);
+        var phase = board.cleanPhase(board.phase);
+        var mg    = (TPHASE - phase) / TPHASE;
+        var eg    = phase / TPHASE;
       
         for (var j=0; j < numParams; j++) {
           var p = params[j];
-          //console.log(j,epd.board,epd.turn,epd.rights,epd.ep,'coeff',p.coeff());
-          p.gr += p.coeff() * (sg * (1 - sg)) * (sg - pr);  // chain rule
+          p.gr += p.coeff(p.i,mg,eg) * (sg * (1 - sg)) * (sg - pr);  // chain rule
         }
       }
       
