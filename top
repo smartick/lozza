@@ -138,12 +138,6 @@ eval feathering different start value
 
 'lozza\trunk\testing\tuningresults.js'
 
-'lozza\trunk\testing\texeltune2.js' repds
-'lozza\trunk\testing\texeltune2.txt'
-
-'lozza\trunk\testing\texeltune3.js' qepds3
-'lozza\trunk\testing\texeltune3.txt'
-
 'lozza\trunk\testing\eval_flip.js'              - needs lozza.js
 
 ----- toynet repo
