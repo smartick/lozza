@@ -11,7 +11,7 @@
 //
 // To get to the point of having loz and sf evals do:-
 //
-//   node makeepd > x
+//   node makeepd rebel|zuri > x
 //   node setlozeval x > y
 //   node setsfeval y > z
 //   del x, y
@@ -80,7 +80,7 @@ else if (format == 'rebel') {
   // R7/p4p2/2p2k2/rPKb1P2/3N1P2/8/8/8 b - - 0 44; d5e4 - pgn=0.5 len=118
   // 0                                 1 2 3 4 5   6    7 8   9   10  11
   
-  var data  = fs.readFileSync('c:/projects/chessdata/rebel.epd', 'utf8');
+  var data  = fs.readFileSync('c:/projects/chessdata/rebel4.epd', 'utf8');
   var lines = data.split('\n');
   
   data = '';  //release.
