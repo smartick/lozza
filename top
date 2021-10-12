@@ -110,6 +110,7 @@ eval feathering different start value
 //{{{  other lozzas
 
 'lozza\trunk\deadends\lozza3.js'
+'lozza\trunk\deadends\etexeltune.js'
 'lozza\trunk\history\2.1\lozza.js'           - candidate dev
 'lozza\trunk\history\2.0\lozza.js'           - released dev
 'lozza\trunk\history\2.0\release\lozza.js'   - released public
@@ -130,10 +131,10 @@ eval feathering different start value
 'lozza\trunk\testing\setsfeval.js'
 'lozza\trunk\testing\simex.js'                  - needs lozza.js
 
-'lozza\trunk\testing\gdtexeltune.js'            - needs lozza.js
+'lozza\trunk\testing\gdtexeltune.js'            - needs lozza.js hacked to round error in calcerr and not in eval.
 'lozza\trunk\testing\gdtexeltune.txt'           - needs lozza.js
 
-'lozza\trunk\testing\texeltune.js' epds         - needs lozza.js
+'lozza\trunk\testing\texeltune.js'              - needs lozza.js
 'lozza\trunk\testing\texeltune.txt'
 
 'lozza\trunk\testing\tuningresults.js'
