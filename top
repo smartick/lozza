@@ -124,22 +124,11 @@ eval feathering different start value
 'lozza\trunk\testing\engines.json'
 'lozza\trunk\testing\cctry.pgn'
 
-'lozza\trunk\testing\makeepd.js'
-'lozza\trunk\testing\quiet.js'                  - needs lozza.js
-'lozza\trunk\testing\count.js'
-'lozza\trunk\testing\setlozeval.js'             - needs lozza.js
-'lozza\trunk\testing\setsfeval.js'
-'lozza\trunk\testing\simex.js'                  - needs lozza.js
+'lozza\trunk\testing\gdtexeltune.js'
+'lozza\trunk\testing\gdtexeltune.txt'
 
-'lozza\trunk\testing\gdtexeltune.js'            - needs lozza.js hacked to round error in calcerr and not in eval.
-'lozza\trunk\testing\gdtexeltune.txt'           - needs lozza.js
-
-'lozza\trunk\testing\texeltune.js'              - needs lozza.js
-'lozza\trunk\testing\texeltune.txt'
-
-'lozza\trunk\testing\tuningresults.js'
-
-'lozza\trunk\testing\eval_flip.js'              - needs lozza.js
+'lozza\trunk\testing\eval.js'
+'lozza\trunk\testing\eval_flip.js'
 
 ----- toynet repo
 

@@ -12,8 +12,6 @@ board = lozza.board;
 
 //}}}
 
-console.log('hello world! wait...');
-
 //{{{  get the epds
 
 var data  = fs.readFileSync('c:/projects/chessdata/epds_unflipped.epd', 'utf8');
