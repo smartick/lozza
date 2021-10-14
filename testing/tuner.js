@@ -4041,7 +4041,6 @@ lozBoard.prototype.evaluate = function (turn) {
   var SHELTERM             = EV[iSHELTERM];
   
   //}}}
-
   //this.hashCheck(turn);
 
   //{{{  init
@@ -6684,7 +6683,7 @@ if (lozzaHost == HOST_NODEJS) {
 // Use: node gdtexeltune epdfile (needs prob set)
 //
 
-var gWhat = 'Tuning material';
+var gWhat = 'Tuning material and PSTs';
 
 //{{{  globals
 
@@ -6695,14 +6694,17 @@ board = lozza.board;
 var epds   = [];
 var params = [];
 
-var gMethod       = 'slow';
-var gK            = 2.0;
+var gK            = 3.6567;
+var gEpdFile      = 'c:/projects/chessdata/quiet-labeled.epd';
+var gProbIndex    = 5;
+
+//var gK            = 3.6567;
+//var gEpdFile      = 'c:/projects/chessdata/flipped/eth.epd';
+//var gProbIndex    = 6;
+
+var gMethod       = 'GD';
 var gLearningRate = 0.1;
 var gBatchSize    = 10000;
-var gEpdFile      = 'c:/projects/chessdata/quiet-labeled.epd';
-//var gEpdFile      = 'c:/projects/chessdata/flipped/eth.epd';
-var gProbIndex    = 5;
-//var gProbIndex    = 6;
 var gOutFile      = 'tuner.txt';
 var gMaxPositions = 1000000000;
 var gErrStep      = 10;
@@ -6746,20 +6748,20 @@ function findK () {
   var min  = INFINITY;
   var step = 1.0;
   var x    = 1.0;
+  var err  = 0;
 
   while (1) {
     gK = x;
-    var err = calcErr();
+    err = calcErr();
     if (err <  min) {
-      console.log('k',gK,'err',err,'step',step);
       min = err;
       x += step;
     }
     else {
-      x -= step;
-      step = step / 10;
+      console.log(gK-step,err,step);
+      step = -step / 10.0;
       x += step;
-      console.log('new step',step);
+      min = INFINITY;
     }
   }
 }
@@ -6789,12 +6791,8 @@ function wbmap (sq) {
 //}}}
 //{{{  sigmoid
 
-//function sigmoid (x) {
-  //return 1.0 / (1.0 + Math.exp(-gK*x/400.0));
-//}
-
 function sigmoid (x) {
-  return 1.0 / (1.0 + Math.pow(10,-gK*x/400.0));
+  return 1.0 / (1.0 + Math.exp(-gK*x/400.0));
 }
 
 //}}}
@@ -6969,7 +6967,6 @@ function grunt () {
   addp(VALUE_VECTOR, ROOK,   function (piece,mg,eg) {return (board.wCounts[ROOK]   - board.bCounts[ROOK]);});
   addp(VALUE_VECTOR, QUEEN,  function (piece,mg,eg) {return (board.wCounts[QUEEN]  - board.bCounts[QUEEN]);});
   
-  /*
   
   for (var i=8; i < 56; i++) {
     var sq = B88[i];
@@ -6990,6 +6987,8 @@ function grunt () {
     addp(WKING_PSTS,   sq, function (sq,mg,eg) {return (is(W_KING,sq)   - is(B_KING,  wbmap(sq))) * mg;});
     addp(WKING_PSTE,   sq, function (sq,mg,eg) {return (is(W_KING,sq)   - is(B_KING,  wbmap(sq))) * eg;});
   }
+  
+  /*
   
   for (var i=0; i <= 8; i++) {
     addp(imbalN_S, i, function (pawns,mg,eg) {return (board.wCounts[KNIGHT] * (board.wCounts[PAWN] == pawns) - board.bCounts[KNIGHT] * (board.bCounts[PAWN] == pawns)) * mg});
@@ -7020,6 +7019,7 @@ function grunt () {
   addp(EV, iPAWN_ISOLATED_E, function (i,mg,eg) {return board.coeff.pisoeg * eg});
   addp(EV, iPAWN_BACKWARD_S, function (i,mg,eg) {return board.coeff.pbakmg * mg});
   addp(EV, iPAWN_BACKWARD_E, function (i,mg,eg) {return board.coeff.pbakeg * eg});
+  
   */
   
   //}}}
@@ -7027,8 +7027,8 @@ function grunt () {
   if (gMethod == 'GD') {
     //{{{  tune params using GD
     
-    var epoch      = 0;
     var numParams  = params.length;
+    var epoch      = 0;
     var numBatches = epds.length / gBatchSize | 0;
     var err        = 0;
     var lastErr    = 0;
@@ -7115,13 +7115,14 @@ function grunt () {
   else {
     //{{{  tune params using +-1
     
+    var numParams  = params.length;
     var epoch      = 0;
     var err        = 0;
-    var numParams  = params.length;
-    var bestErr    = INFINITY;
+    var bestErr    = calcErr();
     var changes    = 1;
     
-    console.log('num params =', numParams);
+    console.log('num params =',numParams);
+    console.log('initial err =',bestErr);
     
     while (changes > 0) {
     
@@ -7221,6 +7222,8 @@ rl.on('line', function (line) {
 
 rl.on('close', function(){
   console.log('method =',gMethod);
+  console.log('source =',gEpdFile);
+  console.log('K =',gK);
   console.log('what =',gWhat);
   console.log('positions =',epds.length);
   //{{{  count win, lose, draw
