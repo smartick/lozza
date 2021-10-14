@@ -1148,9 +1148,9 @@ var WSHELTER = [0,0,0,7,12,13,36,9,0,28];
 
 var WSTORM = [0,0,0,35,7,4,-8,-1,0,5];
 
-var ATT_W = [0,0.01,0.41999999999999993,0.78,1.11,1.5200000000000005,0.97,0.99];
+var PAWN_PASSED     = [0,0,0,0,0.1,0.3,0.6,1.0,0];
 
-var PAWN_PASSED = [0,0,0,0,0.1,0.30000000000000004,0.6999999999999998,1.2000000000000126,0];
+var ATT_W = [0,0,0.5,0.75,0.88,0.94,0.97,0.99];
 
 // bestErr=0.05580612020741582
 
@@ -6683,7 +6683,7 @@ if (lozzaHost == HOST_NODEJS) {
 // Use: node gdtexeltune epdfile (needs prob set)
 //
 
-var gWhat = 'Tuning material and PSTs';
+var gWhat = 'Tuning all';
 
 //{{{  globals
 
@@ -6702,7 +6702,7 @@ var gProbIndex    = 5;
 //var gEpdFile      = 'c:/projects/chessdata/flipped/eth.epd';
 //var gProbIndex    = 6;
 
-var gMethod       = 'GD';
+var gMethod       = 'slow';
 var gLearningRate = 0.1;
 var gBatchSize    = 10000;
 var gOutFile      = 'tuner.txt';
@@ -6752,7 +6752,7 @@ function findK () {
 
   while (1) {
     gK = x;
-    err = calcErr();
+    err = calcErr(false);
     if (err <  min) {
       min = err;
       x += step;
@@ -6798,7 +6798,10 @@ function sigmoid (x) {
 //}}}
 //{{{  calcErr
 
-function calcErr () {
+function calcErr (update) {
+
+  if (update)
+    updateBlack();
 
   var err = 0;
   var num = epds.length;
@@ -6871,6 +6874,14 @@ function loga (p,s) {
 }
 
 //}}}
+//{{{  logb
+
+function logb (p,s) {
+
+  return 'var ' + s + ' = [' + p.toString() + '];\r\n';
+}
+
+//}}}
 //{{{  saveparams
 
 function saveparams (err,epochs) {
@@ -6888,7 +6899,7 @@ function saveparams (err,epochs) {
   out += '\r\n';
   out += '// k='+gK;
   out += '\r\n';
-  if (gMethod = 'GD') {
+  if (gMethod == 'GD') {
     out += '// batchsize='+gBatchSize;
     out += '\r\n';
     out += '// learningrate='+gLearningRate;
@@ -6934,8 +6945,8 @@ function saveparams (err,epochs) {
 
   out += loga(WSTORM,         'WSTORM        ');
   out += loga(WSHELTER,       'WSHELTER      ');
-  out += loga(ATT_W,          'ATT_W         ');
-  out += loga(PAWN_PASSED,    'PAWN_PASSED   ');
+  out += logb(ATT_W,          'ATT_W         ');
+  out += logb(PAWN_PASSED,    'PAWN_PASSED   ');
 
   out += loga(imbalN_S,       'imbalN_S      ');
   out += loga(imbalN_E,       'imbalN_E      ');
@@ -6967,7 +6978,6 @@ function grunt () {
   addp(VALUE_VECTOR, ROOK,   function (piece,mg,eg) {return (board.wCounts[ROOK]   - board.bCounts[ROOK]);});
   addp(VALUE_VECTOR, QUEEN,  function (piece,mg,eg) {return (board.wCounts[QUEEN]  - board.bCounts[QUEEN]);});
   
-  
   for (var i=8; i < 56; i++) {
     var sq = B88[i];
     addp(WPAWN_PSTS, sq, function (sq,mg,eg) {return (is(W_PAWN,sq) - is(B_PAWN,wbmap(sq))) * mg;});
@@ -6988,7 +6998,11 @@ function grunt () {
     addp(WKING_PSTE,   sq, function (sq,mg,eg) {return (is(W_KING,sq)   - is(B_KING,  wbmap(sq))) * eg;});
   }
   
-  /*
+  var ko =[51,52,53,54,55,56,63,64,65,66,67,68,75,76,77,78,79,80]; //knight outpost squares
+  for (var i=0; i < ko.length; i++) {
+    var sq = ko[i];
+    addp(WOUTPOST, sq, function () {});
+  }
   
   for (var i=0; i <= 8; i++) {
     addp(imbalN_S, i, function (pawns,mg,eg) {return (board.wCounts[KNIGHT] * (board.wCounts[PAWN] == pawns) - board.bCounts[KNIGHT] * (board.bCounts[PAWN] == pawns)) * mg});
@@ -7001,6 +7015,16 @@ function grunt () {
     addp(imbalR_E, i, function (pawns,mg,eg) {return (board.wCounts[QUEEN]  * (board.wCounts[PAWN] == pawns) - board.bCounts[QUEEN]  * (board.bCounts[PAWN] == pawns)) * eg});
   }
   
+  for (var i=3; i < WSHELTER.length; i++) {
+    addp(WSHELTER, i, function () {});
+    addp(WSTORM,   i, function () {});
+  }
+  
+  for (var i=0; i < EV.length; i++)
+    addp(EV, i, function () {});
+  
+  //{{{  gd
+  /*
   addp(EV, iMOB_NS, function (pawns,mg,eg) {return board.coeff.mobN * mg});
   addp(EV, iMOB_NE, function (pawns,mg,eg) {return board.coeff.mobN * eg});
   addp(EV, iMOB_BS, function (pawns,mg,eg) {return board.coeff.mobB * mg});
@@ -7019,8 +7043,9 @@ function grunt () {
   addp(EV, iPAWN_ISOLATED_E, function (i,mg,eg) {return board.coeff.pisoeg * eg});
   addp(EV, iPAWN_BACKWARD_S, function (i,mg,eg) {return board.coeff.pbakmg * mg});
   addp(EV, iPAWN_BACKWARD_E, function (i,mg,eg) {return board.coeff.pbakeg * eg});
-  
   */
+  
+  //}}}
   
   //}}}
 
@@ -7042,7 +7067,7 @@ function grunt () {
     while (1) {
     
       if (epoch % gErrStep == 0) {
-        err = calcErr();
+        err = calcErr(false);
         console.log(epoch,err,VALUE_VECTOR.toString());
         lastErr = err;
         saveparams(err,epoch);
@@ -7118,7 +7143,7 @@ function grunt () {
     var numParams  = params.length;
     var epoch      = 0;
     var err        = 0;
-    var bestErr    = calcErr();
+    var bestErr    = calcErr(false);
     var changes    = 1;
     
     console.log('num params =',numParams);
@@ -7130,14 +7155,13 @@ function grunt () {
     
       for (var i=0; i < numParams; i++) {
     
-        process.stdout.write(i+'\r');
+        process.stdout.write(i+','+changes+','+bestErr+'\r');
     
         var p = params[i];
     
         p.a[p.i] += p.inc;
-        err = calcErr();
+        err = calcErr(true);
         if (err < bestErr) {
-          updateBlack();
           saveparams(err,epoch);
           changes++;
           bestErr = err;
@@ -7150,9 +7174,8 @@ function grunt () {
         p.inc = -p.inc;
     
         p.a[p.i] += p.inc;
-        err = calcErr();
+        err = calcErr(true);
         if (err < bestErr) {
-          updateBlack();
           saveparams(err,epoch);
           changes++;
           bestErr = err;

@@ -110,7 +110,7 @@ eval feathering different start value
 //{{{  other lozzas
 
 'lozza\trunk\deadends\lozza3.js'
-'lozza\trunk\deadends\etexeltune.js'
+'lozza\trunk\deadends\texeltune.js'
 'lozza\trunk\history\2.1\lozza.js'           - candidate dev
 'lozza\trunk\history\2.0\lozza.js'           - released dev
 'lozza\trunk\history\2.0\release\lozza.js'   - released public
@@ -124,8 +124,8 @@ eval feathering different start value
 'lozza\trunk\testing\engines.json'
 'lozza\trunk\testing\cctry.pgn'
 
-'lozza\trunk\testing\gdtexeltune.js'
-'lozza\trunk\testing\gdtexeltune.txt'
+'lozza\trunk\testing\tuner.js'
+'lozza\trunk\testing\tuner.txt'
 
 'lozza\trunk\testing\eval.js'
 'lozza\trunk\testing\eval_flip.js'
