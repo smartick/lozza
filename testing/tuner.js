@@ -1862,7 +1862,7 @@ lozChess.prototype.alphabeta = function (node, depth, turn, alpha, beta, nullOK,
   
   R = 3;
   
-  if (doBeta && depth > 1 && standPat > beta) {
+  if (doBeta && depth > 2 && standPat > beta) {
   
     board.loHash ^= board.loEP[board.ep];
     board.hiHash ^= board.hiEP[board.ep];
@@ -6684,7 +6684,7 @@ if (lozzaHost == HOST_NODEJS) {
 // Use: node gdtexeltune epdfile (needs prob set)
 //
 
-var gWhat = 'Tuning material, PSTs and imbal.';
+var gWhat = 'Tuning material';
 
 //{{{  globals
 
@@ -6695,17 +6695,43 @@ board = lozza.board;
 var epds   = [];
 var params = [];
 
-var gK            = 4.0;
+var gMethod       = 'slow';
+var gK            = 2.0;
 var gLearningRate = 0.1;
-var gBatchSize    = 1000;
+var gBatchSize    = 10000;
 var gEpdFile      = 'c:/projects/chessdata/quiet-labeled.epd';
-var gOutFile      = 'gdtexeltune.txt';
-var gMaxPositions = 100000000;
+//var gEpdFile      = 'c:/projects/chessdata/flipped/eth.epd';
+var gProbIndex    = 5;
+//var gProbIndex    = 6;
+var gOutFile      = 'tuner.txt';
+var gMaxPositions = 1000000000;
 var gErrStep      = 10;
 
 //}}}
 //{{{  functions
 
+//{{{  updateBlack
+
+function updateBlack () {
+
+  for (var i=0; i < 144; i++) {
+    BPAWN_PSTS[wbmap(i)]   = WPAWN_PSTS[i];
+    BPAWN_PSTE[wbmap(i)]   = WPAWN_PSTE[i];
+    BKNIGHT_PSTS[wbmap(i)] = WKNIGHT_PSTS[i];
+    BKNIGHT_PSTE[wbmap(i)] = WKNIGHT_PSTE[i];
+    BBISHOP_PSTS[wbmap(i)] = WBISHOP_PSTS[i];
+    BBISHOP_PSTE[wbmap(i)] = WBISHOP_PSTE[i];
+    BROOK_PSTS[wbmap(i)]   = WROOK_PSTS[i];
+    BROOK_PSTE[wbmap(i)]   = WROOK_PSTE[i];
+    BQUEEN_PSTS[wbmap(i)]  = WQUEEN_PSTS[i];
+    BQUEEN_PSTE[wbmap(i)]  = WQUEEN_PSTE[i];
+    BKING_PSTS[wbmap(i)]   = WKING_PSTS[i];
+    BKING_PSTE[wbmap(i)]   = WKING_PSTE[i];
+    BOUTPOST[wbmap(i)]     = WOUTPOST[i];
+  }
+}
+
+//}}}
 //{{{  is
 
 function is (obj,sq) {
@@ -6742,7 +6768,7 @@ function findK () {
 //{{{  addp
 
 function addp (a,i,coeff) {
-  params.push({a: a, i: i, coeff: coeff, gr: 0, ag: 0});
+  params.push({a: a, i: i, coeff: coeff, gr: 0, ag: 0, inc: 1});
 }
 
 //}}}
@@ -6763,8 +6789,12 @@ function wbmap (sq) {
 //}}}
 //{{{  sigmoid
 
+//function sigmoid (x) {
+  //return 1.0 / (1.0 + Math.exp(-gK*x/400.0));
+//}
+
 function sigmoid (x) {
-  return 1.0 / (1.0 + Math.exp(-gK*x/400.0));
+  return 1.0 / (1.0 + Math.pow(10,-gK*x/400.0));
 }
 
 //}}}
@@ -6852,16 +6882,20 @@ function saveparams (err,epochs) {
 
   out += '// data=' + gEpdFile;
   out += '\r\n';
+  out += '// method=' + gMethod;
+  out += '\r\n';
   out += '// note=' + gWhat;
   out += '\r\n';
   out += '// epochs=' + epochs;
   out += '\r\n';
   out += '// k='+gK;
   out += '\r\n';
-  out += '// batchsize='+gBatchSize;
-  out += '\r\n';
-  out += '// learningrate='+gLearningRate;
-  out += '\r\n';
+  if (gMethod = 'GD') {
+    out += '// batchsize='+gBatchSize;
+    out += '\r\n';
+    out += '// learningrate='+gLearningRate;
+    out += '\r\n';
+  }
   out += '// err='+err;
   out += '\r\n';
   out += '// last update '+d;
@@ -6935,6 +6969,8 @@ function grunt () {
   addp(VALUE_VECTOR, ROOK,   function (piece,mg,eg) {return (board.wCounts[ROOK]   - board.bCounts[ROOK]);});
   addp(VALUE_VECTOR, QUEEN,  function (piece,mg,eg) {return (board.wCounts[QUEEN]  - board.bCounts[QUEEN]);});
   
+  /*
+  
   for (var i=8; i < 56; i++) {
     var sq = B88[i];
     addp(WPAWN_PSTS, sq, function (sq,mg,eg) {return (is(W_PAWN,sq) - is(B_PAWN,wbmap(sq))) * mg;});
@@ -6954,6 +6990,7 @@ function grunt () {
     addp(WKING_PSTS,   sq, function (sq,mg,eg) {return (is(W_KING,sq)   - is(B_KING,  wbmap(sq))) * mg;});
     addp(WKING_PSTE,   sq, function (sq,mg,eg) {return (is(W_KING,sq)   - is(B_KING,  wbmap(sq))) * eg;});
   }
+  
   for (var i=0; i <= 8; i++) {
     addp(imbalN_S, i, function (pawns,mg,eg) {return (board.wCounts[KNIGHT] * (board.wCounts[PAWN] == pawns) - board.bCounts[KNIGHT] * (board.bCounts[PAWN] == pawns)) * mg});
     addp(imbalN_E, i, function (pawns,mg,eg) {return (board.wCounts[KNIGHT] * (board.wCounts[PAWN] == pawns) - board.bCounts[KNIGHT] * (board.bCounts[PAWN] == pawns)) * eg});
@@ -6964,7 +7001,7 @@ function grunt () {
     addp(imbalR_S, i, function (pawns,mg,eg) {return (board.wCounts[QUEEN]  * (board.wCounts[PAWN] == pawns) - board.bCounts[QUEEN]  * (board.bCounts[PAWN] == pawns)) * mg});
     addp(imbalR_E, i, function (pawns,mg,eg) {return (board.wCounts[QUEEN]  * (board.wCounts[PAWN] == pawns) - board.bCounts[QUEEN]  * (board.bCounts[PAWN] == pawns)) * eg});
   }
-  /*
+  
   addp(EV, iMOB_NS, function (pawns,mg,eg) {return board.coeff.mobN * mg});
   addp(EV, iMOB_NE, function (pawns,mg,eg) {return board.coeff.mobN * eg});
   addp(EV, iMOB_BS, function (pawns,mg,eg) {return board.coeff.mobB * mg});
@@ -6986,112 +7023,152 @@ function grunt () {
   */
   
   //}}}
-  //{{{  tune params
-  
-  var epoch      = 0;
-  var numParams  = params.length;
-  var numBatches = epds.length / gBatchSize | 0;
-  var err        = 0;
-  var lastErr    = 0;
-  
-  console.log('num params =', numParams);
-  console.log('batch size =', gBatchSize);
-  console.log('num batches =', numBatches);
-  
-  var K2 = gK / 200.0;
-  
-  while (1) {
-  
-    if (epoch % gErrStep == 0) {
-      err = calcErr();
-      console.log(epoch,err,VALUE_VECTOR.toString(),err-lastErr);
-      lastErr = err;
-      saveparams(err,epoch);
+
+  if (gMethod == 'GD') {
+    //{{{  tune params using GD
+    
+    var epoch      = 0;
+    var numParams  = params.length;
+    var numBatches = epds.length / gBatchSize | 0;
+    var err        = 0;
+    var lastErr    = 0;
+    
+    console.log('num params =', numParams);
+    console.log('batch size =', gBatchSize);
+    console.log('num batches =', numBatches);
+    
+    var K2 = gK / 200.0;
+    
+    while (1) {
+    
+      if (epoch % gErrStep == 0) {
+        err = calcErr();
+        console.log(epoch,err,VALUE_VECTOR.toString());
+        lastErr = err;
+        saveparams(err,epoch);
+      }
+      else {
+        process.stdout.write(epoch+'\r');
+      }
+    
+      epoch++;
+    
+      for (var batch=0; batch < numBatches; batch++) {
+        //{{{  reset gradient sums
+        
+        for (var i=0; i < numParams; i++)
+          params[i].gr = 0;
+        
+        //}}}
+        //{{{  accumulate gradients
+        
+        for (var i=batch*gBatchSize; i < (batch+1)*gBatchSize; i++) {
+        
+          var epd = epds[i];
+        
+          uci.spec.board    = epd.board;
+          uci.spec.turn     = epd.turn;
+          uci.spec.rights   = epd.rights;
+          uci.spec.ep       = epd.ep;
+          uci.spec.fmc      = 0;
+          uci.spec.hmc      = 0;
+          uci.spec.id       = 'id' + j;
+          uci.spec.moves    = [];
+        
+          lozza.position();
+        
+          var pr = epd.prob;
+          var ev = board.evaluate(board.turn);
+        
+          if (board.turn == BLACK)
+            ev = -ev;  // undo negamax.
+        
+          var sg    = sigmoid(ev);
+          var phase = board.cleanPhase(board.phase);
+          var mg    = (TPHASE - phase) / TPHASE;
+          var eg    = phase / TPHASE;
+        
+          for (var j=0; j < numParams; j++) {
+            var p = params[j];
+            p.gr += p.coeff(p.i,mg,eg) * (sg * (1 - sg)) * (sg - pr);  // chain rule
+          }
+        }
+        
+        //}}}
+        //{{{  apply mean gradient
+        
+        for (var i=0; i < numParams; i++) {
+          var p    = params[i];
+          var gr   = K2 * p.gr / gBatchSize;
+          p.ag     += gr * gr;
+          p.a[p.i] -= (gLearningRate / Math.sqrt(p.ag + 1e-8)) * gr;
+        }
+        
+        updateBlack();
+        
+        //}}}
+      }
     }
-    else {
-      process.stdout.write(epoch+'\r');
-    }
-  
-    epoch++;
-  
-    for (var batch=0; batch < numBatches; batch++) {
-      //{{{  reset gradient sums
-      
-      for (var i=0; i < numParams; i++)
-        params[i].gr = 0;
-      
-      //}}}
-      //{{{  accumulate gradients
-      
-      for (var i=batch*gBatchSize; i < (batch+1)*gBatchSize; i++) {
-      
-        var epd = epds[i];
-      
-        uci.spec.board    = epd.board;
-        uci.spec.turn     = epd.turn;
-        uci.spec.rights   = epd.rights;
-        uci.spec.ep       = epd.ep;
-        uci.spec.fmc      = 0;
-        uci.spec.hmc      = 0;
-        uci.spec.id       = 'id' + j;
-        uci.spec.moves    = [];
-      
-        lozza.position();
-      
-        var pr = epd.prob;
-      
-        var ev = board.evaluate(board.turn);
-      
-        if (board.turn == BLACK)
-          ev = -ev;  // undo negamax.
-      
-        var sg    = sigmoid(ev);
-        var phase = board.cleanPhase(board.phase);
-        var mg    = (TPHASE - phase) / TPHASE;
-        var eg    = phase / TPHASE;
-      
-        for (var j=0; j < numParams; j++) {
-          var p = params[j];
-          p.gr += p.coeff(p.i,mg,eg) * (sg * (1 - sg)) * (sg - pr);  // chain rule
+    
+    //}}}
+  }
+  else {
+    //{{{  tune params using +-1
+    
+    var epoch      = 0;
+    var err        = 0;
+    var numParams  = params.length;
+    var bestErr    = INFINITY;
+    var changes    = 1;
+    
+    console.log('num params =', numParams);
+    
+    while (changes > 0) {
+    
+      changes = 0;
+    
+      for (var i=0; i < numParams; i++) {
+    
+        process.stdout.write(i+'\r');
+    
+        var p = params[i];
+    
+        p.a[p.i] += p.inc;
+        err = calcErr();
+        if (err < bestErr) {
+          updateBlack();
+          saveparams(err,epoch);
+          changes++;
+          bestErr = err;
+          continue;
+        }
+        else {
+          p.a[p.i] -= p.inc;
+        }
+    
+        p.inc = -p.inc;
+    
+        p.a[p.i] += p.inc;
+        err = calcErr();
+        if (err < bestErr) {
+          updateBlack();
+          saveparams(err,epoch);
+          changes++;
+          bestErr = err;
+          continue;
+        }
+        else {
+          p.a[p.i] -= p.inc;
         }
       }
-      
-      //}}}
-      //{{{  apply mean gradient
-      
-      for (var i=0; i < numParams; i++) {
-        var p    = params[i];
-        var gr   = K2 * p.gr / gBatchSize;
-        p.ag     += gr * gr;
-        p.a[p.i] -= (gLearningRate / Math.sqrt(p.ag + 1e-8)) * gr;
-      }
-      
-      //}}}
-      //{{{  update black arrays
-      
-      VALUE_PAWN = VALUE_VECTOR[PAWN];
-      
-      for (var i=0; i < 144; i++) {
-        BPAWN_PSTS[wbmap(i)]   = WPAWN_PSTS[i];
-        BPAWN_PSTE[wbmap(i)]   = WPAWN_PSTE[i];
-        BKNIGHT_PSTS[wbmap(i)] = WKNIGHT_PSTS[i];
-        BKNIGHT_PSTE[wbmap(i)] = WKNIGHT_PSTE[i];
-        BBISHOP_PSTS[wbmap(i)] = WBISHOP_PSTS[i];
-        BBISHOP_PSTE[wbmap(i)] = WBISHOP_PSTE[i];
-        BROOK_PSTS[wbmap(i)]   = WROOK_PSTS[i];
-        BROOK_PSTE[wbmap(i)]   = WROOK_PSTE[i];
-        BQUEEN_PSTS[wbmap(i)]  = WQUEEN_PSTS[i];
-        BQUEEN_PSTE[wbmap(i)]  = WQUEEN_PSTE[i];
-        BKING_PSTS[wbmap(i)]   = WKING_PSTS[i];
-        BKING_PSTE[wbmap(i)]   = WKING_PSTE[i];
-        BOUTPOST[wbmap(i)]     = WOUTPOST[i];
-      }
-      
-      //}}}
+    
+      epoch++;
+    
+      console.log(epoch,bestErr,changes,VALUE_VECTOR.toString());
     }
+    
+    //}}}
   }
-  
-  //}}}
 
   process.exit();
 }
@@ -7138,11 +7215,13 @@ rl.on('line', function (line) {
                turn:    parts[1],
                rights:  parts[2],
                ep:      parts[3],
-               prob:    getprob(parts[5])});
+               prob:    getprob(parts[gProbIndex])});
   }
 });
 
 rl.on('close', function(){
+  console.log('method =',gMethod);
+  console.log('what =',gWhat);
   console.log('positions =',epds.length);
   //{{{  count win, lose, draw
   //
