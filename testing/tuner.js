@@ -6704,7 +6704,7 @@ function findK () {
 
   while (1) {
     gK = x;
-    err = calcErr(false);
+    err = calcErr();
     if (err <  min) {
       min = err;
       x += step;
@@ -6750,10 +6750,9 @@ function sigmoid (x) {
 //}}}
 //{{{  calcErr
 
-function calcErr (update) {
+function calcErr () {
 
-  if (update)
-    updateBlack();
+  updateBlack();
 
   var err = 0;
   var num = epds.length;
@@ -6978,12 +6977,12 @@ function grunt () {
     addp(EV, i);
   
   //}}}
-  //{{{  tune params using +-1
+  //{{{  tune params
   
   var numParams  = params.length;
   var epoch      = 0;
   var err        = 0;
-  var bestErr    = calcErr(false);
+  var bestErr    = calcErr();
   var changes    = 1;
   
   console.log('num params =',numParams);
@@ -7000,7 +6999,7 @@ function grunt () {
       var p = params[i];
   
       p.a[p.i] += p.inc;
-      err = calcErr(true);
+      err = calcErr();
       if (err < bestErr) {
         saveparams(err,epoch);
         changes++;
@@ -7014,7 +7013,7 @@ function grunt () {
       p.inc = -p.inc;
   
       p.a[p.i] += p.inc;
-      err = calcErr(true);
+      err = calcErr();
       if (err < bestErr) {
         saveparams(err,epoch);
         changes++;

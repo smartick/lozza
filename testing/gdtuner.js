@@ -7053,7 +7053,7 @@ function findK () {
 
   while (1) {
     gK = x;
-    err = calcErr(false);
+    err = calcErr();
     if (err <  min) {
       min = err;
       x += step;
@@ -7099,10 +7099,7 @@ function sigmoid (x) {
 //}}}
 //{{{  calcErr
 
-function calcErr (update) {
-
-  if (update)
-    updateBlack();
+function calcErr () {
 
   var err = 0;
   var num = epds.length;
@@ -7346,7 +7343,7 @@ function grunt () {
   
   
   //}}}
-  //{{{  tune params using GD
+  //{{{  tune params
   
   var numParams  = params.length;
   var epoch      = 0;
@@ -7363,7 +7360,7 @@ function grunt () {
   while (1) {
   
     if (epoch % gErrStep == 0) {
-      err = calcErr(false);
+      err = calcErr();
       console.log(epoch,err,VALUE_VECTOR.toString());
       lastErr = err;
       saveparams(err,epoch);
