@@ -7361,7 +7361,7 @@ function grunt () {
   
     if (epoch % gErrStep == 0) {
       err = calcErr();
-      console.log(epoch,err,VALUE_VECTOR.toString());
+      console.log(epoch,err);
       lastErr = err;
       saveparams(err,epoch);
     }
