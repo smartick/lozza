@@ -7349,7 +7349,6 @@ function grunt () {
   var epoch      = 0;
   var numBatches = epds.length / gBatchSize | 0;
   var err        = 0;
-  var lastErr    = 0;
   
   console.log('num params =', numParams);
   console.log('batch size =', gBatchSize);
@@ -7362,7 +7361,6 @@ function grunt () {
     if (epoch % gErrStep == 0) {
       err = calcErr();
       console.log(epoch,err);
-      lastErr = err;
       saveparams(err,epoch);
     }
     else {
