@@ -18,19 +18,29 @@ lozza.postMessage('position startpos');
 lozza.postMessage('go depth 10'); // 10 ply search
 ```
 
-Try this example here https://op12no2.github.io/lozza-ui/ex.htm.
+Try this example here:-
+
+  https://op12no2.github.io/lozza-ui/ex.htm.
 
 You do not have to use a web worker or the UCI interface, but you will not be able to update a web page until Lozza returns - see for example texeltune.js in the tuning folder above, which just includes lozza.js and uses it's function interface directly. While that is a Nodejs example, the same can be done in web pages.
 
 ## Playing Lozza online
 
-https://github.com/op12no2/lozza-ui has some example web-based user interfaces for playing and analysing with Lozza, which you can try out here - https://op12no2.github.io/lozza-ui.
+This repo has some example web-based user interfaces for playing and analysing with Lozza:-
+
+  https://github.com/op12no2/lozza-ui
+
+You can try them here:-
+
+  https://op12no2.github.io/lozza-ui
+
+The mate-in-one trainr is harder than it sounds!
 
 ## Playing Lozza offline in Arena, Winboard, Cutechess etc UIs
 
 Lozza can be used on almost any platform via Nodejs. Download the latest Lozza release and follow the instructions in readme.txt.
 
-https://github.com/op12no2/lozza/releases
+  https://github.com/op12no2/lozza/releases
 
 ## Notes
 
