@@ -34,7 +34,7 @@ You can try them here:-
 
   https://op12no2.github.io/lozza-ui
 
-The mate-in-one trainr is harder than it sounds!
+The mate-in-one trainer is harder than it sounds!
 
 ## Playing Lozza offline in Arena, Winboard, Cutechess etc UIs
 
