@@ -124,9 +124,6 @@ eval feathering different start value
 'lozza\trunk\testing\engines.json'
 'lozza\trunk\testing\cctry.pgn'
 
-'lozza\trunk\testing\tuner.js'
-'lozza\trunk\testing\tuner.txt'
-
 'lozza\trunk\testing\gdtuner.js'
 'lozza\trunk\testing\gdtuner.txt'
 
@@ -138,8 +135,6 @@ eval feathering different start value
 'toynet\trunk\toynet.js'
 
 ----- lozza ui repo
-
-'lozza-ui\trunk\lozza.js' - UI
 
 'lozza-ui\trunk\index.htm'
 
