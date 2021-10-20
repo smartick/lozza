@@ -10,8 +10,6 @@ var USEPAWNHASH = 1;
 //{{{  history
 /*
 
-2.1 19/10/21 Expose eval coefficients for tuning and tweak things so that white is always +.
-
 2.0a 27/09/21 Fix timeouts.
 2.0a 27/09/21 Add USEPAWNHASH - useful when testing.
 2.0a 27/09/21 Set mob offsets to 0 while buggy.
@@ -1125,7 +1123,7 @@ var WOUTPOST = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 
 var BOUTPOST = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,18,21,21,18,26,22,0,0,0,0,0,0,12,19,28,17,36,46,0,0,0,0,0,0,17,17,14,23,23,23,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
 
-var EV = [5,-1,7,2,4,2,2,4,1,1,4,3,21,-5,-10,-13,-13,-9,-9,-3,-1,49,99,23,7,26,18,-1,-3,20,42,7,3,14,56,102,91,793,40,26,0,0,0,0,0,0,61,21,21,2];
+var EV = [5,-1,7,2,4,2,2,4,1,1,4,3,21,5,10,13,13,9,9,-3,-1,49,99,23,7,26,18,-1,-3,20,42,7,3,14,56,102,91,793,40,26,0,0,0,0,0,0,61,21,21,2];
 
 var imbalN_S = [-91,1,1,-2,2,-1,0,8,22];
 
@@ -2294,8 +2292,6 @@ function lozBoard () {
 
   this.firstBP = 0;
   this.firstWP = 0;
-
-  this.coeff = {};
 
   this.runningEvalS = 0;  // these are all cached across make/unmakeMove.
   this.runningEvalE = 0;
@@ -3992,21 +3988,6 @@ lozBoard.prototype.evaluate = function (turn) {
 
   //{{{  init
   
-  this.coeff.mobN       = 0;
-  this.coeff.mobB       = 0;
-  this.coeff.mobR       = 0;
-  this.coeff.mobQ       = 0;
-  this.coeff.pairB      = 0;
-  this.coeff.doubled    = 0;
-  this.coeff.backwardmg = 0;
-  this.coeff.backwardeg = 0;
-  this.coeff.isolatedmg = 0;
-  this.coeff.isolatedeg = 0;
-  this.coeff.rook7th    = 0;
-  this.coeff.rookopenmg = 0;
-  this.coeff.rookopeneg = 0;
-  this.coeff.queen7th   = 0;
-  
   var uci = this.lozza.uci;
   var b   = this.b;
   
@@ -4180,9 +4161,8 @@ lozBoard.prototype.evaluate = function (turn) {
       var mRank  = (wMost  & mask) >>> bits;
     
       if (lRank != 9) {
-        pawnsS += PAWN_DOUBLED_S;
-        pawnsE += PAWN_DOUBLED_E;
-        this.coeff.doubled += 1;
+        pawnsS -= PAWN_DOUBLED_S;
+        pawnsE -= PAWN_DOUBLED_E;
       }
     
       if (rank < lRank)
@@ -4228,9 +4208,8 @@ lozBoard.prototype.evaluate = function (turn) {
     
       if (lRank != 0) {
     
-        pawnsS -= PAWN_DOUBLED_S;
-        pawnsE -= PAWN_DOUBLED_E;
-        this.coeff.doubled -= 1;
+        pawnsS += PAWN_DOUBLED_S;
+        pawnsE += PAWN_DOUBLED_E;
       }
     
       if (rank > lRank)
@@ -4281,10 +4260,8 @@ lozBoard.prototype.evaluate = function (turn) {
       }
     
       if ((wLeastL >>> bits & 0xF) == 9 && (wLeastR >>> bits & 0xF) == 9) {
-        pawnsS += PAWN_ISOLATED_S + PAWN_ISOLATED_S * open;
-        pawnsE += PAWN_ISOLATED_E;
-        this.coeff.isolatedmg += 1 + open;
-        this.coeff.isolatedeg += 1;
+        pawnsS -= PAWN_ISOLATED_S + PAWN_ISOLATED_S * open;
+        pawnsE -= PAWN_ISOLATED_E;
       }
     
       else if ((wLeastL >>> bits & 0xF) > rank && (wLeastR >>> bits & 0xF) > rank) {
@@ -4294,10 +4271,8 @@ lozBoard.prototype.evaluate = function (turn) {
         else if (rank == 2 && (IS_WP[b[sq-23]] || IS_WP[b[sq-25]]) && !IS_P[b[sq-12]] && !IS_P[b[sq-24]] && !IS_BP[b[sq-11]] && !IS_BP[b[sq-13]] && !IS_BP[b[sq-23]] && !IS_BP[b[sq-25]] && !IS_BP[b[sq-37]] && !IS_BP[b[sq-35]])
           backward = false;
         if (backward) {
-          pawnsS += PAWN_BACKWARD_S + PAWN_BACKWARD_S * open;
-          pawnsE += PAWN_BACKWARD_E;
-          this.coeff.backwardmg += 1 + open;
-          this.coeff.backwardeg += 1;
+          pawnsS -= PAWN_BACKWARD_S + PAWN_BACKWARD_S * open;
+          pawnsE -= PAWN_BACKWARD_E;
         }
       }
     
@@ -4360,10 +4335,8 @@ lozBoard.prototype.evaluate = function (turn) {
       }
     
       if ((bLeastL >>> bits & 0xF) == 0x0 && (bLeastR >>> bits & 0xF) == 0x0) {
-        pawnsS -= PAWN_ISOLATED_S + PAWN_ISOLATED_S * open;
-        pawnsE -= PAWN_ISOLATED_E;
-        this.coeff.isolatedmg -= 1 + open;
-        this.coeff.isolatedeg -= 1;
+        pawnsS += PAWN_ISOLATED_S + PAWN_ISOLATED_S * open;
+        pawnsE += PAWN_ISOLATED_E;
       }
     
       else if ((bLeastL >>> bits & 0xF) < rank && (bLeastR >>> bits & 0xF) < rank) {
@@ -4373,10 +4346,8 @@ lozBoard.prototype.evaluate = function (turn) {
         else if (rank == 7 && (IS_BP[b[sq+23]] || IS_BP[b[sq+25]]) && !IS_P[b[sq+12]] && !IS_P[b[sq+24]] && !IS_WP[b[sq+11]] && !IS_WP[b[sq+13]] && !IS_WP[b[sq+23]] && !IS_WP[b[sq+25]] && !IS_WP[b[sq+37]] && !IS_WP[b[sq+35]])
           backward = false;
         if (backward) {
-          pawnsS -= PAWN_BACKWARD_S + PAWN_BACKWARD_S * open;
-          pawnsE -= PAWN_BACKWARD_E;
-          this.coeff.backwardmg -= 1 + open;
-          this.coeff.backwardeg -= 1;
+          pawnsS += PAWN_BACKWARD_S + PAWN_BACKWARD_S * open;
+          pawnsE += PAWN_BACKWARD_E;
         }
       }
     
@@ -4751,8 +4722,6 @@ lozBoard.prototype.evaluate = function (turn) {
       mobS += mob * MOB_NS - MOBOFF_NS;
       mobE += mob * MOB_NE - MOBOFF_NE;
       
-      this.coeff.mobN += mob;
-      
       if (att) {
         attackN++;
         attackV += ATT_N;
@@ -4793,8 +4762,6 @@ lozBoard.prototype.evaluate = function (turn) {
       mobS += mob * MOB_BS - MOBOFF_BS;
       mobE += mob * MOB_BE - MOBOFF_BE;
       
-      this.coeff.mobB += mob;
-      
       if (att) {
         attackN++;
         attackV += ATT_B;
@@ -4823,8 +4790,6 @@ lozBoard.prototype.evaluate = function (turn) {
       mobS += mob * MOB_RS - MOBOFF_RS;
       mobE += mob * MOB_RE - MOBOFF_RE;
       
-      this.coeff.mobR += mob;
-      
       if (att) {
         attackN++;
         attackV += ATT_R;
@@ -4835,7 +4800,6 @@ lozBoard.prototype.evaluate = function (turn) {
       if (frRank == 7 && (bKingRank == 8 || bHome)) {
         rooksS += ROOK7TH_S;
         rooksE += ROOK7TH_E;
-        this.coeff.rook7th += 1;
       }
       
       //}}}
@@ -4843,31 +4807,23 @@ lozBoard.prototype.evaluate = function (turn) {
       
       rooksS -= ROOKOPEN_S;
       rooksE -= ROOKOPEN_E;
-      this.coeff.rookopenmg -= 1;
-      this.coeff.rookopeneg -= 1;
       
       if (!(wMost & frMask)) {   // no w pawn.
       
         rooksS += ROOKOPEN_S;
         rooksE += ROOKOPEN_E;
-        this.coeff.rookopenmg += 1;
-        this.coeff.rookopeneg += 1;
       
         if (!(bLeast & frMask)) {  // no b pawn.
           rooksS += ROOKOPEN_S;
           rooksE += ROOKOPEN_E;
-          this.coeff.rookopenmg += 1;
-          this.coeff.rookopeneg += 1;
         }
       
         if (frFile == bKingFile) {
           rooksS += ROOKOPEN_S;
-          this.coeff.rookopenmg += 1;
         }
       
         if (Math.abs(frFile - bKingFile) <= 1) {
           rooksS += ROOKOPEN_S;
-          this.coeff.rookopenmg += 1;
         }
       }
       
@@ -4898,8 +4854,6 @@ lozBoard.prototype.evaluate = function (turn) {
       mobS += mob * MOB_QS;
       mobE += mob * MOB_QE;
       
-      this.coeff.mobQ += mob;
-      
       if (att) {
         attackN++;
         attackV += ATT_Q;
@@ -4910,7 +4864,6 @@ lozBoard.prototype.evaluate = function (turn) {
       if (frRank == 7 && (bKingRank == 8 || bHome)) {
         queensS += QUEEN7TH_S;
         queensE += QUEEN7TH_E;
-        this.coeff.queen7th += 1;
       }
       
       //}}}
@@ -4936,8 +4889,6 @@ lozBoard.prototype.evaluate = function (turn) {
   if (wBishop && bBishop) {
     bishopsS += TWOBISHOPS_S;
     bishopsE += TWOBISHOPS_E;
-  
-    this.coeff.pairB += 1;
   }
   
   //}}}
@@ -4999,8 +4950,6 @@ lozBoard.prototype.evaluate = function (turn) {
       mobS -= mob * MOB_NS + MOBOFF_NS;
       mobE -= mob * MOB_NE + MOBOFF_NE;
       
-      this.coeff.mobN -= mob;
-      
       if (att) {
         attackN++;
         attackV += ATT_N;
@@ -5041,8 +4990,6 @@ lozBoard.prototype.evaluate = function (turn) {
       mobS -= mob * MOB_BS + MOBOFF_BS;
       mobE -= mob * MOB_BE + MOBOFF_BE;
       
-      this.coeff.mobB -= mob;
-      
       if (att) {
         attackN++;
         attackV += ATT_B;
@@ -5071,8 +5018,6 @@ lozBoard.prototype.evaluate = function (turn) {
       mobS -= mob * MOB_RS + MOBOFF_RS;
       mobE -= mob * MOB_RE + MOBOFF_RE;
       
-      this.coeff.mobR -= mob;
-      
       if (att) {
         attackN++;
         attackV += ATT_R;
@@ -5083,7 +5028,6 @@ lozBoard.prototype.evaluate = function (turn) {
       if (frRank == 2 && (wKingRank == 1 || wHome)) {
         rooksS -= ROOK7TH_S;
         rooksE -= ROOK7TH_E;
-        this.coeff.rook7th -= 1;
       }
       
       //}}}
@@ -5091,31 +5035,23 @@ lozBoard.prototype.evaluate = function (turn) {
       
       rooksS += ROOKOPEN_S;
       rooksE += ROOKOPEN_E;
-      this.coeff.rookopenmg += 1;
-      this.coeff.rookopeneg += 1;
       
       if (!(bLeast & frMask)) { // no b pawn.
       
         rooksS -= ROOKOPEN_S;
         rooksE -= ROOKOPEN_E;
-        this.coeff.rookopenmg -= 1;
-        this.coeff.rookopeneg -= 1;
       
         if (!(wMost & frMask)) {  // no w pawn.
           rooksS -= ROOKOPEN_S;
           rooksE -= ROOKOPEN_E;
-          this.coeff.rookopenmg -= 1;
-          this.coeff.rookopeneg -= 1;
         }
       
         if (frFile == wKingFile) {
           rooksS -= ROOKOPEN_S;
-          this.coeff.rookopenmg -= 1;
         }
       
         if (Math.abs(frFile - wKingFile) <= 1) {
           rooksS -= ROOKOPEN_S;
-          this.coeff.rookopenmg -= 1;
         }
       }
       
@@ -5146,8 +5082,6 @@ lozBoard.prototype.evaluate = function (turn) {
       mobS -= mob * MOB_QS;
       mobE -= mob * MOB_QE;
       
-      this.coeff.mobQ -= mob;
-      
       if (att) {
         attackN++;
         attackV += ATT_Q;
@@ -5158,7 +5092,6 @@ lozBoard.prototype.evaluate = function (turn) {
       if (frRank == 2 && (wKingRank == 1 || wHome)) {
         queensS -= QUEEN7TH_S;
         queensE -= QUEEN7TH_E;
-        this.coeff.queen7th -= 1;
       }
       
       //}}}
@@ -5184,8 +5117,6 @@ lozBoard.prototype.evaluate = function (turn) {
   if (wBishop && bBishop) {
     bishopsS -= TWOBISHOPS_S;
     bishopsE -= TWOBISHOPS_E;
-  
-    this.coeff.pairB -= 1;
   }
   
   //}}}
@@ -5352,7 +5283,6 @@ lozBoard.prototype.evaluate = function (turn) {
     uci.send('info string','knights =',knightsS,knightsE);
     uci.send('info string','pawns =',pawnsS,pawnsE);
     uci.send('info string','tempo =',tempoS,tempoE);
-    //uci.send('info string','coeff doubled =',this.coeff.doubled);
   }
   
   //}}}

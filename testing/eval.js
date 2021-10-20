@@ -1070,7 +1070,7 @@ var randoms = [
 
 //}}}
 
-//{{{  tuned params
+//{{{  tuned params *******************
 
 var VALUE_VECTOR = [0,100,348,353,540,1054,10000];
 
@@ -1126,7 +1126,7 @@ var WOUTPOST = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 
 var BOUTPOST = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,18,21,21,18,26,22,0,0,0,0,0,0,12,19,28,17,36,46,0,0,0,0,0,0,17,17,14,23,23,23,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
 
-var EV = [5,-1,7,2,4,2,2,4,1,1,4,3,21,-5,-10,-13,-13,-9,-9,-3,-1,49,99,23,7,26,18,-1,-3,20,42,7,3,14,56,102,91,793,40,26,0,0,0,0,0,0,61,21,21,2];
+var EV = [5,-1,7,2,4,2,2,4,1,1,4,3,21,5,10,13,13,9,9,-3,-1,49,99,23,7,26,18,-1,-3,20,42,7,3,14,56,102,91,793,40,26,0,0,0,0,0,0,61,21,21,2];
 
 var imbalN_S = [-91,1,1,-2,2,-1,0,8,22];
 
@@ -3993,20 +3993,24 @@ lozBoard.prototype.evaluate = function (turn) {
 
   //{{{  init
   
-  this.coeff.mobN       = 0;
-  this.coeff.mobB       = 0;
-  this.coeff.mobR       = 0;
-  this.coeff.mobQ       = 0;
-  this.coeff.pairB      = 0;
-  this.coeff.doubled    = 0;
-  this.coeff.backwardmg = 0;
-  this.coeff.backwardeg = 0;
-  this.coeff.isolatedmg = 0;
-  this.coeff.isolatedeg = 0;
-  this.coeff.rook7th    = 0;
-  this.coeff.rookopenmg = 0;
-  this.coeff.rookopeneg = 0;
-  this.coeff.queen7th   = 0;
+  this.coeff.mobN             = 0;
+  this.coeff.mobB             = 0;
+  this.coeff.mobR             = 0;
+  this.coeff.mobQ             = 0;
+  this.coeff.pairB            = 0;
+  this.coeff.doubled          = 0;
+  this.coeff.backwardmg       = 0;
+  this.coeff.backwardeg       = 0;
+  this.coeff.isolatedmg       = 0;
+  this.coeff.isolatedeg       = 0;
+  this.coeff.rook7th          = 0;
+  this.coeff.rookopenmg       = 0;
+  this.coeff.rookopeneg       = 0;
+  this.coeff.queen7th         = 0;
+  this.coeff.pawnpassedoffset = 0;
+  this.coeff.pawnpassedmult   = 0;
+  this.coeff.pawnpassking1    = 0;
+  this.coeff.pawnpassking2    = 0;
   
   var uci = this.lozza.uci;
   var b   = this.b;
@@ -4327,6 +4331,8 @@ lozBoard.prototype.evaluate = function (turn) {
             if (defenders >= attackers) {
               pawnsS += PAWN_PASSED_OFFSET_S + PAWN_PASSED_MULT_S * PAWN_PASSED[rank] | 0;
               pawnsE += PAWN_PASSED_OFFSET_E + PAWN_PASSED_MULT_E * PAWN_PASSED[rank] | 0;
+              this.coeff.pawnpassedoffset += 1;
+              this.coeff.pawnpassedmult   += PAWN_PASSED[rank];
             }
           }
         }
@@ -4406,6 +4412,8 @@ lozBoard.prototype.evaluate = function (turn) {
             if (defenders >= attackers) {
               pawnsS -= PAWN_PASSED_OFFSET_S + PAWN_PASSED_MULT_S * PAWN_PASSED[9-rank] | 0;
               pawnsE -= PAWN_PASSED_OFFSET_E + PAWN_PASSED_MULT_E * PAWN_PASSED[9-rank] | 0;
+              this.coeff.pawnpassedoffset -= 1;
+              this.coeff.pawnpassedmult   -= PAWN_PASSED[9-rank];
             }
           }
         }
@@ -4470,6 +4478,9 @@ lozBoard.prototype.evaluate = function (turn) {
           //{{{  king dist
           
           var passKings = PAWN_PASS_KING1 * DIST[bKingSq][sq2] - PAWN_PASS_KING2 * DIST[wKingSq][sq2];
+          
+          this.coeff.pawnpassking1 += DIST[bKingSq][sq2] * PAWN_PASSED[rank];  // See below.
+          this.coeff.pawnpassking2 -= DIST[wKingSq][sq2] * PAWN_PASSED[rank];  // See below.
           
           //}}}
           //{{{  attacked?
@@ -4542,6 +4553,9 @@ lozBoard.prototype.evaluate = function (turn) {
           //{{{  king dist
           
           var passKings = PAWN_PASS_KING1 * DIST[wKingSq][sq2] - PAWN_PASS_KING2 * DIST[bKingSq][sq2];
+          
+          this.coeff.pawnpassking1 -= DIST[wKingSq][sq2] * PAWN_PASSED[9-rank];  // See below.
+          this.coeff.pawnpassking2 += DIST[bKingSq][sq2] * PAWN_PASSED[9-rank];  // See below.
           
           //}}}
           //{{{  attacked?
@@ -6693,6 +6707,7 @@ if (lozzaHost == HOST_NODEJS) {
 //
 // 1. Set USEPAWNHASH to 0 unless testing pawn hash.
 //
+
 
 //{{{  lozza globals
 

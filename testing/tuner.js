@@ -11,8 +11,6 @@ var USEPAWNHASH = 0;
 //{{{  history
 /*
 
-2.1 19/10/21 Expose eval coefficients for tuning and tweak things so that white is always +.
-
 2.0a 27/09/21 Fix timeouts.
 2.0a 27/09/21 Add USEPAWNHASH - useful when testing.
 2.0a 27/09/21 Set mob offsets to 0 while buggy.
@@ -1126,7 +1124,7 @@ var WOUTPOST = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 
 var BOUTPOST = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,18,21,21,18,26,22,0,0,0,0,0,0,12,19,28,17,36,46,0,0,0,0,0,0,17,17,14,23,23,23,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
 
-var EV = [5,-1,7,2,4,2,2,4,1,1,4,3,21,-5,-10,-13,-13,-9,-9,-3,-1,49,99,23,7,26,18,-1,-3,20,42,7,3,14,56,102,91,793,40,26,0,0,0,0,0,0,61,21,21,2];
+var EV = [5,-1,7,2,4,2,2,4,1,1,4,3,21,5,10,13,13,9,9,-3,-1,49,99,23,7,26,18,-1,-3,20,42,7,3,14,56,102,91,793,40,26,0,0,0,0,0,0,61,21,21,2];
 
 var imbalN_S = [-91,1,1,-2,2,-1,0,8,22];
 
@@ -2295,8 +2293,6 @@ function lozBoard () {
 
   this.firstBP = 0;
   this.firstWP = 0;
-
-  this.coeff = {};
 
   this.runningEvalS = 0;  // these are all cached across make/unmakeMove.
   this.runningEvalE = 0;
@@ -3988,6 +3984,7 @@ var MOB_QIS = IS_QKE;
 var ATT_L = 7;
 
 lozBoard.prototype.evaluate = function (turn) {
+
   //{{{  ev assignments
   
   var MOB_NS               = EV[iMOB_NS];
@@ -4046,21 +4043,6 @@ lozBoard.prototype.evaluate = function (turn) {
   //this.hashCheck(turn);
 
   //{{{  init
-  
-  this.coeff.mobN       = 0;
-  this.coeff.mobB       = 0;
-  this.coeff.mobR       = 0;
-  this.coeff.mobQ       = 0;
-  this.coeff.pairB      = 0;
-  this.coeff.doubled    = 0;
-  this.coeff.backwardmg = 0;
-  this.coeff.backwardeg = 0;
-  this.coeff.isolatedmg = 0;
-  this.coeff.isolatedeg = 0;
-  this.coeff.rook7th    = 0;
-  this.coeff.rookopenmg = 0;
-  this.coeff.rookopeneg = 0;
-  this.coeff.queen7th   = 0;
   
   var uci = this.lozza.uci;
   var b   = this.b;
@@ -4235,9 +4217,8 @@ lozBoard.prototype.evaluate = function (turn) {
       var mRank  = (wMost  & mask) >>> bits;
     
       if (lRank != 9) {
-        pawnsS += PAWN_DOUBLED_S;
-        pawnsE += PAWN_DOUBLED_E;
-        this.coeff.doubled += 1;
+        pawnsS -= PAWN_DOUBLED_S;
+        pawnsE -= PAWN_DOUBLED_E;
       }
     
       if (rank < lRank)
@@ -4283,9 +4264,8 @@ lozBoard.prototype.evaluate = function (turn) {
     
       if (lRank != 0) {
     
-        pawnsS -= PAWN_DOUBLED_S;
-        pawnsE -= PAWN_DOUBLED_E;
-        this.coeff.doubled -= 1;
+        pawnsS += PAWN_DOUBLED_S;
+        pawnsE += PAWN_DOUBLED_E;
       }
     
       if (rank > lRank)
@@ -4336,10 +4316,8 @@ lozBoard.prototype.evaluate = function (turn) {
       }
     
       if ((wLeastL >>> bits & 0xF) == 9 && (wLeastR >>> bits & 0xF) == 9) {
-        pawnsS += PAWN_ISOLATED_S + PAWN_ISOLATED_S * open;
-        pawnsE += PAWN_ISOLATED_E;
-        this.coeff.isolatedmg += 1 + open;
-        this.coeff.isolatedeg += 1;
+        pawnsS -= PAWN_ISOLATED_S + PAWN_ISOLATED_S * open;
+        pawnsE -= PAWN_ISOLATED_E;
       }
     
       else if ((wLeastL >>> bits & 0xF) > rank && (wLeastR >>> bits & 0xF) > rank) {
@@ -4349,10 +4327,8 @@ lozBoard.prototype.evaluate = function (turn) {
         else if (rank == 2 && (IS_WP[b[sq-23]] || IS_WP[b[sq-25]]) && !IS_P[b[sq-12]] && !IS_P[b[sq-24]] && !IS_BP[b[sq-11]] && !IS_BP[b[sq-13]] && !IS_BP[b[sq-23]] && !IS_BP[b[sq-25]] && !IS_BP[b[sq-37]] && !IS_BP[b[sq-35]])
           backward = false;
         if (backward) {
-          pawnsS += PAWN_BACKWARD_S + PAWN_BACKWARD_S * open;
-          pawnsE += PAWN_BACKWARD_E;
-          this.coeff.backwardmg += 1 + open;
-          this.coeff.backwardeg += 1;
+          pawnsS -= PAWN_BACKWARD_S + PAWN_BACKWARD_S * open;
+          pawnsE -= PAWN_BACKWARD_E;
         }
       }
     
@@ -4415,10 +4391,8 @@ lozBoard.prototype.evaluate = function (turn) {
       }
     
       if ((bLeastL >>> bits & 0xF) == 0x0 && (bLeastR >>> bits & 0xF) == 0x0) {
-        pawnsS -= PAWN_ISOLATED_S + PAWN_ISOLATED_S * open;
-        pawnsE -= PAWN_ISOLATED_E;
-        this.coeff.isolatedmg -= 1 + open;
-        this.coeff.isolatedeg -= 1;
+        pawnsS += PAWN_ISOLATED_S + PAWN_ISOLATED_S * open;
+        pawnsE += PAWN_ISOLATED_E;
       }
     
       else if ((bLeastL >>> bits & 0xF) < rank && (bLeastR >>> bits & 0xF) < rank) {
@@ -4428,10 +4402,8 @@ lozBoard.prototype.evaluate = function (turn) {
         else if (rank == 7 && (IS_BP[b[sq+23]] || IS_BP[b[sq+25]]) && !IS_P[b[sq+12]] && !IS_P[b[sq+24]] && !IS_WP[b[sq+11]] && !IS_WP[b[sq+13]] && !IS_WP[b[sq+23]] && !IS_WP[b[sq+25]] && !IS_WP[b[sq+37]] && !IS_WP[b[sq+35]])
           backward = false;
         if (backward) {
-          pawnsS -= PAWN_BACKWARD_S + PAWN_BACKWARD_S * open;
-          pawnsE -= PAWN_BACKWARD_E;
-          this.coeff.backwardmg -= 1 + open;
-          this.coeff.backwardeg -= 1;
+          pawnsS += PAWN_BACKWARD_S + PAWN_BACKWARD_S * open;
+          pawnsE += PAWN_BACKWARD_E;
         }
       }
     
@@ -4806,8 +4778,6 @@ lozBoard.prototype.evaluate = function (turn) {
       mobS += mob * MOB_NS - MOBOFF_NS;
       mobE += mob * MOB_NE - MOBOFF_NE;
       
-      this.coeff.mobN += mob;
-      
       if (att) {
         attackN++;
         attackV += ATT_N;
@@ -4848,8 +4818,6 @@ lozBoard.prototype.evaluate = function (turn) {
       mobS += mob * MOB_BS - MOBOFF_BS;
       mobE += mob * MOB_BE - MOBOFF_BE;
       
-      this.coeff.mobB += mob;
-      
       if (att) {
         attackN++;
         attackV += ATT_B;
@@ -4878,8 +4846,6 @@ lozBoard.prototype.evaluate = function (turn) {
       mobS += mob * MOB_RS - MOBOFF_RS;
       mobE += mob * MOB_RE - MOBOFF_RE;
       
-      this.coeff.mobR += mob;
-      
       if (att) {
         attackN++;
         attackV += ATT_R;
@@ -4890,7 +4856,6 @@ lozBoard.prototype.evaluate = function (turn) {
       if (frRank == 7 && (bKingRank == 8 || bHome)) {
         rooksS += ROOK7TH_S;
         rooksE += ROOK7TH_E;
-        this.coeff.rook7th += 1;
       }
       
       //}}}
@@ -4898,31 +4863,23 @@ lozBoard.prototype.evaluate = function (turn) {
       
       rooksS -= ROOKOPEN_S;
       rooksE -= ROOKOPEN_E;
-      this.coeff.rookopenmg -= 1;
-      this.coeff.rookopeneg -= 1;
       
       if (!(wMost & frMask)) {   // no w pawn.
       
         rooksS += ROOKOPEN_S;
         rooksE += ROOKOPEN_E;
-        this.coeff.rookopenmg += 1;
-        this.coeff.rookopeneg += 1;
       
         if (!(bLeast & frMask)) {  // no b pawn.
           rooksS += ROOKOPEN_S;
           rooksE += ROOKOPEN_E;
-          this.coeff.rookopenmg += 1;
-          this.coeff.rookopeneg += 1;
         }
       
         if (frFile == bKingFile) {
           rooksS += ROOKOPEN_S;
-          this.coeff.rookopenmg += 1;
         }
       
         if (Math.abs(frFile - bKingFile) <= 1) {
           rooksS += ROOKOPEN_S;
-          this.coeff.rookopenmg += 1;
         }
       }
       
@@ -4953,8 +4910,6 @@ lozBoard.prototype.evaluate = function (turn) {
       mobS += mob * MOB_QS;
       mobE += mob * MOB_QE;
       
-      this.coeff.mobQ += mob;
-      
       if (att) {
         attackN++;
         attackV += ATT_Q;
@@ -4965,7 +4920,6 @@ lozBoard.prototype.evaluate = function (turn) {
       if (frRank == 7 && (bKingRank == 8 || bHome)) {
         queensS += QUEEN7TH_S;
         queensE += QUEEN7TH_E;
-        this.coeff.queen7th += 1;
       }
       
       //}}}
@@ -4991,8 +4945,6 @@ lozBoard.prototype.evaluate = function (turn) {
   if (wBishop && bBishop) {
     bishopsS += TWOBISHOPS_S;
     bishopsE += TWOBISHOPS_E;
-  
-    this.coeff.pairB += 1;
   }
   
   //}}}
@@ -5054,8 +5006,6 @@ lozBoard.prototype.evaluate = function (turn) {
       mobS -= mob * MOB_NS + MOBOFF_NS;
       mobE -= mob * MOB_NE + MOBOFF_NE;
       
-      this.coeff.mobN -= mob;
-      
       if (att) {
         attackN++;
         attackV += ATT_N;
@@ -5096,8 +5046,6 @@ lozBoard.prototype.evaluate = function (turn) {
       mobS -= mob * MOB_BS + MOBOFF_BS;
       mobE -= mob * MOB_BE + MOBOFF_BE;
       
-      this.coeff.mobB -= mob;
-      
       if (att) {
         attackN++;
         attackV += ATT_B;
@@ -5126,8 +5074,6 @@ lozBoard.prototype.evaluate = function (turn) {
       mobS -= mob * MOB_RS + MOBOFF_RS;
       mobE -= mob * MOB_RE + MOBOFF_RE;
       
-      this.coeff.mobR -= mob;
-      
       if (att) {
         attackN++;
         attackV += ATT_R;
@@ -5138,7 +5084,6 @@ lozBoard.prototype.evaluate = function (turn) {
       if (frRank == 2 && (wKingRank == 1 || wHome)) {
         rooksS -= ROOK7TH_S;
         rooksE -= ROOK7TH_E;
-        this.coeff.rook7th -= 1;
       }
       
       //}}}
@@ -5146,31 +5091,23 @@ lozBoard.prototype.evaluate = function (turn) {
       
       rooksS += ROOKOPEN_S;
       rooksE += ROOKOPEN_E;
-      this.coeff.rookopenmg += 1;
-      this.coeff.rookopeneg += 1;
       
       if (!(bLeast & frMask)) { // no b pawn.
       
         rooksS -= ROOKOPEN_S;
         rooksE -= ROOKOPEN_E;
-        this.coeff.rookopenmg -= 1;
-        this.coeff.rookopeneg -= 1;
       
         if (!(wMost & frMask)) {  // no w pawn.
           rooksS -= ROOKOPEN_S;
           rooksE -= ROOKOPEN_E;
-          this.coeff.rookopenmg -= 1;
-          this.coeff.rookopeneg -= 1;
         }
       
         if (frFile == wKingFile) {
           rooksS -= ROOKOPEN_S;
-          this.coeff.rookopenmg -= 1;
         }
       
         if (Math.abs(frFile - wKingFile) <= 1) {
           rooksS -= ROOKOPEN_S;
-          this.coeff.rookopenmg -= 1;
         }
       }
       
@@ -5201,8 +5138,6 @@ lozBoard.prototype.evaluate = function (turn) {
       mobS -= mob * MOB_QS;
       mobE -= mob * MOB_QE;
       
-      this.coeff.mobQ -= mob;
-      
       if (att) {
         attackN++;
         attackV += ATT_Q;
@@ -5213,7 +5148,6 @@ lozBoard.prototype.evaluate = function (turn) {
       if (frRank == 2 && (wKingRank == 1 || wHome)) {
         queensS -= QUEEN7TH_S;
         queensE -= QUEEN7TH_E;
-        this.coeff.queen7th -= 1;
       }
       
       //}}}
@@ -5239,8 +5173,6 @@ lozBoard.prototype.evaluate = function (turn) {
   if (wBishop && bBishop) {
     bishopsS -= TWOBISHOPS_S;
     bishopsE -= TWOBISHOPS_E;
-  
-    this.coeff.pairB -= 1;
   }
   
   //}}}
@@ -5407,7 +5339,6 @@ lozBoard.prototype.evaluate = function (turn) {
     uci.send('info string','knights =',knightsS,knightsE);
     uci.send('info string','pawns =',pawnsS,pawnsE);
     uci.send('info string','tempo =',tempoS,tempoE);
-    //uci.send('info string','coeff doubled =',this.coeff.doubled);
   }
   
   //}}}
@@ -6749,7 +6680,7 @@ if (lozzaHost == HOST_NODEJS) {
 // 2. Copy EV assignments to evaluate().
 //
 
-var gWhat = 'Tuning may, psts and imbal';
+var gWhat = 'Tuning all';
 
 //{{{  globals
 
@@ -6760,7 +6691,7 @@ board = lozza.board;
 var epds   = [];
 var params = [];
 
-var gK            = 3.6567;
+var gK            = 1.59;
 var gEpdFile      = 'c:/projects/chessdata/quiet-labeled.epd';
 var gProbIndex    = 5;
 
@@ -6768,11 +6699,8 @@ var gProbIndex    = 5;
 //var gEpdFile      = 'c:/projects/chessdata/flipped/eth.epd';
 //var gProbIndex    = 6;
 
-var gLearningRate = 0.5;
-var gBatchSize    = 10000;
-var gOutFile      = 'gdtuner.txt';
+var gOutFile      = 'tuner.txt';
 var gMaxPositions = 1000000000;
-var gErrStep      = 10;
 
 //}}}
 //{{{  functions
@@ -6796,13 +6724,6 @@ function updateBlack () {
     BKING_PSTE[wbmap(i)]   = WKING_PSTE[i];
     BOUTPOST[wbmap(i)]     = WOUTPOST[i];
   }
-}
-
-//}}}
-//{{{  is
-
-function is (obj,sq) {
-  return (board.b[sq] == obj) | 0;
 }
 
 //}}}
@@ -6834,8 +6755,27 @@ function findK () {
 //}}}
 //{{{  addp
 
-function addp (a,i,coeff) {
-  params.push({a: a, i: i, coeff: coeff, gr: 0, ag: 0});
+function addp (a,i) {
+  params.push({a: a, i: i, inc: 1});
+}
+
+//}}}
+//{{{  addpst
+
+function addpst(pst,lo,hi) {
+  for (var i=lo; i < hi; i++) {
+    var sq = B88[i];
+    addp(pst, sq);
+  }
+}
+
+//}}}
+//{{{  addv
+
+function addv(v,lo) {
+  for (var i=lo; i < v.length; i++) {
+    addp(v, i);
+  }
 }
 
 //}}}
@@ -6857,13 +6797,15 @@ function wbmap (sq) {
 //{{{  sigmoid
 
 function sigmoid (x) {
-  return 1.0 / (1.0 + Math.exp(-gK*x/400.0));
+  return 1.0 / (1.0 + Math.pow(10.0,-gK*x/400.0));
 }
 
 //}}}
 //{{{  calcErr
 
 function calcErr () {
+
+  updateBlack();
 
   var err = 0;
   var num = epds.length;
@@ -6927,19 +6869,6 @@ function getprob (r) {
 
 function loga (p,s) {
 
-  var a = Array(p.length);
-
-  for (var i=0; i < p.length; i++)
-    a[i] = myround(p[i]) | 0;
-
-  return 'var ' + s + ' = [' + a.toString() + '];\r\n';
-}
-
-//}}}
-//{{{  logb
-
-function logb (p,s) {
-
   return 'var ' + s + ' = [' + p.toString() + '];\r\n';
 }
 
@@ -6948,11 +6877,6 @@ function logb (p,s) {
 
 function logpst (p,s) {
 
-  var a = Array(p.length);
-
-  for (var i=0; i < p.length; i++)
-    a[i] = myround(p[i]) | 0;
-
   var o = 'var ';
 
   o = o + s + ' = [';
@@ -6960,8 +6884,8 @@ function logpst (p,s) {
   for (var i=0; i < 144; i++) {
     if ((i % 12) == 0)
       o = o + '\r\n  ';
-    //o = o + a[i];
-    o = o + a[i].toString().padStart(4,' ');
+    //o = o + p[i];
+    o = o + p[i].toString().padStart(4,' ');
     if (i < 143)
       o = o + ', ';
   }
@@ -6986,10 +6910,6 @@ function saveparams (err,epochs) {
   out += '// epochs=' + epochs;
   out += '\r\n';
   out += '// k='+gK;
-  out += '\r\n';
-  out += '// batchsize='+gBatchSize;
-  out += '\r\n';
-  out += '// learningrate='+gLearningRate;
   out += '\r\n';
   out += '// err='+err;
   out += '\r\n';
@@ -7031,8 +6951,8 @@ function saveparams (err,epochs) {
 
   out += loga(WSTORM,         'WSTORM        ');
   out += loga(WSHELTER,       'WSHELTER      ');
-  out += logb(ATT_W,          'ATT_W         ');
-  out += logb(PAWN_PASSED,    'PAWN_PASSED   ');
+  out += loga(ATT_W,          'ATT_W         ');
+  out += loga(PAWN_PASSED,    'PAWN_PASSED   ');
 
   out += loga(imbalN_S,       'imbalN_S      ');
   out += loga(imbalN_E,       'imbalN_E      ');
@@ -7059,171 +6979,97 @@ function grunt () {
 
   //{{{  create params
   
-  addp(VALUE_VECTOR, KNIGHT, function (piece,mg,eg) {return (board.wCounts[KNIGHT] - board.bCounts[KNIGHT]);});
-  addp(VALUE_VECTOR, BISHOP, function (piece,mg,eg) {return (board.wCounts[BISHOP] - board.bCounts[BISHOP]);});
-  addp(VALUE_VECTOR, ROOK,   function (piece,mg,eg) {return (board.wCounts[ROOK]   - board.bCounts[ROOK]);});
-  addp(VALUE_VECTOR, QUEEN,  function (piece,mg,eg) {return (board.wCounts[QUEEN]  - board.bCounts[QUEEN]);});
+  addp(VALUE_VECTOR, KNIGHT);
+  addp(VALUE_VECTOR, BISHOP);
+  addp(VALUE_VECTOR, ROOK);
+  addp(VALUE_VECTOR, QUEEN);
   
-  for (var i=8; i < 56; i++) {
-    var sq = B88[i];
-    addp(WPAWN_PSTS, sq, function (sq,mg,eg) {return (is(W_PAWN,sq) - is(B_PAWN,wbmap(sq))) * mg;});
-    addp(WPAWN_PSTE, sq, function (sq,mg,eg) {return (is(W_PAWN,sq) - is(B_PAWN,wbmap(sq))) * eg;});
+  addpst(WPAWN_PSTS,   8,56);
+  addpst(WPAWN_PSTE,   8,56);
+  
+  addpst(WKNIGHT_PSTS, 0,64);
+  addpst(WKNIGHT_PSTE, 0,64);
+  addpst(WBISHOP_PSTS, 0,64);
+  addpst(WBISHOP_PSTE, 0,64);
+  addpst(WROOK_PSTS,   0,64);
+  addpst(WROOK_PSTE,   0,64);
+  addpst(WQUEEN_PSTS,  0,64);
+  addpst(WQUEEN_PSTE,  0,64);
+  addpst(WKING_PSTS,   0,64);
+  addpst(WKING_PSTE,   0,64);
+  
+  var ko =[51,52,53,54,55,56,63,64,65,66,67,68,75,76,77,78,79,80];  //knight outpost squares (18)
+  for (var i=0; i < ko.length; i++) {
+    var sq = ko[i];
+    addp(WOUTPOST, sq);
   }
   
-  for (var i=0; i < 64; i++) {
-    var sq = B88[i];
-    addp(WKNIGHT_PSTS, sq, function (sq,mg,eg) {return (is(W_KNIGHT,sq) - is(B_KNIGHT,wbmap(sq))) * mg;});
-    addp(WKNIGHT_PSTE, sq, function (sq,mg,eg) {return (is(W_KNIGHT,sq) - is(B_KNIGHT,wbmap(sq))) * eg;});
-    addp(WBISHOP_PSTS, sq, function (sq,mg,eg) {return (is(W_BISHOP,sq) - is(B_BISHOP,wbmap(sq))) * mg;});
-    addp(WBISHOP_PSTE, sq, function (sq,mg,eg) {return (is(W_BISHOP,sq) - is(B_BISHOP,wbmap(sq))) * eg;});
-    addp(WROOK_PSTS,   sq, function (sq,mg,eg) {return (is(W_ROOK,sq)   - is(B_ROOK,  wbmap(sq))) * mg;});
-    addp(WROOK_PSTE,   sq, function (sq,mg,eg) {return (is(W_ROOK,sq)   - is(B_ROOK,  wbmap(sq))) * eg;});
-    addp(WQUEEN_PSTS,  sq, function (sq,mg,eg) {return (is(W_QUEEN,sq)  - is(B_QUEEN, wbmap(sq))) * mg;});
-    addp(WQUEEN_PSTE,  sq, function (sq,mg,eg) {return (is(W_QUEEN,sq)  - is(B_QUEEN, wbmap(sq))) * eg;});
-    addp(WKING_PSTS,   sq, function (sq,mg,eg) {return (is(W_KING,sq)   - is(B_KING,  wbmap(sq))) * mg;});
-    addp(WKING_PSTE,   sq, function (sq,mg,eg) {return (is(W_KING,sq)   - is(B_KING,  wbmap(sq))) * eg;});
-  }
+  addv(imbalN_S, 0);
+  addv(imbalN_E, 0);
+  addv(imbalB_S, 0);
+  addv(imbalB_E, 0);
+  addv(imbalR_S, 0);
+  addv(imbalR_E, 0);
+  addv(imbalQ_S, 0);
+  addv(imbalQ_E, 0);
   
-  for (var i=0; i <= 8; i++) {
-    addp(imbalN_S, i, function (np,mg,eg) {return ((board.wCounts[KNIGHT] * (board.wCounts[PAWN] == np)) - (board.bCounts[KNIGHT] * (board.bCounts[PAWN] == np))) * mg;});
-    addp(imbalN_E, i, function (np,mg,eg) {return ((board.wCounts[KNIGHT] * (board.wCounts[PAWN] == np)) - (board.bCounts[KNIGHT] * (board.bCounts[PAWN] == np))) * eg;});
-    addp(imbalB_S, i, function (np,mg,eg) {return ((board.wCounts[BISHOP] * (board.wCounts[PAWN] == np)) - (board.bCounts[BISHOP] * (board.bCounts[PAWN] == np))) * mg;});
-    addp(imbalB_E, i, function (np,mg,eg) {return ((board.wCounts[BISHOP] * (board.wCounts[PAWN] == np)) - (board.bCounts[BISHOP] * (board.bCounts[PAWN] == np))) * eg;});
-    addp(imbalR_S, i, function (np,mg,eg) {return ((board.wCounts[ROOK]   * (board.wCounts[PAWN] == np)) - (board.bCounts[ROOK]   * (board.bCounts[PAWN] == np))) * mg;});
-    addp(imbalR_E, i, function (np,mg,eg) {return ((board.wCounts[ROOK]   * (board.wCounts[PAWN] == np)) - (board.bCounts[ROOK]   * (board.bCounts[PAWN] == np))) * eg;});
-    addp(imbalQ_S, i, function (np,mg,eg) {return ((board.wCounts[QUEEN]  * (board.wCounts[PAWN] == np)) - (board.bCounts[QUEEN]  * (board.bCounts[PAWN] == np))) * mg;});
-    addp(imbalQ_E, i, function (np,mg,eg) {return ((board.wCounts[QUEEN]  * (board.wCounts[PAWN] == np)) - (board.bCounts[QUEEN]  * (board.bCounts[PAWN] == np))) * eg;});
-  }
+  addv(EV, 0);
   
-  addp(EV, iMOB_NS, function (i,mg,eg) {return board.coeff.mobN * mg});
-  addp(EV, iMOB_NE, function (i,mg,eg) {return board.coeff.mobN * eg});
-  addp(EV, iMOB_BS, function (i,mg,eg) {return board.coeff.mobB * mg});
-  addp(EV, iMOB_BE, function (i,mg,eg) {return board.coeff.mobB * eg});
-  addp(EV, iMOB_RS, function (i,mg,eg) {return board.coeff.mobR * mg});
-  addp(EV, iMOB_RE, function (i,mg,eg) {return board.coeff.mobR * eg});
-  addp(EV, iMOB_QS, function (i,mg,eg) {return board.coeff.mobQ * mg});
-  addp(EV, iMOB_QE, function (i,mg,eg) {return board.coeff.mobQ * eg});
-  
-  addp(EV, iTWOBISHOPS_S, function (i,mg,eg) {return board.coeff.pairB * mg});
-  addp(EV, iTWOBISHOPS_E, function (i,mg,eg) {return board.coeff.pairB * eg});
-  
-  addp(EV, iPAWN_DOUBLED_S,  function (i,mg,eg) {return board.coeff.doubled    * mg});
-  addp(EV, iPAWN_DOUBLED_E,  function (i,mg,eg) {return board.coeff.doubled    * eg});
-  addp(EV, iPAWN_ISOLATED_S, function (i,mg,eg) {return board.coeff.isolatedmg * mg});
-  addp(EV, iPAWN_ISOLATED_E, function (i,mg,eg) {return board.coeff.isolatedeg * eg});
-  addp(EV, iPAWN_BACKWARD_S, function (i,mg,eg) {return board.coeff.backwardmg * mg});
-  addp(EV, iPAWN_BACKWARD_E, function (i,mg,eg) {return board.coeff.backwardeg * eg});
-  
-  addp(EV, iROOK7TH_S,  function (i,mg,eg) {return board.coeff.rook7th    * mg});
-  addp(EV, iROOK7TH_E,  function (i,mg,eg) {return board.coeff.rook7th    * eg});
-  addp(EV, iROOKOPEN_S, function (i,mg,eg) {return board.coeff.rookopenmg * mg});
-  addp(EV, iROOKOPEN_E, function (i,mg,eg) {return board.coeff.rookopeneg * eg});
-  
-  addp(EV, iQUEEN7TH_S, function (i,mg,eg) {return board.coeff.queen7th * mg});
-  addp(EV, iQUEEN7TH_E, function (i,mg,eg) {return board.coeff.queen7th * eg});
+  addv(WSHELTER, 3);
+  addv(WSTORM,   3);
   
   //}}}
   //{{{  tune params
   
   var numParams  = params.length;
   var epoch      = 0;
-  var numBatches = epds.length / gBatchSize | 0;
   var err        = 0;
-  var lastErr    = 9999999;
-  var dir        = '';
+  var bestErr    = calcErr();
+  var changes    = 1;
   
-  console.log('num params =', numParams);
-  console.log('batch size =', gBatchSize);
-  console.log('num batches =', numBatches);
+  console.log('num params =',numParams);
+  console.log('initial err =',bestErr);
   
-  var K2 = gK / 200.0;
+  while (changes > 0) {
   
-  while (1) {
+    changes = 0;
   
-    if (epoch % gErrStep == 0) {
-      //{{{  log it
-      
+    for (var i=0; i < numParams; i++) {
+  
+      process.stdout.write(i+','+changes+','+bestErr+'\r');
+  
+      var p = params[i];
+  
+      p.a[p.i] += p.inc;
       err = calcErr();
-      
-      if (err < lastErr) {
-        dir = '-';
-      }
-      else if (err > lastErr) {
-        dir = '+';
+      if (err < bestErr) {
+        saveparams(err,epoch);
+        changes++;
+        bestErr = err;
+        continue;
       }
       else {
-        dir = '=';
+        p.a[p.i] -= p.inc;
       }
-      
-      console.log(epoch,err,dir);
-      
-      saveparams(err,epoch);
-      
-      lastErr = err;
-      
-      //}}}
-    }
-    else {
-      process.stdout.write(epoch+'\r');
+  
+      p.inc = -p.inc;
+  
+      p.a[p.i] += p.inc;
+      err = calcErr();
+      if (err < bestErr) {
+        saveparams(err,epoch);
+        changes++;
+        bestErr = err;
+        continue;
+      }
+      else {
+        p.a[p.i] -= p.inc;
+      }
     }
   
     epoch++;
   
-    for (var batch=0; batch < numBatches; batch++) {
-      //{{{  reset gradient sums
-      
-      for (var i=0; i < numParams; i++)
-        params[i].gr = 0;
-      
-      //}}}
-      //{{{  accumulate gradients
-      
-      for (var i=batch*gBatchSize; i < (batch+1)*gBatchSize; i++) {
-      
-        var epd = epds[i];
-      
-        uci.spec.board    = epd.board;
-        uci.spec.turn     = epd.turn;
-        uci.spec.rights   = epd.rights;
-        uci.spec.ep       = epd.ep;
-        uci.spec.fmc      = 0;
-        uci.spec.hmc      = 0;
-        uci.spec.id       = 'id' + j;
-        uci.spec.moves    = [];
-      
-        lozza.position();
-      
-        var pr = epd.prob;
-        var ev = board.evaluate(board.turn);
-      
-        if (board.turn == BLACK)
-          ev = -ev;  // undo negamax.
-      
-        var sg    = sigmoid(ev);
-        var phase = board.cleanPhase(board.phase);
-        var mg    = (TPHASE - phase) / TPHASE;
-        var eg    = phase / TPHASE;
-      
-        for (var j=0; j < numParams; j++) {
-          var p = params[j];
-          p.gr += p.coeff(p.i,mg,eg) * (sg * (1 - sg)) * (sg - pr);  // chain rule
-        }
-      }
-      
-      //}}}
-      //{{{  apply mean gradient
-      
-      for (var i=0; i < numParams; i++) {
-        var p    = params[i];
-        var gr   = K2 * p.gr / gBatchSize;
-        p.ag     += gr * gr;
-        p.a[p.i] -= (gLearningRate / Math.sqrt(p.ag + 1e-8)) * gr;
-      }
-      
-      updateBlack();
-      
-      //}}}
-    }
+    console.log(epoch,bestErr,changes);
   }
   
   //}}}

@@ -3993,20 +3993,24 @@ lozBoard.prototype.evaluate = function (turn) {
 
   //{{{  init
   
-  this.coeff.mobN       = 0;
-  this.coeff.mobB       = 0;
-  this.coeff.mobR       = 0;
-  this.coeff.mobQ       = 0;
-  this.coeff.pairB      = 0;
-  this.coeff.doubled    = 0;
-  this.coeff.backwardmg = 0;
-  this.coeff.backwardeg = 0;
-  this.coeff.isolatedmg = 0;
-  this.coeff.isolatedeg = 0;
-  this.coeff.rook7th    = 0;
-  this.coeff.rookopenmg = 0;
-  this.coeff.rookopeneg = 0;
-  this.coeff.queen7th   = 0;
+  this.coeff.mobN             = 0;
+  this.coeff.mobB             = 0;
+  this.coeff.mobR             = 0;
+  this.coeff.mobQ             = 0;
+  this.coeff.pairB            = 0;
+  this.coeff.doubled          = 0;
+  this.coeff.backwardmg       = 0;
+  this.coeff.backwardeg       = 0;
+  this.coeff.isolatedmg       = 0;
+  this.coeff.isolatedeg       = 0;
+  this.coeff.rook7th          = 0;
+  this.coeff.rookopenmg       = 0;
+  this.coeff.rookopeneg       = 0;
+  this.coeff.queen7th         = 0;
+  this.coeff.pawnpassedoffset = 0;
+  this.coeff.pawnpassedmult   = 0;
+  this.coeff.pawnpassking1    = 0;
+  this.coeff.pawnpassking2    = 0;
   
   var uci = this.lozza.uci;
   var b   = this.b;
@@ -4327,6 +4331,8 @@ lozBoard.prototype.evaluate = function (turn) {
             if (defenders >= attackers) {
               pawnsS += PAWN_PASSED_OFFSET_S + PAWN_PASSED_MULT_S * PAWN_PASSED[rank] | 0;
               pawnsE += PAWN_PASSED_OFFSET_E + PAWN_PASSED_MULT_E * PAWN_PASSED[rank] | 0;
+              this.coeff.pawnpassedoffset += 1;
+              this.coeff.pawnpassedmult   += PAWN_PASSED[rank];
             }
           }
         }
@@ -4406,6 +4412,8 @@ lozBoard.prototype.evaluate = function (turn) {
             if (defenders >= attackers) {
               pawnsS -= PAWN_PASSED_OFFSET_S + PAWN_PASSED_MULT_S * PAWN_PASSED[9-rank] | 0;
               pawnsE -= PAWN_PASSED_OFFSET_E + PAWN_PASSED_MULT_E * PAWN_PASSED[9-rank] | 0;
+              this.coeff.pawnpassedoffset -= 1;
+              this.coeff.pawnpassedmult   -= PAWN_PASSED[9-rank];
             }
           }
         }
@@ -4470,6 +4478,9 @@ lozBoard.prototype.evaluate = function (turn) {
           //{{{  king dist
           
           var passKings = PAWN_PASS_KING1 * DIST[bKingSq][sq2] - PAWN_PASS_KING2 * DIST[wKingSq][sq2];
+          
+          this.coeff.pawnpassking1 += DIST[bKingSq][sq2] * PAWN_PASSED[rank];  // See below.
+          this.coeff.pawnpassking2 -= DIST[wKingSq][sq2] * PAWN_PASSED[rank];  // See below.
           
           //}}}
           //{{{  attacked?
@@ -4542,6 +4553,9 @@ lozBoard.prototype.evaluate = function (turn) {
           //{{{  king dist
           
           var passKings = PAWN_PASS_KING1 * DIST[wKingSq][sq2] - PAWN_PASS_KING2 * DIST[bKingSq][sq2];
+          
+          this.coeff.pawnpassking1 -= DIST[wKingSq][sq2] * PAWN_PASSED[9-rank];  // See below.
+          this.coeff.pawnpassking2 += DIST[bKingSq][sq2] * PAWN_PASSED[9-rank];  // See below.
           
           //}}}
           //{{{  attacked?
@@ -5353,6 +5367,7 @@ lozBoard.prototype.evaluate = function (turn) {
     uci.send('info string','knights =',knightsS,knightsE);
     uci.send('info string','pawns =',pawnsS,pawnsE);
     uci.send('info string','tempo =',tempoS,tempoE);
+    //uci.send('info string','coeff doubled =',this.coeff.doubled);
   }
   
   //}}}
@@ -6828,6 +6843,10 @@ for (var i=0; i < epds.length; i++) {
   c1[11] = board.coeff.rookopenmg;
   c1[12] = board.coeff.rookopeneg;
   c1[13] = board.coeff.queen7th;
+  c1[14] = board.coeff.pawnpassedoffset;
+  c1[15] = board.coeff.pawnpassedmult;
+  c1[16] = board.coeff.pawnpassking1;
+  c1[17] = board.coeff.pawnpassking2;
 
   var epdf = epdsf[i];
   uci.spec.board    = epdf.board;
@@ -6855,23 +6874,28 @@ for (var i=0; i < epds.length; i++) {
   c2[11] = board.coeff.rookopenmg;
   c2[12] = board.coeff.rookopeneg;
   c2[13] = board.coeff.queen7th;
+  c2[14] = board.coeff.pawnpassedoffset;
+  c2[15] = board.coeff.pawnpassedmult;
+  c2[16] = board.coeff.pawnpassking1;
+  c2[17] = board.coeff.pawnpassking2;
 
-  for (var j=0; j < 14; j++) {
-    if (c1[j] != -c2[j])
+  for (var j=0; j < 18; j++) {
+    if (c1[j] + c2[j] > 0.000001) {
       console.log('coeff mismatch',j,c1[j],c2[j],epd.board,epdf.board);
-      //process.exit();
+      process.exit();
+    }
   }
 
   if (epd.board == epdf.board && epd.turn == epdf.turn && epd.rights == epdf.rights && epd.ep == epdf.ep) {
     console.log('oops',epd.board,epdf.board);
-    //process.exit();
+    process.exit();
   }
 
   if (e != ef) {
     console.log('eval mismatch');
     console.log(e, epd.board, epd.turn, epd.rights, epd.ep);
     console.log(ef,epdf.board,epdf.turn,epdf.rights,epdf.ep);
-    //process.exit();
+    process.exit();
   }
 }
 
