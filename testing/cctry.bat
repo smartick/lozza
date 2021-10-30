@@ -25,7 +25,7 @@ set o=-repeat -srand %a -openings file=c:\projects\chessdata\4moves_noob.pgn for
 
 set f=-pgnout cctry.pgn fi
 
-set s=-sprt elo0=-1 elo1=4 alpha=0.05 beta=0.05
+set s=-sprt elo0=0 elo1=5 alpha=0.05 beta=0.05
 
 set v=-ratinginterval 10
 
