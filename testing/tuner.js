@@ -7001,7 +7001,6 @@ var gProbIndex    = 5;
 
 var gOutFile      = 'tuner.txt';
 var gMaxPositions = 1000000000;
-var gQuiet        = false;
 
 //}}}
 //{{{  functions
@@ -7433,50 +7432,6 @@ rl.on('line', function (line) {
       return;
 
     var parts = line.split(' ');
-
-    //{{{  quiet only?
-    
-    if (gQuiet) {
-    
-      uci.spec.board    = parts[0];
-      uci.spec.turn     = parts[1];
-      uci.spec.rights   = parts[2];
-      uci.spec.ep       = parts[3];
-      uci.spec.fmc      = 0;
-      uci.spec.hmc      = 0;
-      uci.spec.id       = '';
-      uci.spec.moves    = [];
-    
-      lozza.position();
-    
-      var inCheck  = board.isKingAttacked(nextTurn);
-      if (inCheck) {
-        return;
-      }
-    
-      var nextTurn = ~board.turn & COLOR_MASK;
-      var inCheck  = board.isKingAttacked(nextTurn);
-      if (inCheck) {
-        return;
-      }
-    
-      var e = board.evaluate(board.turn);
-      var q = lozza.qSearch(lozza.rootNode,0,board.turn,-INFINITY,INFINITY);
-    
-      if (isNaN(e)) {
-        console.log('nan e',e);
-        process.exit();
-      }
-      if (isNaN(q)) {
-        console.log('nan q',q);
-        process.exit();
-      }
-    
-      if (q != e)
-        return;
-    }
-    
-    //}}}
 
     epds.push({board:   parts[0],
                turn:    parts[1],
