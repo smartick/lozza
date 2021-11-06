@@ -124,6 +124,11 @@ eval feathering different start value
 'lozza\trunk\testing\engines.json'
 'lozza\trunk\testing\cctry.pgn'
 
+'lozza\trunk\testing\gdtuner.js'
+'lozza\trunk\testing\gdtuner.txt'
+
+'lozza\trunk\testing\nettuner.js'
+
 'lozza\trunk\testing\tuner.js'
 'lozza\trunk\testing\tuner.txt'
 

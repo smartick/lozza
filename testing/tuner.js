@@ -5,11 +5,14 @@
 // A hand-coded Javascript chess engine inspired by Fabien Letouzey's Fruit 2.1.
 //
 
-var BUILD       = "2.0a";
+var BUILD       = "2.1";
 var USEPAWNHASH = 0;
 
 //{{{  history
 /*
+
+2.1 30/10/21 Retune everything.
+2.1 21/10/21 Encourage pawns to 8th rank more in pawn PSTs. 12+-8.
 
 2.0a 27/09/21 Fix timeouts.
 2.0a 27/09/21 Add USEPAWNHASH - useful when testing.
@@ -4286,8 +4289,6 @@ var MOB_QIS = IS_QKE;
 var ATT_L = 7;
 
 lozBoard.prototype.evaluate = function (turn) {
-
-  //this.hashCheck(turn);
   //{{{  ev assignments
   
   var MOB_NS               = EV[iMOB_NS];
@@ -4342,6 +4343,8 @@ lozBoard.prototype.evaluate = function (turn) {
   var SHELTERM             = EV[iSHELTERM];
   
   //}}}
+
+  //this.hashCheck(turn);
 
   //{{{  init
   
@@ -6995,10 +6998,6 @@ var params = [];
 var gK            = 1.59;
 var gEpdFile      = 'c:/projects/chessdata/quiet-labeled.epd';
 var gProbIndex    = 5;
-
-//var gK            = 2.9;
-//var gEpdFile      = 'c:/projects/chessdata/flipped/eth.epd';
-//var gProbIndex    = 6;
 
 var gOutFile      = 'tuner.txt';
 var gMaxPositions = 1000000000;
