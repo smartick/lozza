@@ -1,5 +1,6 @@
 
 var maxPositions   = 100000000;
+var testFraction   = 0.2;
 var netInputSize   = 768;
 var netHiddenSize  = 16;
 var numEpochs      = 20000;
@@ -573,7 +574,7 @@ function grunt () {
   
   var t1 = Date.now();
   
-  for (var i=0; i < epds.length; i++) {
+  for (var i=0; i < epds.length/100|0; i++) {
   
     var epd = epds[i];
   
@@ -589,11 +590,16 @@ function grunt () {
   //}}}
   //{{{  tune
   
-  var numBatches = epds.length / batchSize | 0;
+  var testPositions = epds.length * testFraction | 0;
+  var tunePositions = epds.length - testPositions;
+  
+  var numBatches = tunePositions / batchSize | 0;
   
   var loss     = 0;
   var bestLoss = 100;
   
+  console.log('test positions =',testPositions);
+  console.log('tune positions =',tunePositions);
   console.log('input layer size =',netInputSize);
   console.log('hidden layer size =',netHiddenSize);
   console.log('batch size =',batchSize);
@@ -608,7 +614,7 @@ function grunt () {
     
     lastLoss = loss;
     
-    for (var i=0; i < epds.length; i++) {
+    for (var i=0; i < testPositions; i++) {
     
       var epd = epds[i];
     
@@ -638,9 +644,12 @@ function grunt () {
     
     for (var batch=0; batch < numBatches; batch++) {
     
+      if (batch % 10000 == 0)
+        process.stdout.write('epoch ' + epoch + ', batch ' + batch + '\r');
+    
       netResetGradientSums();
     
-      for (var i=batch*batchSize; i < (batch+1)*batchSize; i++) {
+      for (var i = testPositions + batch*batchSize; i < testPositions + (batch+1)*batchSize; i++) {
     
         var epd = epds[i];
     
@@ -670,7 +679,7 @@ function grunt () {
 //}}}
 //{{{  kick it off
 
-var epdfile      = 'c:/projects/chessdata/quiet-labeled.epd';
+var epdfile      = 'c:/projects/chessdata/rebel.epd';
 var thisPosition = 0;
 
 const readline = require('readline');
@@ -692,12 +701,39 @@ rl.on('line', function (line) {
 
   if (thisPosition <= maxPositions) {
 
-    line = line.replace(/(\r\n|\n|\r)/gm,'');  // (inc removing / from fens)
+    line = line.replace(/(\r\n|\n|\r)/gm,'');
+    line = line.replace(/=/gm,' ');
 
     const parts = line.split(' ');
 
+    //{{{  get prob
+    
+    var stm  = parts[1];
+    var prob = parseFloat(parts[9]);
+    
+    if (stm != 'w' && stm != 'b') {
+      console.log('stm',stm,line);
+      process.exit();
+    }
+    
+    if (prob != 0.0 && prob != 0.5 && prob != 1.0) {
+      console.log('prob',prob,line);
+      process.exit();
+    }
+    
+    if (stm == 'b') {
+      if (prob == 0.0) {
+        prob = 1.0;
+      }
+      else if (prob == 1.0) {
+        prob = 0.0;
+      }
+    }
+    
+    //}}}
+
     epds.push({board:   parts[0],
-               prob:    getprob(parts[5])});
+               prob:    prob});
   }
 });
 

@@ -1,54 +1,6 @@
 
 //{{{  try
 
-//{{{  remove positions where e != q
-//
-// Remove positions where q != e so that we can use e in the testing.
-// Q search needs to be independent of TT and hisitory etc so that it
-// can be called with different positions OK. Or init a new game before
-// each call. Lozza Q is safe (I think). Ditto eval - needs to stay clear
-// of TT.
-//
-
-lozza.newGameInit();
-
-var epds2 = [];
-
-for (var i=0; i < epds.length; i++) {
-
-  var epd = epds[i];
-
-  uci.spec.board    = epd.board;
-  uci.spec.turn     = epd.turn;
-  uci.spec.rights   = epd.rights;
-  uci.spec.ep       = epd.ep;
-  uci.spec.fmc      = epd.fmvn;
-  uci.spec.hmc      = epd.hmvc;
-  uci.spec.id       = 'id' + i;
-  uci.spec.moves    = [];
-
-  lozza.position();
-
-  var e = board.evaluate(board.turn);
-  var q = lozza.qSearch(lozza.rootNode,0,board.turn,-INFINITY,INFINITY);
-
-  if (isNaN(e) || isNaN(q)) {
-    console.log('NaN');
-    process.exit();
-  }
-
-  if (e == q) {
-    epd.eval = e;
-    epds2.push(epd);
-  }
-}
-
-epds = []; // release
-
-console.log('usable (e==q) =',epds2.length);
-
-//}}}
-
 no pruning etc while ply (not depth) is < 5 say.
 
 dont reset h scores on position
@@ -60,8 +12,6 @@ preserve depth collisions in tt but beware alpha/beta
 no tt at depth < 2 (inc q)
 
 no tt at ply 1
-
-add some randomness into move time and eval params etc
 
 always do nmp if at least a knight etc
 
@@ -109,8 +59,6 @@ eval feathering different start value
 
 //{{{  other lozzas
 
-'lozza\trunk\deadends\lozza3.js'
-'lozza\trunk\deadends\texeltune.js'
 'lozza\trunk\history\2.1\lozza.js'           - candidate dev
 'lozza\trunk\history\2.0\lozza.js'           - released dev
 'lozza\trunk\history\2.0\release\lozza.js'   - released public
@@ -124,13 +72,13 @@ eval feathering different start value
 'lozza\trunk\testing\engines.json'
 'lozza\trunk\testing\cctry.pgn'
 
+'lozza\trunk\testing\tuner.js'
+'lozza\trunk\testing\tuner.txt'
+
 'lozza\trunk\testing\gdtuner.js'
 'lozza\trunk\testing\gdtuner.txt'
 
 'lozza\trunk\testing\nettuner.js'
-
-'lozza\trunk\testing\tuner.js'
-'lozza\trunk\testing\tuner.txt'
 
 'lozza\trunk\testing\eval.js'
 'lozza\trunk\testing\eval_flip.js'
