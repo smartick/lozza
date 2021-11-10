@@ -2,67 +2,53 @@
 var maxPositions   = 100000000;
 var testFraction   = 0.2;
 var netInputSize   = 768;
-var netHiddenSize  = 16;
+var netHiddenSize  = 8;
 var numEpochs      = 20000;
 var learningRate   = 0.1;
 var batchSize      = 100;
+var scale          = 200;
 //var useBias        = 0;
 
 //{{{  constants
 
-const WHITE = 0;
-const BLACK = 1;
+const NWHITE = 0;
+const NBLACK = 1;
 
-const KING   = 6;
-const QUEEN  = 5;
-const ROOK   = 4;
-const BISHOP = 3;
-const KNIGHT = 2;
 const PAWN   = 1;
+const KNIGHT = 2;
+const BISHOP = 3;
+const ROOK   = 4;
+const QUEEN  = 5;
+const KING   = 6;
 
 var chPce = [];
 var chCol = [];
 var chNum = [];
-var chVal = [];
-
-chVal['P'] = 1;
-chVal['N'] = 3;
-chVal['B'] = 3;
-chVal['R'] = 5;
-chVal['Q'] = 9;
-chVal['K'] = 0;
-
-chVal['p'] = -1;
-chVal['n'] = -3;
-chVal['b'] = -3;
-chVal['r'] = -5;
-chVal['q'] = -9;
-chVal['k'] = 0;
 
 chPce['k'] = KING;
-chCol['k'] = BLACK;
+chCol['k'] = NBLACK;
 chPce['q'] = QUEEN;
-chCol['q'] = BLACK;
+chCol['q'] = NBLACK;
 chPce['r'] = ROOK;
-chCol['r'] = BLACK;
+chCol['r'] = NBLACK;
 chPce['b'] = BISHOP;
-chCol['b'] = BLACK;
+chCol['b'] = NBLACK;
 chPce['n'] = KNIGHT;
-chCol['n'] = BLACK;
+chCol['n'] = NBLACK;
 chPce['p'] = PAWN;
-chCol['p'] = BLACK;
+chCol['p'] = NBLACK;
 chPce['K'] = KING;
-chCol['K'] = WHITE;
+chCol['K'] = NWHITE;
 chPce['Q'] = QUEEN;
-chCol['Q'] = WHITE;
+chCol['Q'] = NWHITE;
 chPce['R'] = ROOK;
-chCol['R'] = WHITE;
+chCol['R'] = NWHITE;
 chPce['B'] = BISHOP;
-chCol['B'] = WHITE;
+chCol['B'] = NWHITE;
 chPce['N'] = KNIGHT;
-chCol['N'] = WHITE;
+chCol['N'] = NWHITE;
 chPce['P'] = PAWN;
-chCol['P'] = WHITE;
+chCol['P'] = NWHITE;
 
 chNum['8'] = 8;
 chNum['7'] = 7;
@@ -80,23 +66,10 @@ var epds    = [];
 var outputs = [];
 var debug   = 0;
 
-//{{{  getprob
+//{{{  myround
 
-function getprob (r) {
-  if (r == '[0.5]')
-    return 0.5;
-  else if (r == '[1.0]')
-    return 1.0;
-  else if (r == '[0.0]')
-    return 0.0;
-  else if (r == '"1/2-1/2";')
-    return 0.5;
-  else if (r == '"1-0";')
-    return 1.0;
-  else if (r == '"0-1";')
-    return 0.0;
-  else
-    console.log('unknown result',r);
+function myround(x) {
+  return Math.sign(x) * Math.round(Math.abs(x));
 }
 
 //}}}
@@ -108,10 +81,6 @@ function getprob (r) {
 //
 
 function decodeFEN(board) {
-
-  var mat = 0;
-
-  //console.log(board);
 
   var x = 0;
 
@@ -143,8 +112,6 @@ function decodeFEN(board) {
       
       pce = chPce[ch];
       col = chCol[ch];
-      
-      mat += chVal[ch];
       
       //}}}
       //{{{  check stuff
@@ -188,7 +155,7 @@ function decodeFEN(board) {
       //}}}
       //{{{  map to model
       
-      if (col == WHITE)
+      if (col == NWHITE)
         x = 0   + (pce-1) * 64 + sq;
       else
         x = 384 + (pce-1) * 64 + sq;
@@ -223,7 +190,7 @@ function decodeFEN(board) {
     }
   }
 
-  return mat;
+  return;
 }
 
 //}}}
@@ -376,7 +343,7 @@ function netResetGradientSums() {
 //  hidden.in is accumulated by decodeFen().
 //
 
-function netForward(mat) {
+function netForward() {
 
   for (var h=0; h < netHiddenSize; h++) {
     var hidden = neth[h];
@@ -389,7 +356,7 @@ function netForward(mat) {
     for (var h=0; h < netHiddenSize; h++) {
       output.in += output.weights[h] * neth[h].out;
     }
-    output.out = sigmoid(output.in + mat);
+    output.out = sigmoid(output.in);
   }
 }
 
@@ -525,7 +492,7 @@ function netSaveWeights () {
 
   out = out + '\r\n//}}}\r\n\r\n';
 
-  fs.writeFileSync('nettune' + netHiddenSize + '.txt',out);
+  fs.writeFileSync('nettuner' + netHiddenSize + '.txt',out);
 }
 
 //}}}
@@ -536,39 +503,14 @@ function netSaveWeights () {
 function grunt () {
 
   console.log('positions =',epds.length);
+  console.log('scaling =',scale);
 
-  //{{{  count win, lose, draw
-  //
-  // Just to make sure the file has been parsed OK.
-  //
-  
-  var wins = 0;
-  var loss = 0;
-  var draw = 0;
-  
-  for (var i=0; i < epds.length; i++) {
-  
-    var epd = epds[i];
-  
-    if (epd.prob == 1.0)
-      wins++;
-  
-    else if (epd.prob == 0.0)
-      loss++;
-  
-    else if (epd.prob == 0.5)
-      draw++;
-    else {
-      console.log('not a prob',epd.prob);
-      process.exit();
-    }
-  }
-  
-  console.log('wins =',wins,'losses =',loss,'draws =',draw);
-  console.log('error check =',epds.length - wins - draw - loss,'(should be 0)');
-  
-  //}}}
+  var testPositions = epds.length * testFraction | 0;
+  var tunePositions = epds.length - testPositions;
+
   //{{{  check decoding
+  
+  process.stdout.write('checking decoding...\r');
   
   debug  = 1;
   
@@ -585,13 +527,10 @@ function grunt () {
   
   debug = 0;
   
-  console.log('decoding ok',(t2-t1),'ms',epds.length,'epds');
+  console.log('decoding ok',(t2-t1),'ms',epds.length/100|0,'epds');
   
   //}}}
   //{{{  tune
-  
-  var testPositions = epds.length * testFraction | 0;
-  var tunePositions = epds.length - testPositions;
   
   var numBatches = tunePositions / batchSize | 0;
   
@@ -618,16 +557,16 @@ function grunt () {
     
       var epd = epds[i];
     
-      var mat = decodeFEN(epd.board);
+      decodeFEN(epd.board);
     
-      netForward(mat);
+      netForward();
     
-      var targets = [epd.prob];
+      var targets = [epd.eval];
     
       loss += netLoss(targets);
     }
     
-    loss = loss / epds.length;
+    loss = loss / testPositions;
     
     var d = '+';
     
@@ -638,6 +577,24 @@ function grunt () {
     }
     
     console.log ('epoch =',epoch,'loss =',loss,d);
+    
+    //}}}
+    //{{{  compare against eval
+    
+    console.log();
+    
+    for (var i=0; i < 5; i++) {
+    
+      var epd = epds[Math.random() * testPositions|0];
+    
+      decodeFEN(epd.board);
+    
+      netForward();
+    
+      console.log(epd.board,epd.turn,epd.rights,epd.ep,epd.eval,neto[0].out,epd.raweval,myround(neto[0].in*scale)|0);
+    }
+    
+    console.log();
     
     //}}}
     //{{{  batched epoch
@@ -653,11 +610,11 @@ function grunt () {
     
         var epd = epds[i];
     
-        var mat = decodeFEN(epd.board);
+        decodeFEN(epd.board);
     
-        netForward(mat)
+        netForward()
     
-        var targets = [epd.prob];
+        var targets = [epd.eval];
     
         netCalcGradients(targets);
         netAccumulateGradients();
@@ -679,11 +636,11 @@ function grunt () {
 //}}}
 //{{{  kick it off
 
-var epdfile      = 'c:/projects/chessdata/rebel.epd';
+var epdfile      = 'nettuner.epd';
 var thisPosition = 0;
 
-const readline = require('readline');
 const fs       = require('fs');
+const readline = require('readline');
 
 const rl = readline.createInterface({
     input: fs.createReadStream(epdfile),
@@ -702,38 +659,20 @@ rl.on('line', function (line) {
   if (thisPosition <= maxPositions) {
 
     line = line.replace(/(\r\n|\n|\r)/gm,'');
-    line = line.replace(/=/gm,' ');
 
     const parts = line.split(' ');
 
-    //{{{  get prob
-    
-    var stm  = parts[1];
-    var prob = parseFloat(parts[9]);
-    
-    if (stm != 'w' && stm != 'b') {
-      console.log('stm',stm,line);
-      process.exit();
+    if (parts.length < 4) {
+      console.log('no data');
+      return;
     }
-    
-    if (prob != 0.0 && prob != 0.5 && prob != 1.0) {
-      console.log('prob',prob,line);
-      process.exit();
-    }
-    
-    if (stm == 'b') {
-      if (prob == 0.0) {
-        prob = 1.0;
-      }
-      else if (prob == 1.0) {
-        prob = 0.0;
-      }
-    }
-    
-    //}}}
 
     epds.push({board:   parts[0],
-               prob:    prob});
+               turn:    parts[1],
+               rights:  parts[2],
+               ep:      parts[3],
+               raweval: parseInt(parts[4]),
+               eval:    sigmoid(parseInt(parts[4])/scale)});
   }
 });
 
