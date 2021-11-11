@@ -60,4 +60,10 @@ http://ccrl.chessdom.com/ccrl/4040
 
 http://rebel13.nl
 
+https://github.com/glinscott/nnue-pytorch/blob/master/docs/nnue.md
+
+https://github.com/AndyGrant/Ethereal/blob/master/Tuning.pdf
+
+https://github.com/asdfjkl/neural_network_chess
+
 
