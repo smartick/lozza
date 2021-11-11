@@ -6704,8 +6704,7 @@ if (lozzaHost == HOST_NODEJS) {
 //}}}
 //
 // Copy lozza.js above here.
-//
-// 1. Set USEPAWNHASH to 0 unless testing pawn hash.
+// Turn off pawn hash.
 //
 
 
