@@ -56,15 +56,21 @@ eval feathering different start value
 //}}}
 
 'lozza\trunk\lozza.js' - coalface
+'lozza\trunk\netlozza.js'
 
 //{{{  other lozzas
 
+'lozza\trunk\history\3.0\lozza.js'           - candidate dev
 'lozza\trunk\history\2.1\lozza.js'           - candidate dev
 'lozza\trunk\history\2.0\lozza.js'           - released dev
 'lozza\trunk\history\2.0\release\lozza.js'   - released public
 'lozza\trunk\history\2.0\release\readme.txt' - released public
 'lozza\trunk\history\2.0\release\lozza.bat'  - released public
 'lozza\trunk\history\1.18\lozza.js'          - released dev
+'lozza\trunk\deadends\makeepd.js'          - released dev
+'lozza\trunk\deadends\quiet.js'          - released dev
+'lozza\trunk\deadends\netlozza.js'          - released dev
+'lozza\trunk\deadends\lozza3.js'          - released dev
 
 //}}}
 
@@ -72,16 +78,17 @@ eval feathering different start value
 'lozza\trunk\testing\engines.json'
 'lozza\trunk\testing\cctry.pgn'
 
-'lozza\trunk\testing\tuner.js'
-'lozza\trunk\testing\tuner.txt'
+'lozza\trunk\testing\nettuner.js'
+'lozza\trunk\testing\nettuner8.txt'
+'lozza\trunk\testing\nettuner16.txt'
 
 'lozza\trunk\testing\gdtuner.js'
 'lozza\trunk\testing\gdtuner.txt'
 
-'lozza\trunk\testing\nettuner.js'
-
 'lozza\trunk\testing\eval.js'
 'lozza\trunk\testing\eval_flip.js'
+
+'lozza\trunk\testing\quiet.js'
 
 ----- toynet repo
 
