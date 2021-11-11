@@ -2,7 +2,7 @@
 var maxPositions   = 100000000;
 var testFraction   = 0.2;
 var netInputSize   = 768;
-var netHiddenSize  = 8;
+var netHiddenSize  = 4;
 var numEpochs      = 20000;
 var learningRate   = 0.1;
 var batchSize      = 100;
@@ -466,7 +466,7 @@ function netApplyGradients() {
 //}}}
 //{{{  netSaveWeights
 
-function netSaveWeights () {
+function netSaveWeights (loss) {
 
   var d   = new Date();
   var out = '//{{{  network\r\n\r\n';
@@ -474,9 +474,12 @@ function netSaveWeights () {
   out += '// last update '+d;
   out += '\r\n';
 
-  out += '// hidden layer = ' + netHiddenSize;
+  out += '// hidden layer size = ' + netHiddenSize;
+  out += '// loss = ' + loss;
   out += '\r\n';
   out += '\r\n';
+
+  out = out + 'this.netScale = ' + scale + ';\r\n';
 
   for (var h=0; h < netHiddenSize; h++) {
     out = out + 'this.h1['+h+'].weights = [' + neth[h].weights.toString();
@@ -573,7 +576,7 @@ function grunt () {
     if (loss < bestLoss) {
       d = '-';
       bestLoss = loss;
-      netSaveWeights();
+      netSaveWeights(loss);
     }
     
     console.log ('epoch =',epoch,'loss =',loss,d);
