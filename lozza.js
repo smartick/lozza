@@ -4,7 +4,7 @@
 // A hand-coded Javascript chess engine inspired by Fabien Letouzey's Fruit 2.1.
 //
 
-var BUILD       = "2.1n";
+var BUILD       = "2.1";
 var USEPAWNHASH = 1;
 var USENET      = 0;
 var USEHCE      = 1;
