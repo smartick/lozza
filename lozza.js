@@ -6,12 +6,13 @@
 
 var BUILD       = "2.1";
 var USEPAWNHASH = 1;
-var USENET      = 0;
 var USEHCE      = 1;
+var USENET      = 0;
 
 //{{{  history
 /*
 
+2.1 13/11/21 Don't do EG tempo.
 2.1 11/11/21 Add a primitive little network.
 2.1 27/09/21 Set mob offsets to 0 while buggy.
 
@@ -2691,11 +2692,14 @@ function lozBoard () {
   this.pttwMost  = new Uint32Array(PTTSIZE);
   this.pttbMost  = new Uint32Array(PTTSIZE);
 
-  for (var i=0; i < TTSIZE; i++)
-    this.ttType[i] = TT_EMPTY;
+  //for (var i=0; i < TTSIZE; i++)
+    //this.ttType[i] = TT_EMPTY;
 
-  for (var i=0; i < PTTSIZE; i++)
-    this.pttFlags[i] = TT_EMPTY;
+  //for (var i=0; i < PTTSIZE; i++)
+    //this.pttFlags[i] = TT_EMPTY;
+
+  this.ttType.fill(0);
+  this.pttFlags.fill(0);
 
   this.turn = 0;
 
@@ -2787,6 +2791,8 @@ function lozBoard () {
 
 lozBoard.prototype.hashCheck = function (turn) {
 
+  lozza.uci.debugging = true;
+
   var evalS = 0;
   var evalE = 0;
 
@@ -2794,7 +2800,7 @@ lozBoard.prototype.hashCheck = function (turn) {
     var nn1 = this.netEval();
     var nn2 = this.netFullEval();
     if (myround(nn1) != myround(nn2))
-      console.log('NET',nn1,nn2);
+      lozza.uci.debug('NET',nn1,nn2);
   }
 
   var loHash = 0;
@@ -2863,6 +2869,8 @@ lozBoard.prototype.hashCheck = function (turn) {
 
   if (this.runningEvalE != evalE)
     lozza.uci.debug('MATE',this.runningEvalE,evalE);
+
+  lozza.uci.debugging = false;
 }
 
 //}}}
@@ -5719,12 +5727,12 @@ lozBoard.prototype.evaluate = function (turn) {
     
     if (turn == WHITE) {
      var tempoS = TEMPO_S;
-     var tempoE = TEMPO_E;
+     var tempoE = 0;
     }
     
     else {
      var tempoS = -TEMPO_S;
-     var tempoE = -TEMPO_E;
+     var tempoE = 0;
     }
     
     //}}}
@@ -5942,11 +5950,14 @@ lozBoard.prototype.ttInit = function () {
   this.ploHash = 0;
   this.phiHash = 0;
 
-  for (var i=0; i < TTSIZE; i++)
-    this.ttType[i] = TT_EMPTY;
+  //for (var i=0; i < TTSIZE; i++)
+    //this.ttType[i] = TT_EMPTY;
 
-  for (var i=0; i < PTTSIZE; i++)
-    this.pttFlags[i] = TT_EMPTY;
+  //for (var i=0; i < PTTSIZE; i++)
+    //this.pttFlags[i] = TT_EMPTY;
+
+  this.ttType.fill(0);
+  this.pttFlags.fill(0);
 
   this.hashUsed = 0;
 }
