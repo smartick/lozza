@@ -56,7 +56,6 @@ eval feathering different start value
 //}}}
 
 'lozza\trunk\lozza.js' - coalface
-'lozza\trunk\netlozza.js'
 
 //{{{  other lozzas
 
@@ -79,8 +78,11 @@ eval feathering different start value
 'lozza\trunk\testing\cctry.pgn'
 
 'lozza\trunk\testing\nettuner.js'
+'lozza\trunk\testing\nettuner4.txt'
 'lozza\trunk\testing\nettuner8.txt'
+'lozza\trunk\testing\nettuner12.txt'
 'lozza\trunk\testing\nettuner16.txt'
+'lozza\trunk\testing\nettuner32.txt'
 
 'lozza\trunk\testing\gdtuner.js'
 'lozza\trunk\testing\gdtuner.txt'

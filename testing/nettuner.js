@@ -2,10 +2,10 @@
 var maxPositions   = 100000000;
 var testFraction   = 0.2;
 var netInputSize   = 768;
-var netHiddenSize  = 12;
+var netHiddenSize  = 16;
 var numEpochs      = 20000;
 var learningRate   = 0.1;
-var batchSize      = 100;
+var batchSize      = 1000;
 var scale          = 200;
 //var useBias        = 0;
 
@@ -469,7 +469,7 @@ function netApplyGradients() {
 function netSaveWeights (loss) {
 
   var d   = new Date();
-  var out = '//{{{  network\r\n\r\n';
+  var out = '//{{{  network weights\r\n\r\n';
 
   out += '// last update '+d;
   out += '\r\n';
