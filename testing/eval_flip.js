@@ -5,14 +5,16 @@
 // A hand-coded Javascript chess engine inspired by Fabien Letouzey's Fruit 2.1.
 //
 
-var BUILD       = "2.1n";
+var BUILD       = "2.1";
 var USEPAWNHASH = 0;
-var USENET      = 1;
-var USEHCE      = 0;
+var USEHCE      = 1;
+var USENET      = 0;
 
 //{{{  history
 /*
 
+2.1 13/11/21 Change futility margin from 120 to 100.
+2.1 13/11/21 Don't do EG tempo.
 2.1 11/11/21 Add a primitive little network.
 2.1 27/09/21 Set mob offsets to 0 while buggy.
 
@@ -298,6 +300,8 @@ var iTWOBISHOPS_E         = 46;
 var iTEMPO_S              = 47;
 var iTEMPO_E              = 48;
 var iSHELTERM             = 49;
+var iMOBOFF_QS            = 50;
+var iMOBOFF_QE            = 51;
 
 //}}}
 
@@ -1088,11 +1092,10 @@ var randoms = [
 //{{{  tuned coefficients
 
 // data=c:/projects/chessdata/quiet-labeled.epd
-// note=Tuning all
-// epochs=19
-// k=1.59
-// err=0.05571709243251426
-// last update Fri Oct 29 2021 15:25:55 GMT+0100 (British Summer Time)
+// epochs=3
+// k=3.62
+// err=0.05605559362393026
+// last update Fri Nov 26 2021 10:24:12 GMT+0000 (Greenwich Mean Time)
 
 var VALUE_VECTOR   = [0,100,349,353,540,1056,10000];
 var WPAWN_PSTS     = [
@@ -1459,7 +1462,7 @@ var BOUTPOST       = [
      0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
      0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0
 ];
-var EV             = [5,-1,7,2,4,2,2,4,1,1,4,3,21,6,9,13,13,9,9,-3,-1,45,99,24,7,26,18,-1,-4,19,39,6,3,13,57,102,91,793,40,26,0,0,0,0,0,0,60,21,21,2];
+var EV             = [5,-1,7,2,4,2,2,4,1,1,4,3,21,6,9,13,13,9,9,-3,-1,45,99,24,7,26,18,-1,-4,19,39,6,3,13,57,102,91,793,40,26,1,0,4,3,1,0,60,21,21,2];
 var WSTORM         = [0,0,0,34,6,3,-9,-1,0,5];
 var WSHELTER       = [0,0,0,6,11,13,36,21,0,28];
 var ATT_W          = [0,0.01,0.41999999999999993,0.78,1.11,1.5200000000000005,0.97,0.99];
@@ -1526,12 +1529,14 @@ var TWOBISHOPS_E         = EV[iTWOBISHOPS_E];
 var TEMPO_S              = EV[iTEMPO_S];
 var TEMPO_E              = EV[iTEMPO_E];
 var SHELTERM             = EV[iSHELTERM];
+var MOBOFF_QS            = EV[iMOBOFF_QS];
+var MOBOFF_QE            = EV[iMOBOFF_QE];
 
 //}}}
 //{{{  pst lists
 
-var WE_PST = [NULL_PST, WPAWN_PSTE,  WKNIGHT_PSTE, WBISHOP_PSTE, WROOK_PSTE, WQUEEN_PSTE, WKING_PSTE]; // end eval.
 var WS_PST = [NULL_PST, WPAWN_PSTS,  WKNIGHT_PSTS, WBISHOP_PSTS, WROOK_PSTS, WQUEEN_PSTS, WKING_PSTS]; // opening/middle eval.
+var WE_PST = [NULL_PST, WPAWN_PSTE,  WKNIGHT_PSTE, WBISHOP_PSTE, WROOK_PSTE, WQUEEN_PSTE, WKING_PSTE]; // end eval.
 
 var BS_PST = [NULL_PST, BPAWN_PSTS,  BKNIGHT_PSTS, BBISHOP_PSTS, BROOK_PSTS, BQUEEN_PSTS, BKING_PSTS];
 var BE_PST = [NULL_PST, BPAWN_PSTE,  BKNIGHT_PSTE, BBISHOP_PSTE, BROOK_PSTE, BQUEEN_PSTE, BKING_PSTE];
@@ -2230,7 +2235,7 @@ lozChess.prototype.alphabeta = function (node, depth, turn, alpha, beta, nullOK,
   var numSlides      = 0;
   var givesCheck     = INCHECK_UNKNOWN;
   var keeper         = false;
-  var doFutility     = !inCheck && depth <= 4 && (standPat + depth * 120) < alpha && !lonePawns;
+  var doFutility     = !inCheck && depth <= 4 && (standPat + depth * 100) < alpha && !lonePawns;
   var doLMR          = !inCheck && depth >= 3;
   var doLMP          = !pvNode && !inCheck && depth <= 2 && !lonePawns;
   var doIID          = !node.hashMove && pvNode && depth > 3;
@@ -2692,11 +2697,14 @@ function lozBoard () {
   this.pttwMost  = new Uint32Array(PTTSIZE);
   this.pttbMost  = new Uint32Array(PTTSIZE);
 
-  for (var i=0; i < TTSIZE; i++)
-    this.ttType[i] = TT_EMPTY;
+  //for (var i=0; i < TTSIZE; i++)
+    //this.ttType[i] = TT_EMPTY;
 
-  for (var i=0; i < PTTSIZE; i++)
-    this.pttFlags[i] = TT_EMPTY;
+  //for (var i=0; i < PTTSIZE; i++)
+    //this.pttFlags[i] = TT_EMPTY;
+
+  this.ttType.fill(0);
+  this.pttFlags.fill(0);
 
   this.turn = 0;
 
@@ -2781,6 +2789,102 @@ function lozBoard () {
     for (var j=0; j < 144; j++)
       this.bHistory[i][j] = 0;
   }
+}
+
+//}}}
+//{{{  .hashCheck
+
+lozBoard.prototype.hashCheck = function (turn) {
+
+  var t1 = lozza.uci.debugging;
+  var t2 = USENET
+  var t3 = USEHCE
+  var t4 = USEPAWNHASH
+
+  lozza.uci.debugging = true;
+  USENET              = 1;
+  USEHCE              = 1;
+  USEPAWNHASH         = 1;
+
+  var evalS = 0;
+  var evalE = 0;
+
+  var nn1 = this.netEval();
+  var nn2 = this.netFullEval();
+  if (myround(nn1) != myround(nn2))
+    lozza.uci.debug('NET',nn1,nn2);
+
+  var loHash = 0;
+  var hiHash = 0;
+
+  var ploHash = 0;
+  var phiHash = 0;
+
+  if (turn) {
+    loHash ^= this.loTurn;
+    hiHash ^= this.hiTurn;
+  }
+
+  loHash ^= this.loRights[this.rights];
+  hiHash ^= this.hiRights[this.rights];
+
+  loHash ^= this.loEP[this.ep];
+  hiHash ^= this.hiEP[this.ep];
+
+  for (var sq=0; sq<144; sq++) {
+
+    var obj = this.b[sq];
+
+    if (obj == NULL || obj == EDGE)
+      continue;
+
+    var piece = obj & PIECE_MASK;
+    var col   = obj & COLOR_MASK;
+
+    loHash ^= this.loPieces[col>>>3][piece-1][sq];
+    hiHash ^= this.hiPieces[col>>>3][piece-1][sq];
+
+    if (piece == PAWN) {
+      ploHash ^= this.loPieces[col>>>3][0][sq];
+      phiHash ^= this.hiPieces[col>>>3][0][sq];
+    }
+
+    if (col == WHITE) {
+      evalS += VALUE_VECTOR[piece];
+      evalE += VALUE_VECTOR[piece];
+      evalS += WS_PST[piece][sq];
+      evalE += WE_PST[piece][sq];
+    }
+    else {
+      evalS -= VALUE_VECTOR[piece];
+      evalE -= VALUE_VECTOR[piece];
+      evalS -= BS_PST[piece][sq];
+      evalE -= BE_PST[piece][sq];
+    }
+  }
+
+  if (this.loHash != loHash)
+    lozza.uci.debug('LO',this.loHash,loHash);
+
+  if (this.hiHash != hiHash)
+    lozza.uci.debug('HI',this.hiHash,hiHash);
+
+  if (this.ploHash != ploHash)
+    lozza.uci.debug('PLO',this.ploHash,ploHash);
+
+  if (this.phiHash != phiHash)
+    lozza.uci.debug('PHI',this.phiHash,phiHash);
+
+  if (this.runningEvalS != evalS)
+    lozza.uci.debug('MATS',this.runningEvalS,evalS);
+
+  if (this.runningEvalE != evalE)
+    lozza.uci.debug('MATE',this.runningEvalE,evalE);
+
+  lozza.uci.debugging = t1;
+  USENET              = t2;
+  USEHCE              = t3;
+  USEPAWNHASH         = t4;
 }
 
 //}}}
@@ -5140,8 +5244,14 @@ lozBoard.prototype.evaluate = function (turn) {
         to = fr+25; mob += MOB_NIS[b[to]]; att += BKZ[to] * MOB_NIS[b[to]];
         to = fr-25; mob += MOB_NIS[b[to]]; att += BKZ[to] * MOB_NIS[b[to]];
         
-        mobS += mob * MOB_NS - MOBOFF_NS;
-        mobE += mob * MOB_NE - MOBOFF_NE;
+        if (mob) {
+          mobS += mob * MOB_NS;
+          mobE += mob * MOB_NE;
+        }
+        else {
+          mobS -= MOBOFF_NS
+          mobS -= MOBOFF_NE
+        }
         
         if (att) {
           attackN++;
@@ -5180,8 +5290,14 @@ lozBoard.prototype.evaluate = function (turn) {
         to = fr + 13;  while (!b[to]) {att += BKZ[to]; to += 13; mob++;} mob += MOB_BIS[b[to]]; att += BKZ[to] * MOB_BIS[b[to]];
         to = fr - 13;  while (!b[to]) {att += BKZ[to]; to -= 13; mob++;} mob += MOB_BIS[b[to]]; att += BKZ[to] * MOB_BIS[b[to]];
         
-        mobS += mob * MOB_BS - MOBOFF_BS;
-        mobE += mob * MOB_BE - MOBOFF_BE;
+        if (mob) {
+          mobS += mob * MOB_BS;
+          mobE += mob * MOB_BE;
+        }
+        else {
+          mobS -= MOBOFF_BS
+          mobS -= MOBOFF_BE
+        }
         
         if (att) {
           attackN++;
@@ -5208,8 +5324,14 @@ lozBoard.prototype.evaluate = function (turn) {
         to = fr + 12;  while (!b[to]) {att += BKZ[to]; to += 12; mob++;} mob += MOB_RIS[b[to]]; att += BKZ[to] * MOB_RIS[b[to]];
         to = fr - 12;  while (!b[to]) {att += BKZ[to]; to -= 12; mob++;} mob += MOB_RIS[b[to]]; att += BKZ[to] * MOB_RIS[b[to]];
         
-        mobS += mob * MOB_RS - MOBOFF_RS;
-        mobE += mob * MOB_RE - MOBOFF_RE;
+        if (mob) {
+          mobS += mob * MOB_RS;
+          mobE += mob * MOB_RE;
+        }
+        else {
+          mobS -= MOBOFF_RS
+          mobS -= MOBOFF_RE
+        }
         
         if (att) {
           attackN++;
@@ -5272,8 +5394,14 @@ lozBoard.prototype.evaluate = function (turn) {
         to = fr + 13;  while (!b[to]) {att += BKZ[to]; to += 13; mob++;} mob += MOB_QIS[b[to]]; att += BKZ[to] * MOB_QIS[b[to]];
         to = fr - 13;  while (!b[to]) {att += BKZ[to]; to -= 13; mob++;} mob += MOB_QIS[b[to]]; att += BKZ[to] * MOB_QIS[b[to]];
         
-        mobS += mob * MOB_QS;
-        mobE += mob * MOB_QE;
+        if (mob) {
+          mobS += mob * MOB_QS;
+          mobE += mob * MOB_QE;
+        }
+        else {
+          mobS -= MOBOFF_QS
+          mobS -= MOBOFF_QE
+        }
         
         if (att) {
           attackN++;
@@ -5368,8 +5496,15 @@ lozBoard.prototype.evaluate = function (turn) {
         to = fr+25; mob += MOB_NIS[b[to]]; att += WKZ[to] * MOB_NIS[b[to]];
         to = fr-25; mob += MOB_NIS[b[to]]; att += WKZ[to] * MOB_NIS[b[to]];
         
-        mobS -= mob * MOB_NS + MOBOFF_NS;
-        mobE -= mob * MOB_NE + MOBOFF_NE;
+        if (mob) {
+          mobS -= mob * MOB_NS;
+          mobE -= mob * MOB_NE;
+        }
+        else {
+          mobS += MOBOFF_NS
+          mobS += MOBOFF_NE
+        }
+        
         
         if (att) {
           attackN++;
@@ -5408,8 +5543,14 @@ lozBoard.prototype.evaluate = function (turn) {
         to = fr + 13;  while (!b[to]) {att += WKZ[to]; to += 13; mob++;} mob += MOB_BIS[b[to]]; att += WKZ[to] * MOB_BIS[b[to]];
         to = fr - 13;  while (!b[to]) {att += WKZ[to]; to -= 13; mob++;} mob += MOB_BIS[b[to]]; att += WKZ[to] * MOB_BIS[b[to]];
         
-        mobS -= mob * MOB_BS + MOBOFF_BS;
-        mobE -= mob * MOB_BE + MOBOFF_BE;
+        if (mob) {
+          mobS -= mob * MOB_BS;
+          mobE -= mob * MOB_BE;
+        }
+        else {
+          mobS += MOBOFF_BS
+          mobS += MOBOFF_BE
+        }
         
         if (att) {
           attackN++;
@@ -5436,8 +5577,14 @@ lozBoard.prototype.evaluate = function (turn) {
         to = fr + 12;  while (!b[to]) {att += WKZ[to]; to += 12; mob++;} mob += MOB_RIS[b[to]]; att += WKZ[to] * MOB_RIS[b[to]];
         to = fr - 12;  while (!b[to]) {att += WKZ[to]; to -= 12; mob++;} mob += MOB_RIS[b[to]]; att += WKZ[to] * MOB_RIS[b[to]];
         
-        mobS -= mob * MOB_RS + MOBOFF_RS;
-        mobE -= mob * MOB_RE + MOBOFF_RE;
+        if (mob) {
+          mobS -= mob * MOB_RS;
+          mobE -= mob * MOB_RE;
+        }
+        else {
+          mobS += MOBOFF_RS
+          mobS += MOBOFF_RE
+        }
         
         if (att) {
           attackN++;
@@ -5500,8 +5647,14 @@ lozBoard.prototype.evaluate = function (turn) {
         to = fr + 13;  while (!b[to]) {att += WKZ[to]; to += 13; mob++;} mob += MOB_QIS[b[to]]; att += WKZ[to] * MOB_QIS[b[to]];
         to = fr - 13;  while (!b[to]) {att += WKZ[to]; to -= 13; mob++;} mob += MOB_QIS[b[to]]; att += WKZ[to] * MOB_QIS[b[to]];
         
-        mobS -= mob * MOB_QS;
-        mobE -= mob * MOB_QE;
+        if (mob) {
+          mobS -= mob * MOB_QS;
+          mobE -= mob * MOB_QE;
+        }
+        else {
+          mobS += MOBOFF_QS
+          mobS += MOBOFF_QE
+        }
         
         if (att) {
           attackN++;
@@ -5637,12 +5790,12 @@ lozBoard.prototype.evaluate = function (turn) {
     
     if (turn == WHITE) {
      var tempoS = TEMPO_S;
-     var tempoE = TEMPO_E;
+     var tempoE = 0;
     }
     
     else {
      var tempoS = -TEMPO_S;
-     var tempoE = -TEMPO_E;
+     var tempoE = 0;
     }
     
     //}}}
@@ -5860,74 +6013,16 @@ lozBoard.prototype.ttInit = function () {
   this.ploHash = 0;
   this.phiHash = 0;
 
-  for (var i=0; i < TTSIZE; i++)
-    this.ttType[i] = TT_EMPTY;
+  //for (var i=0; i < TTSIZE; i++)
+    //this.ttType[i] = TT_EMPTY;
 
-  for (var i=0; i < PTTSIZE; i++)
-    this.pttFlags[i] = TT_EMPTY;
+  //for (var i=0; i < PTTSIZE; i++)
+    //this.pttFlags[i] = TT_EMPTY;
+
+  this.ttType.fill(0);
+  this.pttFlags.fill(0);
 
   this.hashUsed = 0;
-}
-
-//}}}
-//{{{  .hashCheck
-
-lozBoard.prototype.hashCheck = function (turn) {
-
-  if (USENET) {
-    var nn1 = this.netEval();
-    var nn2 = this.netFullEval();
-    if (myround(nn1) != myround(nn2))
-      console.log('NET',nn1,nn2);
-  }
-
-  var loHash = 0;
-  var hiHash = 0;
-
-  var ploHash = 0;
-  var phiHash = 0;
-
-  if (turn) {
-    loHash ^= this.loTurn;
-    hiHash ^= this.hiTurn;
-  }
-
-  loHash ^= this.loRights[this.rights];
-  hiHash ^= this.hiRights[this.rights];
-
-  loHash ^= this.loEP[this.ep];
-  hiHash ^= this.hiEP[this.ep];
-
-  for (var sq=0; sq<144; sq++) {
-
-    var obj = this.b[sq];
-
-    if (obj == NULL || obj == EDGE)
-      continue;
-
-    var piece = obj & PIECE_MASK;
-    var col   = obj & COLOR_MASK;
-
-    loHash ^= this.loPieces[col>>>3][piece-1][sq];
-    hiHash ^= this.hiPieces[col>>>3][piece-1][sq];
-
-    if (piece == PAWN) {
-      ploHash ^= this.loPieces[col>>>3][0][sq];
-      phiHash ^= this.hiPieces[col>>>3][0][sq];
-    }
-  }
-
-  if (this.loHash != loHash)
-    lozza.uci.debug('*************** LO',this.loHash,loHash);
-
-  if (this.hiHash != hiHash)
-    lozza.uci.debug('*************** HI',this.hiHash,hiHash);
-
-  if (this.ploHash != ploHash)
-    lozza.uci.debug('************* PLO',this.ploHash,ploHash);
-
-  if (this.phiHash != phiHash)
-    lozza.uci.debug('************* PHI',this.phiHash,phiHash);
 }
 
 //}}}
@@ -6107,7 +6202,14 @@ lozBoard.prototype.cleanPhase = function (p) {
 //{{{  .stm
 
 lozBoard.prototype.stm = function (turn) {
-  return (-turn >> 31) | 1;
+  return (-turn >> 31) | 1;  // 1,-1 (white,black) multiplier.
+}
+
+//}}}
+//{{{  .sti
+
+lozBoard.prototype.sti = function (turn) {
+  return turn >>> 3;  // 0,1 (white,black) index.
 }
 
 //}}}

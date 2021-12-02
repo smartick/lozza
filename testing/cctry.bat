@@ -10,10 +10,10 @@ set a=%@random[1,9999999]
 copy cctry.pgn games\%a.pgn
 del  cctry.pgn
 
-set tc=tc=0/10+0.1
+set tc=tc=0/20+0.2
 
 set e1=-engine conf=coalface  %tc
-set e2=-engine conf=candidate %tc
+set e2=-engine conf=tomitank  %tc
 
 set t=-event soaktest -tournament round-robin -games 100000
 

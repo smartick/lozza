@@ -8,10 +8,13 @@ var BUILD       = "2.1";
 var USEPAWNHASH = 1;
 var USEHCE      = 1;
 var USENET      = 0;
+var DEBUG       = 0;      // turn on if using board.hashCheck()
 
 //{{{  history
 /*
 
+2.1 01/12/21 Optimise Q a bit.
+2.1 01/12/21 Move node count to Q so go nodes means something.
 2.1 13/11/21 Change futility margin from 120 to 100.
 2.1 13/11/21 Don't do EG tempo.
 2.1 11/11/21 Add a primitive little network.
@@ -239,6 +242,14 @@ else if ((typeof WorkerGlobalScope) == 'undefined')
 
 function myround(x) {
   return Math.sign(x) * Math.round(Math.abs(x));
+}
+
+//}}}
+//{{{  wbmap
+
+function wbmap (sq) {
+  var m = (143-sq)/12|0;
+  return 12*m + sq%12;
 }
 
 //}}}
@@ -1901,8 +1912,6 @@ lozChess.prototype.go = function() {
 
 lozChess.prototype.search = function (node, depth, turn, alpha, beta) {
 
-  //console.log('in s');
-
   //{{{  housekeeping
   
   if (!node.childNode) {
@@ -1943,9 +1952,7 @@ lozChess.prototype.search = function (node, depth, turn, alpha, beta) {
 
   while (move = node.getNextMove()) {
 
-    //console.log('s before move',board.netEval(),board.netFullEval());
     board.makeMove(node,move);
-    //console.log('s after move',board.netEval(),board.netFullEval());
 
     //{{{  legal?
     
@@ -2003,7 +2010,6 @@ lozChess.prototype.search = function (node, depth, turn, alpha, beta) {
       }
     }
 
-    //console.log('s before unmove',board.netEval(),board.netFullEval());
     //{{{  unmake move
     
     board.unmakeMove(node,move);
@@ -2011,8 +2017,6 @@ lozChess.prototype.search = function (node, depth, turn, alpha, beta) {
     node.uncache();
     
     //}}}
-    //console.log('s after unmove',board.netEval(),board.netFullEval());
-    //return;////**************************
 
     if (this.stats.timeOut) {
       return;
@@ -2082,8 +2086,6 @@ lozChess.prototype.search = function (node, depth, turn, alpha, beta) {
 //{{{  .alphabeta
 
 lozChess.prototype.alphabeta = function (node, depth, turn, alpha, beta, nullOK, inCheck) {
-
-  //console.log('in ab');
 
   //{{{  housekeeping
   
@@ -2268,7 +2270,6 @@ lozChess.prototype.alphabeta = function (node, depth, turn, alpha, beta, nullOK,
 
   while (move = node.getNextMove()) {
 
-    //console.log('ab before move',board.netEval(),board.netFullEval());
     board.makeMove(node,move);
 
     //{{{  legal?
@@ -2348,7 +2349,6 @@ lozChess.prototype.alphabeta = function (node, depth, turn, alpha, beta, nullOK,
     node.uncache();
     
     //}}}
-    //console.log('ab after move',board.netEval(),board.netFullEval());
 
     if (this.stats.timeOut)
       return;
@@ -2403,46 +2403,43 @@ lozChess.prototype.alphabeta = function (node, depth, turn, alpha, beta, nullOK,
 
 lozChess.prototype.qSearch = function (node, depth, turn, alpha, beta) {
 
-  //console.log('in q');
-
   //{{{  housekeeping
   
   this.stats.checkTime();
   if (this.stats.timeOut)
     return;
   
-  //}}}
-
-  var board         = this.board;
-  var standPat      = board.evaluate(turn);
-  var phase         = board.cleanPhase(board.phase);
-  var numLegalMoves = 0;
-  var nextTurn      = ~turn & COLOR_MASK;
-  var move          = 0;
-
-  //{{{  housekeeping
-  
-  if (!node.childNode) {
-    this.uci.debug('Q DEPTH');
-    return standPat;
-  }
-  
   if (node.ply > this.stats.selDepth)
     this.stats.selDepth = node.ply;
   
+  if (!node.childNode) {
+    //this.uci.debug('Q DEPTH');
+    return this.board.evaluate(turn);
+  }
+  
   //}}}
+
+  var board         = this.board;
+  var numLegalMoves = 0;
+  var move          = 0;
+  var standPat      = 0;
+  var phase         = 0;
+  var nextTurn      = ~turn & COLOR_MASK;
 
   if (depth > -2)
     var inCheck = board.isKingAttacked(nextTurn);
   else
-    var inCheck = 0;
+    var inCheck = false;
 
-  if (!inCheck && standPat >= beta) {
-    return standPat;
+  if (!inCheck) {
+    this.stats.nodes++;
+    standPat = board.evaluate(turn);
+    if (standPat >= beta)
+      return standPat;
+    if (standPat > alpha)
+      alpha = standPat;
+    phase = board.cleanPhase(board.phase);
   }
-
-  if (!inCheck && standPat > alpha)
-    alpha = standPat;
 
   node.cache();
 
@@ -2453,7 +2450,15 @@ lozChess.prototype.qSearch = function (node, depth, turn, alpha, beta) {
 
   while (move = node.getNextMove()) {
 
-    //console.log('q before move',board.netEval(),board.netFullEval());
+    //{{{  futile?
+    
+    if (!inCheck && phase <= EPHASE && !(move & MOVE_PROMOTE_MASK) && standPat + 200 + VALUE_VECTOR[((move & MOVE_TOOBJ_MASK) >>> MOVE_TOOBJ_BITS) & PIECE_MASK] < alpha) {
+    
+      continue;
+    }
+    
+    //}}}
+
     board.makeMove(node,move);
 
     //{{{  legal?
@@ -2471,19 +2476,6 @@ lozChess.prototype.qSearch = function (node, depth, turn, alpha, beta) {
 
     numLegalMoves++;
 
-    //{{{  futile?
-    
-    if (!inCheck && phase <= EPHASE && !(move & MOVE_PROMOTE_MASK) && standPat + 200 + VALUE_VECTOR[((move & MOVE_TOOBJ_MASK) >>> MOVE_TOOBJ_BITS) & PIECE_MASK] < alpha) {
-    
-      board.unmakeMove(node,move);
-    
-      node.uncache();
-    
-      continue;
-    }
-    
-    //}}}
-
     var score = -this.qSearch(node.childNode, depth-1, nextTurn, -beta, -alpha);
 
     //{{{  unmake move
@@ -2493,7 +2485,6 @@ lozChess.prototype.qSearch = function (node, depth, turn, alpha, beta) {
     node.uncache();
     
     //}}}
-    //console.log('q after move',board.netEval(),board.netFullEval());
 
     if (score > alpha) {
       if (score >= beta) {
@@ -2504,6 +2495,10 @@ lozChess.prototype.qSearch = function (node, depth, turn, alpha, beta) {
   }
 
   //{{{  no moves?
+  //
+  // Some legal moves will be missed because of futility but only
+  // if not in check and numLegalMoves is only needed if in check.
+  //
   
   if (inCheck && numLegalMoves == 0) {
   
@@ -2542,6 +2537,8 @@ lozChess.prototype.perft = function () {
 //{{{  .perftSearch
 
 lozChess.prototype.perftSearch = function (node, depth, turn, inner) {
+
+  this.stats.nodes++;
 
   if (depth == 0)
     return 1;
@@ -2693,12 +2690,6 @@ function lozBoard () {
   this.pttwMost  = new Uint32Array(PTTSIZE);
   this.pttbMost  = new Uint32Array(PTTSIZE);
 
-  //for (var i=0; i < TTSIZE; i++)
-    //this.ttType[i] = TT_EMPTY;
-
-  //for (var i=0; i < PTTSIZE; i++)
-    //this.pttFlags[i] = TT_EMPTY;
-
   this.ttType.fill(0);
   this.pttFlags.fill(0);
 
@@ -2785,102 +2776,6 @@ function lozBoard () {
     for (var j=0; j < 144; j++)
       this.bHistory[i][j] = 0;
   }
-}
-
-//}}}
-//{{{  .hashCheck
-
-lozBoard.prototype.hashCheck = function (turn) {
-
-  var t1 = lozza.uci.debugging;
-  var t2 = USENET
-  var t3 = USEHCE
-  var t4 = USEPAWNHASH
-
-  lozza.uci.debugging = true;
-  USENET              = 1;
-  USEHCE              = 1;
-  USEPAWNHASH         = 1;
-
-  var evalS = 0;
-  var evalE = 0;
-
-  var nn1 = this.netEval();
-  var nn2 = this.netFullEval();
-  if (myround(nn1) != myround(nn2))
-    lozza.uci.debug('NET',nn1,nn2);
-
-  var loHash = 0;
-  var hiHash = 0;
-
-  var ploHash = 0;
-  var phiHash = 0;
-
-  if (turn) {
-    loHash ^= this.loTurn;
-    hiHash ^= this.hiTurn;
-  }
-
-  loHash ^= this.loRights[this.rights];
-  hiHash ^= this.hiRights[this.rights];
-
-  loHash ^= this.loEP[this.ep];
-  hiHash ^= this.hiEP[this.ep];
-
-  for (var sq=0; sq<144; sq++) {
-
-    var obj = this.b[sq];
-
-    if (obj == NULL || obj == EDGE)
-      continue;
-
-    var piece = obj & PIECE_MASK;
-    var col   = obj & COLOR_MASK;
-
-    loHash ^= this.loPieces[col>>>3][piece-1][sq];
-    hiHash ^= this.hiPieces[col>>>3][piece-1][sq];
-
-    if (piece == PAWN) {
-      ploHash ^= this.loPieces[col>>>3][0][sq];
-      phiHash ^= this.hiPieces[col>>>3][0][sq];
-    }
-
-    if (col == WHITE) {
-      evalS += VALUE_VECTOR[piece];
-      evalE += VALUE_VECTOR[piece];
-      evalS += WS_PST[piece][sq];
-      evalE += WE_PST[piece][sq];
-    }
-    else {
-      evalS -= VALUE_VECTOR[piece];
-      evalE -= VALUE_VECTOR[piece];
-      evalS -= BS_PST[piece][sq];
-      evalE -= BE_PST[piece][sq];
-    }
-  }
-
-  if (this.loHash != loHash)
-    lozza.uci.debug('LO',this.loHash,loHash);
-
-  if (this.hiHash != hiHash)
-    lozza.uci.debug('HI',this.hiHash,hiHash);
-
-  if (this.ploHash != ploHash)
-    lozza.uci.debug('PLO',this.ploHash,ploHash);
-
-  if (this.phiHash != phiHash)
-    lozza.uci.debug('PHI',this.phiHash,phiHash);
-
-  if (this.runningEvalS != evalS)
-    lozza.uci.debug('MATS',this.runningEvalS,evalS);
-
-  if (this.runningEvalE != evalE)
-    lozza.uci.debug('MATE',this.runningEvalE,evalE);
-
-  lozza.uci.debugging = t1;
-  USENET              = t2;
-  USEHCE              = t3;
-  USEPAWNHASH         = t4;
 }
 
 //}}}
@@ -3126,8 +3021,6 @@ lozBoard.prototype.position = function () {
       this.bHistory[i][j] = 0;
   }
 
-  //console.log(this.netEval(),this.netFullEval());
-
   return 1;
 }
 
@@ -3166,16 +3059,6 @@ lozBoard.prototype.compact = function () {
     }
   }
   
-  /*
-  console.log('WHITE LIST ' + v.length);
-  for (var i=0; i<this.wCount; i++) {
-    console.log(this.b[this.wList[i]]);
-  }
-  */
-  
-  if (this.b[this.wList[0]] != W_KING)
-    console.log('WHITE INDEX ERR');
-  
   //}}}
   //{{{  compact black list
   
@@ -3206,16 +3089,6 @@ lozBoard.prototype.compact = function () {
       break;
     }
   }
-  
-  /*
-  console.log('BLACK LIST ' + v.length);
-  for (var i=0; i<this.bCount; i++) {
-    console.log(this.b[this.bList[i]]);
-  }
-  */
-  
-  if (this.b[this.bList[0]] != B_KING)
-    console.log('BLACK INDEX ERR');
   
   //}}}
 }
@@ -3777,8 +3650,6 @@ lozBoard.prototype.genQMoves = function(node, turn) {
 //{{{  .makeMove
 
 lozBoard.prototype.makeMove = function (node,move) {
-
-  this.lozza.stats.nodes++;
 
   var b = this.b;
   var z = this.z;
@@ -4997,8 +4868,6 @@ lozBoard.prototype.evaluate = function (turn) {
     
             pawnsS += PAWN_OFFSET_S + (PAWN_MULT_S                                    ) * PAWN_PASSED[rank] | 0;
             pawnsE += PAWN_OFFSET_E + (PAWN_MULT_E + passKings + passFree + passUnstop) * PAWN_PASSED[rank] | 0;
-    
-            //console.log('W PASS',COORDS[sq],'Kdist,free,unstop=',passKings,passFree,passUnstop);
           }
         }
         count++;
@@ -5069,8 +4938,6 @@ lozBoard.prototype.evaluate = function (turn) {
     
             pawnsS -= PAWN_OFFSET_S + (PAWN_MULT_S                                    ) * PAWN_PASSED[9-rank] | 0;
             pawnsE -= PAWN_OFFSET_E + (PAWN_MULT_E + passKings + passFree + passUnstop) * PAWN_PASSED[9-rank] | 0;
-    
-            //console.log('B PASS',COORDS[sq],'Kdist,free,unstop=',passKings,passFree,passUnstop);
           }
         }
         count++;
@@ -5079,9 +4946,6 @@ lozBoard.prototype.evaluate = function (turn) {
     }
     
     //}}}
-    
-    //if (bPassed || wPassed)
-      //console.log('----------------------------')
     
     //}}}
     
@@ -5838,6 +5702,87 @@ lozBoard.prototype.evaluate = function (turn) {
 }
 
 //}}}
+//{{{  .hashCheck
+
+lozBoard.prototype.hashCheck = function (turn) {
+
+  var evalS = 0;
+  var evalE = 0;
+
+  var nn1 = this.netEval();
+  var nn2 = this.netFullEval();
+  if (myround(nn1) != myround(nn2))
+    lozza.uci.debug('NET',nn1,nn2);
+
+  var loHash = 0;
+  var hiHash = 0;
+
+  var ploHash = 0;
+  var phiHash = 0;
+
+  if (turn) {
+    loHash ^= this.loTurn;
+    hiHash ^= this.hiTurn;
+  }
+
+  loHash ^= this.loRights[this.rights];
+  hiHash ^= this.hiRights[this.rights];
+
+  loHash ^= this.loEP[this.ep];
+  hiHash ^= this.hiEP[this.ep];
+
+  for (var sq=0; sq<144; sq++) {
+
+    var obj = this.b[sq];
+
+    if (obj == NULL || obj == EDGE)
+      continue;
+
+    var piece = obj & PIECE_MASK;
+    var col   = obj & COLOR_MASK;
+
+    loHash ^= this.loPieces[col>>>3][piece-1][sq];
+    hiHash ^= this.hiPieces[col>>>3][piece-1][sq];
+
+    if (piece == PAWN) {
+      ploHash ^= this.loPieces[col>>>3][0][sq];
+      phiHash ^= this.hiPieces[col>>>3][0][sq];
+    }
+
+    if (col == WHITE) {
+      evalS += VALUE_VECTOR[piece];
+      evalE += VALUE_VECTOR[piece];
+      evalS += WS_PST[piece][sq];
+      evalE += WE_PST[piece][sq];
+    }
+    else {
+      evalS -= VALUE_VECTOR[piece];
+      evalE -= VALUE_VECTOR[piece];
+      evalS -= BS_PST[piece][sq];
+      evalE -= BE_PST[piece][sq];
+    }
+  }
+
+  if (this.loHash != loHash)
+    lozza.uci.debug('LO',this.loHash,loHash);
+
+  if (this.hiHash != hiHash)
+    lozza.uci.debug('HI',this.hiHash,hiHash);
+
+  if (this.ploHash != ploHash)
+    lozza.uci.debug('PLO',this.ploHash,ploHash);
+
+  if (this.phiHash != phiHash)
+    lozza.uci.debug('PHI',this.phiHash,phiHash);
+
+  if (this.runningEvalS != evalS)
+    lozza.uci.debug('MATS',this.runningEvalS,evalS);
+
+  if (this.runningEvalE != evalE)
+    lozza.uci.debug('MATE',this.runningEvalE,evalE);
+}
+
+//}}}
 //{{{  .rand32
 
 lozBoard.prototype.rand32 = function () {
@@ -5959,12 +5904,6 @@ lozBoard.prototype.ttInit = function () {
 
   this.ploHash = 0;
   this.phiHash = 0;
-
-  //for (var i=0; i < TTSIZE; i++)
-    //this.ttType[i] = TT_EMPTY;
-
-  //for (var i=0; i < PTTSIZE; i++)
-    //this.pttFlags[i] = TT_EMPTY;
 
   this.ttType.fill(0);
   this.pttFlags.fill(0);
@@ -6404,7 +6343,6 @@ lozNode.prototype.cache = function() {
   if (USENET) {
     for (var i=0; i < NETH1SIZE; i++) {
       this.C_h1[i] = board.h1[i].sum;
-      //console.log(this.ply,'caching',board.h1[i].sum);
     }
   }
 }
@@ -6430,7 +6368,6 @@ lozNode.prototype.uncache = function() {
   if (USENET) {
     for (var i=0; i < NETH1SIZE; i++) {
       board.h1[i].sum = this.C_h1[i];
-      //console.log(this.ply,'uncaching',this.C_h1[i]);
     }
   }
 }
@@ -6839,7 +6776,7 @@ function lozUCI () {
   this.tokens    = [];
   this.command   = '';
   this.spec      = {};
-  this.debugging = false;
+  this.debugging = DEBUG;
   this.nodefs    = 0;
   this.numMoves  = 0;
 
@@ -7091,7 +7028,7 @@ onmessage = function(e) {
     case 'bench':
       //{{{  bench
       
-      uci.debugging = true;
+      uci.debugging = 1;
       
       for (var i=0; i < WS_PST.length; i++) {
         var wpst = WS_PST[i];
@@ -7137,7 +7074,7 @@ onmessage = function(e) {
       
       uci.debug('bench done ok')
       
-      uci.debugging = false;
+      uci.debugging = 0;
       
       break;
       
@@ -7147,9 +7084,9 @@ onmessage = function(e) {
       //{{{  debug
       
       if (uci.getStr('debug','off') == 'on')
-        uci.debugging = true;
+        uci.debugging = 1;
       else
-        uci.debugging = false;
+        uci.debugging = 0;
       
       break;
       

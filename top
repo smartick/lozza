@@ -57,6 +57,8 @@ eval feathering different start value
 
 'lozza\trunk\lozza.js' - coalface
 
+'chessdata\engines\tomitank\tomitank51.js'
+
 //{{{  other lozzas
 
 'lozza\trunk\history\3.0\lozza.js'           - candidate dev
@@ -70,12 +72,16 @@ eval feathering different start value
 'lozza\trunk\deadends\quiet.js'          - released dev
 'lozza\trunk\deadends\netlozza.js'          - released dev
 'lozza\trunk\deadends\lozza3.js'          - released dev
+'lozza\trunk\deadends\tuner.js'          - released dev
 
 //}}}
 
 'lozza\trunk\testing\cctry.bat'
 'lozza\trunk\testing\engines.json'
 'lozza\trunk\testing\cctry.pgn'
+
+'lozza\trunk\testing\tuner.js'
+'lozza\trunk\testing\tuner.txt'
 
 'lozza\trunk\testing\nettuner.js'
 'lozza\trunk\testing\nettuner4.txt'

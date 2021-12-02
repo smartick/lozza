@@ -639,7 +639,7 @@ function grunt () {
 //}}}
 //{{{  kick it off
 
-var epdfile      = 'nettuner.epd';
+var epdfile      = 'c:/projects/chessdata/quiet-labeled.epd';
 var thisPosition = 0;
 
 const fs       = require('fs');
