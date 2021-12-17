@@ -10,7 +10,7 @@ var USEPAWNHASH = 1;
 //{{{  history
 /*
 
-2.1 17/12/21 Optimise pruning to pre makeMove(). LTC 13.7, STC WIP.
+2.1 17/12/21 Optimise pruning to pre makeMove(). 19,14 elo.
 
 2.0a 27/09/21 Fix timeouts.
 2.0a 27/09/21 Add USEPAWNHASH - useful when testing.
