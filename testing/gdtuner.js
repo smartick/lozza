@@ -6673,7 +6673,7 @@ var params = [];
 
 var gK            = 3.656;
 var gLearningRate = 0.1;
-var gEpdFile      = 'data\lozza-quiet.epd';
+var gEpdFile      = 'data/lozza-quiet.epd';
 var gOutFile      = 'gdtuner.txt';
 var gMaxPositions = 100000000;
 var gErrStep      = 10;
