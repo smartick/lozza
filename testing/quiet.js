@@ -6686,7 +6686,7 @@ function round1(x) {
 function log () {
   var progress = totbytes / filesize * 100;
   var yield    = numquiet / numepds;
-  var guess    = (filesize/avebytes) * yeild * 0.957;
+  var guess    = (filesize/avebytes) * yield;
   console.log('progress% =', round1(progress), 'epds =', round1(numepds/1000000), 'quiet =', round1(numquiet/1000000), 'yield =', round1(yield), 'guess =', round1(guess/1000000));
 }
 
@@ -6728,11 +6728,17 @@ const rl = readline.createInterface({
 
 rl.on('line', function (line) {
 
-  if (!line.length) {
+  var len = line.length;
+
+  if (!len) {
     return;
   }
 
   line = line.replace(/(\r\n|\n|\r|;)/gm,'');
+
+  if (!line.length) {
+    return;
+  }
 
   var parts = line.split(' ');
 
@@ -6746,7 +6752,7 @@ rl.on('line', function (line) {
   }
 
   numepds++;
-  totbytes  += line.length;
+  totbytes  += len;
   avebytes  = totbytes / numepds;
 
   uci.spec.board    = parts[0];
