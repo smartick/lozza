@@ -1,53 +1,567 @@
 
-//{{{  try
+//{{{  try ideas
 
-no pruning etc while ply (not depth) is < 5 say.
+after a certain depth in Q only look at captures to the same square
 
-dont reset h scores on position
+tidy commands like start/stop wrt ui - remove uci console?
 
-tune q futility ephase
+hash option
 
-preserve depth collisions in tt but beware alpha/beta
+try hash move before move gen
 
-no tt at depth < 2 (inc q)
+should not have to sort to get hask move (etc)
 
-no tt at ply 1
+k p net training against exist king/pawn eval.
 
-always do nmp if at least a knight etc
+see!!!
 
-allow beta prune after null move
+split makemove up into pre and post legalality check.
 
-relax some of the pawn constraints on searching reductions etc
+move ordering.
 
-extend if nmp returns a mate score or panic somehow
+discovered attacks.
 
-the beta/alpha mate predicates seem wrong - review
+multiple attacsk on same rank/file. e.g. rooks on e1 and e2. and other xray attacks in general.
 
-test incheck unknown etc by always recalculating jic
+eval - if one bishop put pawns on opposite colour.
 
-no futility if parent move is a capture
+eval - pinned against king (-ve) (cannot move without being in check).
 
-futility guards for both alpha and beta mates scores
+try using running eval in search, if fail, remove (and phase) and move to eval. move anyway - so not doing for illegal moves.
 
-varied r for nmp
+use tomitank to find ideas - seems == with no eval, pruning/R/E, qsearch.
 
-return score from nmp not beta
+remove king from isattacked now that makemove doesnt move kings next to eachother. test with perft. need to clone isattacked and specialise one for king.
 
-increase time if one of top 2 root based moves changes and ply > n.
+quick see - check for pawn/knight defenders. use in move ordering and futility? bad capture mask - spare bit?
 
-validate beta pruning with 1 ply search
+mobility check for pawn defenders on open squares and captures.
 
-dont save killers/his if in check
+mobility - max moves - then lookup non linear tuned table. needs lots of positions. or A + Bx + Cx^2. (assumption though).
 
-make sure killers are slides in the imp
+is pawn move mask used?
 
-if no pawans for b and w and abs running eval < 400. e = e/2
+add make/unmake qmove w/o hashing etc for q. in try code fold. needs testing. ?? hash needed for pawn hash.
 
-eval feathering non linear
+rework mobility to separate "tightness/tension" (cwtch) from mobility.
 
-eval feathering different start value
+change max attackers to 4. re wc chess commentary.
+
+try different king zone shapes
+
+use history for lms, lmp etc - experiment with different history schemes. consider king position? etc.
+
+don't give up on net stuff. move into lozza? get lozza to generate fens from self game play. see sf gensfen command for ideas.
+
+qpromotion - try just q and n (ditto promotion) - but tweak so perft works
+
+check killers is working still - check if needed - check captures as killers is needed etc
 
 //}}}
+//{{{  try code
+
+//{{{  .makePseudoMove
+//{{{  .makePseudoMove
+
+lozBoard.prototype.makePseudoMove = function (node,move) {
+
+  var b = this.b;
+
+  var fr      = (move & MOVE_FR_MASK   ) >>> MOVE_FR_BITS;
+  var to      = (move & MOVE_TO_MASK   ) >>> MOVE_TO_BITS;
+  var frObj   = (move & MOVE_FROBJ_MASK) >>> MOVE_FROBJ_BITS;
+
+  b[fr] = NULL;
+  b[to] = frObj;
+}
+
+//}}}
+//{{{  .unmakePseudoMove
+
+lozBoard.prototype.unmakePseudoMove = function (node,move) {
+
+  var b = this.b;
+
+  var fr    = (move & MOVE_FR_MASK   ) >>> MOVE_FR_BITS;
+  var to    = (move & MOVE_TO_MASK   ) >>> MOVE_TO_BITS;
+  var toObj = (move & MOVE_TOOBJ_MASK) >>> MOVE_TOOBJ_BITS;
+  var frObj = (move & MOVE_FROBJ_MASK) >>> MOVE_FROBJ_BITS;
+
+  b[fr] = frObj;
+  b[to] = toObj;
+}
+
+//}}}
+//}}}
+//{{{  .makeQMove
+
+lozBoard.prototype.makeQMove = function (node,move) {
+
+  var b = this.b;
+  var z = this.z;
+
+  var fr      = (move & MOVE_FR_MASK   ) >>> MOVE_FR_BITS;
+  var to      = (move & MOVE_TO_MASK   ) >>> MOVE_TO_BITS;
+  var toObj   = (move & MOVE_TOOBJ_MASK) >>> MOVE_TOOBJ_BITS;
+  var frObj   = (move & MOVE_FROBJ_MASK) >>> MOVE_FROBJ_BITS;
+  var frPiece = frObj & PIECE_MASK;
+  var frCol   = frObj & COLOR_MASK;
+  var frColI  = frCol >>> 3;
+
+  //{{{  slide piece
+  
+  b[fr] = NULL;
+  b[to] = frObj;
+  
+  node.frZ = z[fr];
+  node.toZ = z[to];
+  
+  z[fr] = NO_Z;
+  z[to] = node.frZ;
+  
+  if (frCol == WHITE) {
+  
+    this.wList[node.frZ] = to;
+  
+    this.runningEvalS -= WS_PST[frPiece][fr];
+    this.runningEvalS += WS_PST[frPiece][to];
+    this.runningEvalE -= WE_PST[frPiece][fr];
+    this.runningEvalE += WE_PST[frPiece][to];
+  
+    this.netwMove(frPiece,fr,to);
+  }
+  
+  else {
+  
+    this.bList[node.frZ] = to;
+  
+    this.runningEvalS += BS_PST[frPiece][fr];
+    this.runningEvalS -= BS_PST[frPiece][to];
+    this.runningEvalE += BE_PST[frPiece][fr];
+    this.runningEvalE -= BE_PST[frPiece][to];
+  
+    this.netbMove(frPiece,fr,to);
+  }
+  
+  //}}}
+  //{{{  clear rights?
+  
+  if (this.rights) {
+  
+    this.rights &= MASK_RIGHTS[fr] & MASK_RIGHTS[to];
+  }
+  
+  //}}}
+  //{{{  capture?
+  
+  if (toObj) {
+  
+    var toPiece = toObj & PIECE_MASK;
+    var toCol   = toObj & COLOR_MASK;
+    var toColI  = toCol >>> 3;
+  
+    this.phase += VPHASE[toPiece];
+  
+    if (toCol == WHITE) {
+  
+      this.wList[node.toZ] = EMPTY;
+  
+      this.runningEvalS -= VALUE_VECTOR[toPiece];
+      this.runningEvalS -= WS_PST[toPiece][to];
+      this.runningEvalE -= VALUE_VECTOR[toPiece];
+      this.runningEvalE -= WE_PST[toPiece][to];
+  
+      this.wCounts[toPiece]--;
+      this.wCount--;
+  
+      this.netwDel(toPiece,to);
+    }
+  
+    else {
+  
+      this.bList[node.toZ] = EMPTY;
+  
+      this.runningEvalS += VALUE_VECTOR[toPiece];
+      this.runningEvalS += BS_PST[toPiece][to];
+      this.runningEvalE += VALUE_VECTOR[toPiece];
+      this.runningEvalE += BE_PST[toPiece][to];
+  
+      this.bCounts[toPiece]--;
+      this.bCount--;
+  
+      this.netbDel(toPiece,to);
+    }
+  }
+  
+  //}}}
+  //{{{  reset EP
+  
+  this.ep = 0;
+  
+  //}}}
+
+  if (move & MOVE_SPECIAL_MASK) {
+    //{{{  ikky stuff
+    
+    if (frCol == WHITE) {
+    
+      //{{{  white
+      
+      var ep = to + 12;
+      
+      if (move & MOVE_EPMAKE_MASK) {
+        this.ep = ep;
+      }
+      
+      else if (move & MOVE_EPTAKE_MASK) {
+      
+        b[ep]    = NULL;
+        node.epZ = z[ep];
+        z[ep]    = NO_Z;
+      
+        this.bList[node.epZ] = EMPTY;
+      
+        this.runningEvalS += VALUE_PAWN;
+        this.runningEvalS += BS_PST[PAWN][ep];  // sic.
+        this.runningEvalE += VALUE_PAWN;
+        this.runningEvalE += BE_PST[PAWN][ep];  // sic.
+      
+        this.bCounts[PAWN]--;
+        this.bCount--;
+      
+        this.netbDel(PAWN,ep);
+      }
+      
+      else if (move & MOVE_PROMOTE_MASK) {
+      
+        var pro = ((move & MOVE_PROMAS_MASK) >>> MOVE_PROMAS_BITS) + 2;  //NBRQ
+        b[to]   = WHITE | pro;
+      
+        this.runningEvalS -= VALUE_PAWN;
+        this.runningEvalS -= WS_PST[PAWN][to];
+        this.runningEvalE -= VALUE_PAWN;
+        this.runningEvalE -= WE_PST[PAWN][to];
+      
+        this.wCounts[PAWN]--;
+      
+        this.runningEvalS += VALUE_VECTOR[pro];
+        this.runningEvalS += WS_PST[pro][to];
+        this.runningEvalE += VALUE_VECTOR[pro];
+        this.runningEvalE += WE_PST[pro][to];
+      
+        this.wCounts[pro]++;
+      
+        this.phase -= VPHASE[pro];
+      
+        this.netwDel(PAWN,to);
+        this.netwAdd(pro,to);
+      }
+      
+      //}}}
+    }
+    
+    else {
+    
+      //{{{  black
+      
+      var ep = to - 12;
+      
+      if (move & MOVE_EPMAKE_MASK) {
+        this.ep = ep;
+      }
+      
+      else if (move & MOVE_EPTAKE_MASK) {
+      
+        b[ep]    = NULL;
+        node.epZ = z[ep];
+        z[ep]    = NO_Z;
+      
+        this.wList[node.epZ] = EMPTY;
+      
+        this.runningEvalS -= VALUE_PAWN;
+        this.runningEvalS -= WS_PST[PAWN][ep];  // sic.
+        this.runningEvalE -= VALUE_PAWN;
+        this.runningEvalE -= WE_PST[PAWN][ep];  // sic.
+      
+        this.wCounts[PAWN]--;
+        this.wCount--;
+      
+        this.netwDel(PAWN,ep);
+      }
+      
+      else if (move & MOVE_PROMOTE_MASK) {
+      
+        var pro = ((move & MOVE_PROMAS_MASK) >>> MOVE_PROMAS_BITS) + 2;  //NBRQ
+        b[to]   = BLACK | pro;
+      
+        this.runningEvalS += VALUE_PAWN;
+        this.runningEvalS += BS_PST[PAWN][to];
+        this.runningEvalE += VALUE_PAWN;
+        this.runningEvalE += BE_PST[PAWN][to];
+      
+        this.bCounts[PAWN]--;
+      
+        this.runningEvalS -= VALUE_VECTOR[pro];
+        this.runningEvalS -= BS_PST[pro][to];
+        this.runningEvalE -= VALUE_VECTOR[pro];
+        this.runningEvalE -= BE_PST[pro][to];
+      
+        this.bCounts[pro]++;
+      
+        this.phase -= VPHASE[pro];
+      
+        this.netbDel(PAWN,to);
+        this.netbAdd(pro,to);
+      }
+      
+      //}}}
+    }
+    
+    //}}}
+  }
+}
+
+//}}}
+//{{{  .quiescence
+
+lozChess.prototype.qSearch = function (node, depth, turn, alpha, beta) {
+
+  //{{{  housekeeping
+  
+  this.stats.checkTime();
+  if (this.stats.timeOut)
+    return;
+  
+  if (node.ply > this.stats.selDepth)
+    this.stats.selDepth = node.ply;
+  
+  if (!node.childNode) {
+    //this.uci.debug('Q DEPTH');
+    return this.board.evaluate(turn);
+  }
+  
+  //}}}
+
+  var board         = this.board;
+  var numLegalMoves = 0;
+  var move          = 0;
+  var standPat      = 0;
+  var phase         = 0;
+  var nextTurn      = ~turn & COLOR_MASK;
+
+  if (depth > -2)
+    var inCheck = board.isKingAttacked(nextTurn);
+  else
+    var inCheck = false;
+
+  if (!inCheck) {
+    this.stats.nodes++;
+    standPat = board.evaluate(turn);
+    if (standPat >= beta)
+      return standPat;
+    if (standPat > alpha)
+      alpha = standPat;
+    phase = board.cleanPhase(board.phase);
+  }
+
+  node.cache();
+
+  if (inCheck)
+    board.genEvasions(node, turn);
+  else
+    board.genQMoves(node, turn);
+
+  while (move = node.getNextMove()) {
+
+    //{{{  futile?
+    
+    if (!inCheck && phase <= EPHASE && !(move & MOVE_PROMOTE_MASK) && standPat + 200 + VALUE_VECTOR[((move & MOVE_TOOBJ_MASK) >>> MOVE_TOOBJ_BITS) & PIECE_MASK] < alpha) {
+    
+      continue;
+    }
+    
+    //}}}
+
+    board.makeMove(node,move);
+
+    //{{{  legal?
+    
+    if (board.isKingAttacked(nextTurn)) {
+    
+      board.unmakeMove(node,move);
+    
+      node.uncache();
+    
+      continue;
+    }
+    
+    //}}}
+
+    numLegalMoves++;
+
+    var score = -this.qSearch(node.childNode, depth-1, nextTurn, -beta, -alpha);
+
+    //{{{  unmake move
+    
+    board.unmakeMove(node,move);
+    
+    node.uncache();
+    
+    //}}}
+
+    if (score > alpha) {
+      if (score >= beta) {
+        return score;
+      }
+      alpha = score;
+    }
+  }
+
+  //{{{  no moves?
+  //
+  // Some legal moves will be missed because of futility but only
+  // if not in check and numLegalMoves is only needed if in check.
+  //
+  
+  if (inCheck && numLegalMoves == 0) {
+  
+     return -MATE + node.ply;
+  }
+  
+  //}}}
+
+  return alpha;
+}
+
+//}}}
+//{{{  bench
+
+uci.debugging = 1;
+
+for (var i=0; i < WS_PST.length; i++) {
+  var wpst = WS_PST[i];
+  var bpst = BS_PST[i];
+  if (wpst.length != 144)
+    uci.debug('ws pst len err',i)
+  if (bpst.length != 144)
+    uci.debug('bs pst len err',i)
+  for (var j=0; j < wpst.length; j++) {
+    if (wpst[j] != bpst[wbmap(j)])
+      uci.debug('s pst err',i,j,wpst[j],bpst[wbmap(j)])
+  }
+}
+
+for (var i=0; i < WE_PST.length; i++) {
+  var wpst = WE_PST[i];
+  var bpst = BE_PST[i];
+  if (wpst.length != 144)
+    uci.debug('we pst len err',i)
+  if (bpst.length != 144)
+    uci.debug('be pst len err',i)
+  for (var j=0; j < wpst.length; j++) {
+    if (wpst[j] != bpst[wbmap(j)])
+      uci.debug('e pst err',i,j,wpst[j],bpst[wbmap(j)])
+  }
+}
+
+if (WOUTPOST.length != 144)
+  uci.debug('w outpost len err',i)
+if (BOUTPOST.length != 144)
+  uci.debug('b outpost len err',i)
+for (var j=0; j < WOUTPOST.length; j++) {
+  if (WOUTPOST[j] != BOUTPOST[wbmap(j)])
+    uci.debug('outpost err',j,WOUTPOST[j],BOUTPOST[wbmap(j)])
+}
+
+for (var i=0; i < 144; i++) {
+  for (var j=0; j < 144; j++) {
+    if (WKZONES[i][j] != BKZONES[wbmap(i)][wbmap(j)])
+      uci.debug('kzones err',i,j,WKZONES[i][j],BKZONES[i][j])
+  }
+}
+
+onmessage({data: 'ucinewgame'});
+onmessage({data: 'position startpos'});
+onmessage({data: 'go depth 20'});
+
+uci.debugging = 0;
+
+break;
+
+//}}}
+//{{{  detect host
+
+var HOST_WEB     = 0;
+var HOST_NODEJS  = 1;
+var HOST_CONSOLE = 2;
+var HOSTS        = ['Web','Node','Console'];
+
+var lozzaHost  = HOST_WEB;
+var LAZYUPDATE = 500;
+
+if ((typeof process) != 'undefined') {
+
+  lozzaHost  = HOST_NODEJS;
+  LAZYUPDATE = 10000;
+}
+
+else if ((typeof WorkerGlobalScope) == 'undefined') {
+
+  lozzaHost  = HOST_CONSOLE;
+  LAZYUPDATE = 1000;
+}
+
+//}}}
+//{{{  safe
+//{{{  .isSafeForW
+
+lozBoard.prototype.isSafeForW = function(to) {
+
+  var b  = this.b;
+
+  if (b[to - 11] == B_PAWN) return 0;
+  if (b[to - 13] == B_PAWN) return 0;
+
+  return 1;
+}
+
+
+//}}}
+//{{{  .isSafeForB
+
+lozBoard.prototype.isSafeForB = function(to) {
+
+  var b  = this.b;
+
+  if (b[to + 11] == W_PAWN) return 0;
+  if (b[to + 13] == W_PAWN) return 0;
+
+  return 1;
+}
+
+
+//}}}
+//}}}
+//{{{  .getHistory
+
+lozBoard.prototype.getHistory = function (move) {
+
+  var to      = (move & MOVE_TO_MASK)    >>> MOVE_TO_BITS;
+  var frObj   = (move & MOVE_FROBJ_MASK) >>> MOVE_FROBJ_BITS;
+  var frPiece = frObj & PIECE_MASK;
+
+  if ((frObj & COLOR_MASK) == WHITE) {
+    return this.wHistory[frPiece][to];
+  }
+  else {
+    return this.bHistory[frPiece][to];
+  }
+}
+
+//}}}
+
+//}}}
+
 //{{{  cutechess help
 
 'C:\Program Files (x86)\Cute Chess\cutechess-cli.6.txt'
@@ -55,12 +569,14 @@ eval feathering different start value
 
 //}}}
 
-'lozza\trunk\lozza.js' - coalface
-
-'chessdata\engines\tomitank\tomitank51.js'
+'lozza\trunk\lozza.js'     - coalface
 
 //{{{  other lozzas
 
+'c:\projects\chessdata\engines\tomitank\tt.js'
+'lozza\trunk\deadends\lozza21alpha.js'
+'chessdata\engines\tomitank\original51.js'
+'chessdata\engines\tomitank\tomitank51.js'
 'lozza\trunk\history\3.0\lozza.js'           - candidate dev
 'lozza\trunk\history\2.1\lozza.js'           - candidate dev
 'lozza\trunk\history\2.0\lozza.js'           - released dev
@@ -79,6 +595,10 @@ eval feathering different start value
 'lozza\trunk\testing\cctry.bat'
 'lozza\trunk\testing\engines.json'
 'lozza\trunk\testing\cctry.pgn'
+'lozza\trunk\testing\cctry.epd'
+
+'lozza\trunk\testing\gdtuner.js'
+'lozza\trunk\testing\gdtuner.txt'
 
 'lozza\trunk\testing\tuner.js'
 'lozza\trunk\testing\tuner.txt'
@@ -89,9 +609,6 @@ eval feathering different start value
 'lozza\trunk\testing\nettuner12.txt'
 'lozza\trunk\testing\nettuner16.txt'
 'lozza\trunk\testing\nettuner32.txt'
-
-'lozza\trunk\testing\gdtuner.js'
-'lozza\trunk\testing\gdtuner.txt'
 
 'lozza\trunk\testing\eval.js'
 'lozza\trunk\testing\eval_flip.js'

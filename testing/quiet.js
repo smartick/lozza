@@ -6650,19 +6650,11 @@ if (lozzaHost == HOST_NODEJS) {
 
 //}}}
 
-var check = process.argv[2] == 'check';
+var check = process.argv[2] == 'check'; // just check data
 
 //
 // Copy lozza.js above here.
 // Turn off pawn hash.
-
-//
-// Populate .\games with pgn files from cutechess.
-// .\makeepd.bat
-// node quiet check
-// node quiet > games\lozza-quiet.epd
-// del games\*.pgn
-// del games\lozza.epd
 //
 
 //
@@ -6704,7 +6696,6 @@ function round1(x) {
 var fs       = lozza.uci.nodefs;
 var uci      = lozza.uci;
 var board    = lozza.board;
-var epdfile  = 'games/lozza.epd';
 var count    = 0;
 var batch    = 0;
 var min      = 99999;
@@ -6715,11 +6706,11 @@ var raw      = 0;
 var read     = 0;
 var totbytes = 0;
 
-var stats     = fs.statSync(epdfile)
+var stats     = fs.statSync('data/lozza.epd')
 var epdbytes  = stats.size;
 
 if (check) {
-  console.log('checking',epdfile);
+  console.log('checking');
   console.log('epdbytes',epdbytes);
   console.log('skip',skip);
   console.log('maxeval',maxeval);
@@ -6730,7 +6721,7 @@ lozza.newGameInit();
 const readline = require('readline');
 
 const rl = readline.createInterface({
-    input: fs.createReadStream(epdfile),
+    input: fs.createReadStream('data/lozza.epd'),
     output: process.stdout,
     crlfDelay: Infinity,
     terminal: false
