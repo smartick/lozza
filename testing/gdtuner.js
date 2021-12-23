@@ -6658,6 +6658,8 @@ if (lozzaHost == HOST_NODEJS) {
 //}}}
 //
 // Copy lozza.js above here.
+// Turn off pawn hash.
+// Copy EV assignments to evaluate();
 //
 
 //{{{  globals
@@ -6671,34 +6673,14 @@ var params = [];
 
 var gK            = 3.656;
 var gLearningRate = 0.1;
-var gEpdFile      = 'c:/projects/chessdata/quiet-labeled.epd';
+var gEpdFile      = 'data\lozza-quiet.epd';
 var gOutFile      = 'gdtuner.txt';
-var gMaxPositions = 1000000000;
+var gMaxPositions = 100000000;
 var gErrStep      = 10;
 
 //}}}
 //{{{  functions
 
-//{{{  getprob
-
-function getprob (r) {
-  if (r == '[0.5]')
-    return 0.5;
-  else if (r == '[1.0]')
-    return 1.0;
-  else if (r == '[0.0]')
-    return 0.0;
-  else if (r == '"1/2-1/2";')
-    return 0.5;
-  else if (r == '"1-0";')
-    return 1.0;
-  else if (r == '"0-1";')
-    return 0.0;
-  else
-    console.log('unknown result',r);
-}
-
-//}}}
 //{{{  is
 
 function is (obj,sq) {
@@ -6803,26 +6785,6 @@ function calcErr () {
   }
 
   return err / num;
-}
-
-//}}}
-//{{{  getprob
-
-function getprob (r) {
-  if (r == '[0.5]')
-    return 0.5;
-  else if (r == '[1.0]')
-    return 1.0;
-  else if (r == '[0.0]')
-    return 0.0;
-  else if (r == '"1/2-1/2";')
-    return 0.5;
-  else if (r == '"1-0";')
-    return 1.0;
-  else if (r == '"0-1";')
-    return 0.0;
-  else
-    console.log('unknown result',r);
 }
 
 //}}}
@@ -7136,16 +7098,19 @@ rl.on('line', function (line) {
     line = line.replace(/(\r\n|\n|\r)/gm,'');
 
     line = line.trim();
-    if (!line)
+    if (!line.length)
       return;
 
     var parts = line.split(' ');
+
+    if (parts.length != 5)
+      return;
 
     epds.push({board:   parts[0],
                turn:    parts[1],
                rights:  parts[2],
                ep:      parts[3],
-               prob:    getprob(parts[5])});
+               prob:    parseFloat(parts[4])});
   }
 });
 

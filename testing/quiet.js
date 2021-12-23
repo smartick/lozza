@@ -6650,12 +6650,13 @@ if (lozzaHost == HOST_NODEJS) {
 
 //}}}
 
-var check = process.argv[2] == 'check'; // just check data
-
 //
 // Copy lozza.js above here.
 // Turn off pawn hash.
 //
+
+var epdin  = 'data/lozza.epd';
+var epdout = 'data/lozza-quiet.epd';
 
 //
 // Only every skip lines are used.
@@ -6705,23 +6706,23 @@ var maxb     = '';
 var raw      = 0;
 var read     = 0;
 var totbytes = 0;
+var out      = '';
 
-var stats     = fs.statSync('data/lozza.epd')
+var stats     = fs.statSync(epdin)
 var epdbytes  = stats.size;
 
-if (check) {
-  console.log('checking');
-  console.log('epdbytes',epdbytes);
-  console.log('skip',skip);
-  console.log('maxeval',maxeval);
-}
+fs.writeFileSync(epdout,'');
+
+console.log('epdbytes',epdbytes);
+console.log('skip',skip);
+console.log('maxeval',maxeval);
 
 lozza.newGameInit();
 
 const readline = require('readline');
 
 const rl = readline.createInterface({
-    input: fs.createReadStream('data/lozza.epd'),
+    input: fs.createReadStream(epdin),
     output: process.stdout,
     crlfDelay: Infinity,
     terminal: false
@@ -6749,7 +6750,7 @@ rl.on('line', function (line) {
     return;
   }
 
-  if (check && parts.length != 11) {
+  if (parts.length != 11) {
     console.log('line',line);
     process.exit();
   }
@@ -6841,14 +6842,15 @@ rl.on('line', function (line) {
     console.log('progress% =', round1(progress), 'used =', round1(raw/1000000), 'quiet =', round1(count/1000000), 'yeild =', round1(yeild), 'guess =', round1(guess/1000000), 'min eval =', min, 'max eval =', max);
   }
 
-  if (!check) {
-    console.log(parts[0],parts[1],parts[2],parts[3],getprob(parts[10]));
+  out += parts[0] + ' ' + parts[1] + ' ' + parts[2] + ' ' + parts[3] + ' ' + getprob(parts[10]) + '\r\n';
+  if (out.length > 1000000) {
+    fs.appendFileSync(epdout,out);
+    out = '';
   }
 });
 
 rl.on('close', function(){
-  if (check)
-    console.log(count);
+  console.log(count);
   process.exit();
 });
 
