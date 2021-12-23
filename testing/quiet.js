@@ -6662,7 +6662,7 @@ var epdout = 'data/lozza-quiet.epd';
 // Only every skip lines are used.
 //
 
-var skip = 1;
+var skip = 3;
 
 //
 // Abs evals > maxeval are skipped.
