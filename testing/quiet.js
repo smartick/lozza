@@ -12,7 +12,7 @@ var USEPAWNHASH = 0;
 /*
 
 2.1 20/12/21 Handle old Node versions WRT stdin.resume() for CCRL;
-2.1 17/12/21 Optimise pruning to pre makeMove(). stc 19, ltc 14 elo v 2.0a.
+2.1 17/12/21 Optimise pruning to pre makeMove().
 
 2.0a 27/09/21 Fix timeouts.
 2.0a 27/09/21 Add USEPAWNHASH - useful when testing.
@@ -1848,7 +1848,7 @@ lozChess.prototype.alphabeta = function (node, depth, turn, alpha, beta, nullOK,
 
   //{{{  prune?
   
-  if (doBeta && depth <= 2 && (standPat - depth * 200) >= beta) {
+  if (doBeta && depth <= 2 && (standPat - depth * 100) >= beta) {
     return beta;
   }
   
@@ -2308,9 +2308,6 @@ function lozBoard () {
   this.hiHash       = 0;
   this.ploHash      = 0;
   this.phiHash      = 0;
-
-  this.gd         = {};
-  this.gd.outpost = 0;
 
   // use separate typed arrays to save space.  optimiser probably has a go anyway but better
   // to be explicit at the expense of some conversion.  total width is 16 bytes.
@@ -4019,8 +4016,6 @@ var ATT_L = 7;
 
 lozBoard.prototype.evaluate = function (turn) {
 
-  this.gd.outpost = 0;
-
   //this.hashCheck(turn);
 
   //{{{  init
@@ -4774,7 +4769,6 @@ lozBoard.prototype.evaluate = function (turn) {
           knightsS += outpost;
           knightsS += outpost * IS_WP[b[fr+11]];
           knightsS += outpost * IS_WP[b[fr+13]];
-          this.gd.outpost += 1 + IS_WP[b[fr+11]] + IS_WP[b[fr+13]];
         }
       }
       
@@ -5003,7 +4997,6 @@ lozBoard.prototype.evaluate = function (turn) {
           knightsS -= outpost;
           knightsS -= outpost * IS_BP[b[fr-11]];
           knightsS -= outpost * IS_BP[b[fr-13]];
-          this.gd.outpost -= 1 + IS_BP[b[fr-11]] + IS_BP[b[fr-13]];
         }
       }
       
@@ -6656,538 +6649,215 @@ if (lozzaHost == HOST_NODEJS) {
 //}}}
 
 //}}}
+
+var check = process.argv[2] == 'check';
+
 //
 // Copy lozza.js above here.
+// Turn off pawn hash.
+
+//
+// Populate .\games with pgn files from cutechess.
+// .\makeepd.bat
+// node quiet check
+// node quiet > games\lozza-quiet.epd
+// del games\*.pgn
+// del games\lozza.epd
 //
 
-//{{{  globals
+//
+// Only every skip lines are used.
+//
 
-fs    = lozza.uci.nodefs;
-uci   = lozza.uci;
-board = lozza.board;
+var skip = 4;
 
-var epds   = [];
-var params = [];
+//
+// Abs evals > maxeval are skipped.
+//
 
-var gK            = 3.656;
-var gLearningRate = 0.1;
-var gEpdFile      = 'c:/projects/chessdata/quiet-labeled.epd';
-var gOutFile      = 'gdtuner.txt';
-var gMaxPositions = 1000000000;
-var gErrStep      = 10;
+var maxeval = 1600;
 
-//}}}
-//{{{  functions
-
-//{{{  getprob
+//{{{  getprob()
 
 function getprob (r) {
-  if (r == '[0.5]')
-    return 0.5;
-  else if (r == '[1.0]')
-    return 1.0;
-  else if (r == '[0.0]')
-    return 0.0;
-  else if (r == '"1/2-1/2";')
-    return 0.5;
-  else if (r == '"1-0";')
-    return 1.0;
-  else if (r == '"0-1";')
-    return 0.0;
-  else
+  if (r == '1/2-1/2')
+    return '0.5';
+  else if (r == '1-0')
+    return '1.0';
+  else if (r == '0-1')
+    return '0.0';
+  else {
     console.log('unknown result',r);
-}
-
-//}}}
-//{{{  is
-
-function is (obj,sq) {
-  return (board.b[sq] == obj) | 0;
-}
-
-//}}}
-//{{{  findK
-
-function findK () {
-
-  var min  = INFINITY;
-  var step = 1.0;
-  var x    = 1.0;
-  var err  = 0;
-  var dp   = 4;
-
-  while (dp) {
-    gK = x;
-    err = calcErr();
-    if (err <  min) {
-      min = err;
-      x += step;
-    }
-    else {
-      console.log(gK-step,err,step);
-      dp--;
-      step = -step / 10.0;
-      x += step;
-      min = INFINITY;
-    }
+    process.exit();
   }
 }
 
 //}}}
-//{{{  addp
+//{{{  round1
 
-function addp (a,i,coeff) {
-  params.push({a: a, i: i, coeff: coeff, gr: 0, ag: 0});
-}
-
-//}}}
-//{{{  myround
-
-function myround(x) {
-  return Math.sign(x) * Math.round(Math.abs(x));
-}
-
-//}}}
-//{{{  wbmap
-
-function wbmap (sq) {
-  var m = (143-sq)/12|0;
-  return 12*m + sq%12;
-}
-
-//}}}
-//{{{  sigmoid
-
-function sigmoid (x) {
-  return 1.0 / (1.0 + Math.exp(-gK*x/400.0));
-}
-
-//}}}
-//{{{  calcErr
-
-function calcErr () {
-
-  var err = 0;
-  var num = epds.length;
-
-  for (var i=0; i < num; i++) {
-
-    var epd = epds[i];
-
-    uci.spec.board    = epd.board;
-    uci.spec.turn     = epd.turn;
-    uci.spec.rights   = epd.rights;
-    uci.spec.ep       = epd.ep;
-    uci.spec.fmc      = 0;
-    uci.spec.hmc      = 0;
-    uci.spec.id       = '';
-    uci.spec.moves    = [];
-
-    lozza.position();
-
-    var sf = epd.sfeval;
-    var pr = epd.prob;
-    var ev = board.evaluate(board.turn);
-
-    if (board.turn == BLACK)
-      ev = -ev;
-
-    var sg = sigmoid(ev);
-
-    if (isNaN(ev) || isNaN(pr) || isNaN(sg) || sg > 1.0 || pr > 1.0 || sg < 0.0 || pr < 0.0) {
-      console.log('nan eek',pr,sg,ev);
-      process.exit();
-    }
-
-    err += (pr-sg) * (pr-sg);
-  }
-
-  return err / num;
-}
-
-//}}}
-//{{{  getprob
-
-function getprob (r) {
-  if (r == '[0.5]')
-    return 0.5;
-  else if (r == '[1.0]')
-    return 1.0;
-  else if (r == '[0.0]')
-    return 0.0;
-  else if (r == '"1/2-1/2";')
-    return 0.5;
-  else if (r == '"1-0";')
-    return 1.0;
-  else if (r == '"0-1";')
-    return 0.0;
-  else
-    console.log('unknown result',r);
-}
-
-//}}}
-//{{{  loga
-
-function loga (p,s) {
-
-  var a = Array(p.length);
-
-  for (var i=0; i < p.length; i++)
-    a[i] = myround(p[i]) | 0;
-
-  return 'const ' + s + ' = [' + a.toString() + '];\r\n';
-}
-
-//}}}
-//{{{  logpst
-
-function logpst (p,s) {
-
-  var a = Array(p.length);
-
-  for (var i=0; i < p.length; i++)
-    a[i] = myround(p[i]) | 0;
-
-  var o = 'const ';
-
-  o = o + s + ' = [';
-
-  for (var i=0; i < 144; i++) {
-    if ((i % 12) == 0)
-      o = o + '\r\n  ';
-    o = o + a[i].toString().padStart(4,' ');
-    if (i < 143)
-      o = o + ', ';
-  }
-
-  o = o + '\r\n];\r\n';
-
-  return o;
-}
-
-//}}}
-//{{{  saveparams
-
-function saveparams (err, epochs) {
-
-  var d   = new Date();
-  var out = '//{{{  tuned running eval\r\n\r\n';
-
-  out += '// data=' + gEpdFile;
-  out += '\r\n';
-  out += '// k='+gK;
-  out += '\r\n';
-  out += '// err='+err;
-  out += '\r\n';
-  out += '// epochs='+epochs;
-  out += '\r\n';
-  out += '// last update '+d;
-  out += '\r\n\r\n';
-
-  out += loga(VALUE_VECTOR,     'VALUE_VECTOR   ');
-
-  out += logpst(WPAWN_PSTS,     'WPAWN_PSTS     ');
-  out += logpst(WPAWN_PSTE,     'WPAWN_PSTE     ');
-  out += logpst(WKNIGHT_PSTS,   'WKNIGHT_PSTS   ');
-  out += logpst(WKNIGHT_PSTE,   'WKNIGHT_PSTE   ');
-  out += logpst(WBISHOP_PSTS,   'WBISHOP_PSTS   ');
-  out += logpst(WBISHOP_PSTE,   'WBISHOP_PSTE   ');
-  out += logpst(WROOK_PSTS,     'WROOK_PSTS     ');
-  out += logpst(WROOK_PSTE,     'WROOK_PSTE     ');
-  out += logpst(WQUEEN_PSTS,    'WQUEEN_PSTS    ');
-  out += logpst(WQUEEN_PSTE,    'WQUEEN_PSTE    ');
-  out += logpst(WKING_PSTS,     'WKING_PSTS     ');
-  out += logpst(WKING_PSTE,     'WKING_PSTE     ');
-
-  out += logpst(BPAWN_PSTS,     'BPAWN_PSTS     ');
-  out += logpst(BPAWN_PSTE,     'BPAWN_PSTE     ');
-  out += logpst(BKNIGHT_PSTS,   'BKNIGHT_PSTS   ');
-  out += logpst(BKNIGHT_PSTE,   'BKNIGHT_PSTE   ');
-  out += logpst(BBISHOP_PSTS,   'BBISHOP_PSTS   ');
-  out += logpst(BBISHOP_PSTE,   'BBISHOP_PSTE   ');
-  out += logpst(BROOK_PSTS,     'BROOK_PSTS     ');
-  out += logpst(BROOK_PSTE,     'BROOK_PSTE     ');
-  out += logpst(BQUEEN_PSTS,    'BQUEEN_PSTS    ');
-  out += logpst(BQUEEN_PSTE,    'BQUEEN_PSTE    ');
-  out += logpst(BKING_PSTS,     'BKING_PSTS     ');
-  out += logpst(BKING_PSTE,     'BKING_PSTE     ');
-
-  out += logpst(WOUTPOST,       'WOUTPOST       ');
-  out += logpst(BOUTPOST,       'BOUTPOST       ');
-
-  out += loga(EV,               'EV             ');
-
-  out += loga(WSTORM,           'WSTORM         ');
-  out += loga(WSHELTER,         'WSHELTER       ');
-  out += loga(ATT_W,            'ATT_W          ');
-  out += loga(PAWN_PASSED,      'PAWN_PASSED    ');
-
-  out += loga(imbalN_S,         'imbalN_S       ');
-  out += loga(imbalN_E,         'imbalN_E       ');
-  out += loga(imbalB_S,         'imbalB_S       ');
-  out += loga(imbalB_E,         'imbalB_E       ');
-  out += loga(imbalR_S,         'imbalR_S       ');
-  out += loga(imbalR_E,         'imbalR_E       ');
-  out += loga(imbalQ_S,         'imbalQ_S       ');
-  out += loga(imbalQ_E,         'imbalQ_E       ');
-
-  out = out + '\r\n//}}}\r\n\r\n';
-
-  if (epochs == 0)
-    fs.writeFileSync('0'+gOutFile,out);
-  else
-    fs.writeFileSync(gOutFile,out);
-}
-
-//}}}
-//{{{  grunt
-
-function grunt () {
-
-  lozza.newGameInit();
-
-  //findK();
-
-  //{{{  create params
-  
-  addp(VALUE_VECTOR, KNIGHT, function (piece,mg,eg) {return (board.wCounts[KNIGHT] - board.bCounts[KNIGHT]);});
-  addp(VALUE_VECTOR, BISHOP, function (piece,mg,eg) {return (board.wCounts[BISHOP] - board.bCounts[BISHOP]);});
-  addp(VALUE_VECTOR, ROOK,   function (piece,mg,eg) {return (board.wCounts[ROOK]   - board.bCounts[ROOK]);});
-  addp(VALUE_VECTOR, QUEEN,  function (piece,mg,eg) {return (board.wCounts[QUEEN]  - board.bCounts[QUEEN]);});
-  
-  for (var i=8; i < 56; i++) {
-    var sq = B88[i];
-    addp(WPAWN_PSTS, sq, function (sq,mg,eg) {return (is(W_PAWN,sq) - is(B_PAWN,wbmap(sq))) * mg;});
-    addp(WPAWN_PSTE, sq, function (sq,mg,eg) {return (is(W_PAWN,sq) - is(B_PAWN,wbmap(sq))) * eg;});
-  }
-  
-  for (var i=0; i < 64; i++) {
-    var sq = B88[i];
-    addp(WKNIGHT_PSTS, sq, function (sq,mg,eg) {return (is(W_KNIGHT,sq) - is(B_KNIGHT,wbmap(sq))) * mg;});
-    addp(WKNIGHT_PSTE, sq, function (sq,mg,eg) {return (is(W_KNIGHT,sq) - is(B_KNIGHT,wbmap(sq))) * eg;});
-    addp(WBISHOP_PSTS, sq, function (sq,mg,eg) {return (is(W_BISHOP,sq) - is(B_BISHOP,wbmap(sq))) * mg;});
-    addp(WBISHOP_PSTE, sq, function (sq,mg,eg) {return (is(W_BISHOP,sq) - is(B_BISHOP,wbmap(sq))) * eg;});
-    addp(WROOK_PSTS,   sq, function (sq,mg,eg) {return (is(W_ROOK,sq)   - is(B_ROOK,  wbmap(sq))) * mg;});
-    addp(WROOK_PSTE,   sq, function (sq,mg,eg) {return (is(W_ROOK,sq)   - is(B_ROOK,  wbmap(sq))) * eg;});
-    addp(WQUEEN_PSTS,  sq, function (sq,mg,eg) {return (is(W_QUEEN,sq)  - is(B_QUEEN, wbmap(sq))) * mg;});
-    addp(WQUEEN_PSTE,  sq, function (sq,mg,eg) {return (is(W_QUEEN,sq)  - is(B_QUEEN, wbmap(sq))) * eg;});
-    addp(WKING_PSTS,   sq, function (sq,mg,eg) {return (is(W_KING,sq)   - is(B_KING,  wbmap(sq))) * mg;});
-    addp(WKING_PSTE,   sq, function (sq,mg,eg) {return (is(W_KING,sq)   - is(B_KING,  wbmap(sq))) * eg;});
-  }
-  
-  var ko =[51,52,53,54,55,56,63,64,65,66,67,68,75,76,77,78,79,80]; //knight outpost squares
-  for (var i=0; i < ko.length; i++) {
-    var sq = ko[i];
-    addp(WOUTPOST, sq, function (sq,mg,eg) {return board.gd.outpost * mg;});
-  }
-  
-  for (var i=0; i <= 8; i++) {
-    addp(imbalN_S, i, function (pawns,mg,eg) {return (board.wCounts[KNIGHT] * (board.wCounts[PAWN] == pawns) - board.bCounts[KNIGHT] * (board.bCounts[PAWN] == pawns)) * mg});
-    addp(imbalN_E, i, function (pawns,mg,eg) {return (board.wCounts[KNIGHT] * (board.wCounts[PAWN] == pawns) - board.bCounts[KNIGHT] * (board.bCounts[PAWN] == pawns)) * eg});
-    addp(imbalB_S, i, function (pawns,mg,eg) {return (board.wCounts[BISHOP] * (board.wCounts[PAWN] == pawns) - board.bCounts[BISHOP] * (board.bCounts[PAWN] == pawns)) * mg});
-    addp(imbalB_E, i, function (pawns,mg,eg) {return (board.wCounts[BISHOP] * (board.wCounts[PAWN] == pawns) - board.bCounts[BISHOP] * (board.bCounts[PAWN] == pawns)) * eg});
-    addp(imbalR_S, i, function (pawns,mg,eg) {return (board.wCounts[ROOK]   * (board.wCounts[PAWN] == pawns) - board.bCounts[ROOK]   * (board.bCounts[PAWN] == pawns)) * mg});
-    addp(imbalR_E, i, function (pawns,mg,eg) {return (board.wCounts[ROOK]   * (board.wCounts[PAWN] == pawns) - board.bCounts[ROOK]   * (board.bCounts[PAWN] == pawns)) * eg});
-    addp(imbalR_S, i, function (pawns,mg,eg) {return (board.wCounts[QUEEN]  * (board.wCounts[PAWN] == pawns) - board.bCounts[QUEEN]  * (board.bCounts[PAWN] == pawns)) * mg});
-    addp(imbalR_E, i, function (pawns,mg,eg) {return (board.wCounts[QUEEN]  * (board.wCounts[PAWN] == pawns) - board.bCounts[QUEEN]  * (board.bCounts[PAWN] == pawns)) * eg});
-  }
-  
-  //}}}
-  //{{{  tune params
-  
-  var epoch      = 0;
-  var numParams  = params.length;
-  var batchSize  = 10000;
-  var numBatches = epds.length / batchSize | 0;
-  var err        = 0;
-  var lastErr    = 0;
-  
-  console.log('num params =', numParams);
-  console.log('batch size =', batchSize);
-  console.log('num batches =', numBatches);
-  console.log('K =',gK);
-  console.log('learning rate =',gLearningRate);
-  
-  var K2 = gK / 200.0;
-  
-  while (1) {
-  
-    if (epoch % gErrStep == 0) {
-      err = calcErr();
-      console.log(epoch,err,err-lastErr);
-      lastErr = err;
-      saveparams(err,epoch);
-    }
-    else {
-      process.stdout.write(epoch+'\r');
-    }
-  
-    epoch++;
-  
-    for (var batch=0; batch < numBatches; batch++) {
-      //{{{  reset gradient sums
-      
-      for (var i=0; i < numParams; i++)
-        params[i].gr = 0;
-      
-      //}}}
-      //{{{  accumulate gradients
-      
-      for (var i=batch*batchSize; i < (batch+1)*batchSize; i++) {
-      
-        var epd = epds[i];
-      
-        uci.spec.board    = epd.board;
-        uci.spec.turn     = epd.turn;
-        uci.spec.rights   = epd.rights;
-        uci.spec.ep       = epd.ep;
-        uci.spec.fmc      = 0;
-        uci.spec.hmc      = 0;
-        uci.spec.id       = 'id' + j;
-        uci.spec.moves    = [];
-      
-        lozza.position();
-      
-        var pr = epd.prob;
-      
-        var ev = board.evaluate(board.turn);
-        if (board.turn == BLACK)
-          ev = -ev;  // undo negamax.
-      
-        var sg    = sigmoid(ev);
-        var phase = board.cleanPhase(board.phase);
-        var mg    = (TPHASE - phase) / TPHASE;
-        var eg    = phase / TPHASE;
-      
-        for (var j=0; j < numParams; j++) {
-          var p = params[j];
-          p.gr += p.coeff(p.i,mg,eg) * (sg * (1 - sg)) * (sg - pr);  // chain rule
-        }
-      }
-      
-      //}}}
-      //{{{  apply mean gradient
-      
-      for (var i=0; i < numParams; i++) {
-        var p    = params[i];
-        var gr   = K2 * p.gr / batchSize;
-        p.ag     += gr * gr;
-        p.a[p.i] -= (gLearningRate / Math.sqrt(p.ag + 1e-8)) * gr;
-      }
-      
-      //}}}
-      //{{{  update black arrays
-      
-      for (var i=0; i < 144; i++) {
-        BPAWN_PSTS[wbmap(i)]   = WPAWN_PSTS[i];
-        BPAWN_PSTE[wbmap(i)]   = WPAWN_PSTE[i];
-        BKNIGHT_PSTS[wbmap(i)] = WKNIGHT_PSTS[i];
-        BKNIGHT_PSTE[wbmap(i)] = WKNIGHT_PSTE[i];
-        BBISHOP_PSTS[wbmap(i)] = WBISHOP_PSTS[i];
-        BBISHOP_PSTE[wbmap(i)] = WBISHOP_PSTE[i];
-        BROOK_PSTS[wbmap(i)]   = WROOK_PSTS[i];
-        BROOK_PSTE[wbmap(i)]   = WROOK_PSTE[i];
-        BQUEEN_PSTS[wbmap(i)]  = WQUEEN_PSTS[i];
-        BQUEEN_PSTE[wbmap(i)]  = WQUEEN_PSTE[i];
-        BKING_PSTS[wbmap(i)]   = WKING_PSTS[i];
-        BKING_PSTE[wbmap(i)]   = WKING_PSTE[i];
-        BOUTPOST[wbmap(i)]     = WOUTPOST[i];
-      }
-      
-      //}}}
-    }
-  }
-  
-  //}}}
-
-  process.exit();
+function round1(x) {
+  return Math.round(x*10) / 10;
 }
 
 //}}}
 
-//}}}
+var fs       = lozza.uci.nodefs;
+var uci      = lozza.uci;
+var board    = lozza.board;
+var epdfile  = 'games/lozza.epd';
+var count    = 0;
+var batch    = 0;
+var min      = 99999;
+var max      = -99999;
+var minb     = '';
+var maxb     = '';
+var raw      = 0;
+var read     = 0;
+var totbytes = 0;
 
-//{{{  check sigmoid
+var stats     = fs.statSync(epdfile)
+var epdbytes  = stats.size;
 
-//for (var i=-600;i<=600;i+=100) {
-  //console.log(i,sigmoid(i));
-//}
+if (check) {
+  console.log('checking',epdfile);
+  console.log('epdbytes',epdbytes);
+  console.log('skip',skip);
+  console.log('maxeval',maxeval);
+}
 
-//}}}
-//{{{  kick it off
-
-var thisPosition = 0;
+lozza.newGameInit();
 
 const readline = require('readline');
 
 const rl = readline.createInterface({
-    input: fs.createReadStream(gEpdFile),
+    input: fs.createReadStream(epdfile),
     output: process.stdout,
     crlfDelay: Infinity,
     terminal: false
 });
 
+//
+// lozza.epd is made from games/makeepd.bat (which works on cutechess pgn files) and has this form:-
+// rnbqkbnr/2p2ppp/1p1pp3/pP6/3P1P2/8/P1P1P1PP/RNBQKBNR w KQkq - c0 released-coalface soaktest ? 2021.11.04; c1 1-0;
+// 0                                                    1 2    3 4  5                 6        7 8           9  10
+//
+
 rl.on('line', function (line) {
 
-  thisPosition += 1;
+  if (!line.length) {
+    return;
+  }
 
-  if (thisPosition <= gMaxPositions) {
+  read += line.length;
 
-    line = line.replace(/(\r\n|\n|\r)/gm,'');
+  line = line.replace(/(\r\n|\n|\r|;)/gm,'');
 
-    line = line.trim();
-    if (!line)
-      return;
+  var parts = line.split(' ');
 
-    var parts = line.split(' ');
+  if (!parts.length) {
+    return;
+  }
 
-    epds.push({board:   parts[0],
-               turn:    parts[1],
-               rights:  parts[2],
-               ep:      parts[3],
-               prob:    getprob(parts[5])});
+  if (check && parts.length != 11) {
+    console.log('line',line);
+    process.exit();
+  }
+
+  if (parts.length != 11) {
+    return;
+  }
+
+  batch++;
+  if (batch < skip)
+    return;
+  batch = 0;
+
+  raw++;
+
+  uci.spec.board    = parts[0];
+  uci.spec.turn     = parts[1];
+  uci.spec.rights   = parts[2];
+  uci.spec.ep       = parts[3];
+  uci.spec.fmc      = 0;
+  uci.spec.hmc      = 0;
+  uci.spec.id       = 'id';
+  uci.spec.moves    = [];
+
+  if (uci.spec.turn != 'w' && uci.spec.turn != 'b') {
+    console.log('turn',uci.spec.turn);
+    process.exit();
+  }
+
+  lozza.position();
+
+  var inCheck  = board.isKingAttacked(board.turn);
+  if (inCheck) {
+    return;
+  }
+
+  var nextTurn = ~board.turn & COLOR_MASK;
+
+  var inCheck  = board.isKingAttacked(nextTurn);
+  if (inCheck) {
+    return;
+  }
+
+  var e = board.evaluate(board.turn);
+  if (board.turn == BLACK) {
+    e = -e;
+  }
+
+  if (isNaN(e)) {
+    console.log('nan e',e);
+    process.exit();
+  }
+
+  if (Math.abs(e) > maxeval)
+    return;
+
+  var q = lozza.qSearch(lozza.rootNode,0,board.turn,-INFINITY,INFINITY);
+  if (board.turn == BLACK) {
+    q = -q;
+  }
+
+  if (isNaN(q)) {
+    console.log('nan q',q);
+    process.exit();
+  }
+
+  if (q != e)
+    return;
+
+  if (e < min) {
+    min  = e;
+    //minb = uci.spec.board;
+  }
+
+  if (e > max) {
+    max  = e;
+    //maxb = uci.spec.board;
+  }
+
+  count++
+
+  totbytes += line.length;
+  var avebytes = totbytes / count;
+
+  if (count % 100000 == 0) {
+    var progress = read / epdbytes * 100;
+    var yeild = count / raw;
+    var guess = ((epdbytes/avebytes) * yeild / skip) * 0.957;
+    console.log('progress% =', round1(progress), 'used =', round1(raw/1000000), 'quiet =', round1(count/1000000), 'yeild =', round1(yeild), 'guess =', round1(guess/1000000), 'min eval =', min, 'max eval =', max);
+  }
+
+  if (!check) {
+    console.log(parts[0],parts[1],parts[2],parts[3],getprob(parts[10]));
   }
 });
 
 rl.on('close', function(){
-  console.log('K =',gK);
-  console.log('positions =',epds.length);
-  //{{{  count win, lose, draw
-  //
-  // Just to make sure the file has been parsed OK.
-  //
-  
-  var wins = 0;
-  var loss = 0;
-  var draw = 0;
-  
-  for (var i=0; i < epds.length; i++) {
-  
-    if (i % 100000 == 0)
-      process.stdout.write(i+'\r');
-  
-    var epd = epds[i];
-  
-    if (epd.prob == 1.0)
-      wins++;
-  
-    else if (epd.prob == 0.0)
-      loss++;
-  
-    else if (epd.prob == 0.5)
-      draw++;
-    else {
-      console.log('not a prob',epd.prob);
-      process.exit();
-    }
-  }
-  
-  console.log('wins =',wins,'losses =',loss,'draws =',draw);
-  console.log('error check =',epds.length - wins - draw - loss,'(should be 0)');
-  
-  //}}}
-  grunt();
+  if (check)
+    console.log(count);
+  process.exit();
 });
-
-//}}}
 
