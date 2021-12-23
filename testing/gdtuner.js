@@ -7095,6 +7095,9 @@ rl.on('line', function (line) {
 
   if (thisPosition <= gMaxPositions) {
 
+    if (thisPosition % 100000 == 0)
+      process.stdout.write(thisPosition+'\r');
+
     line = line.replace(/(\r\n|\n|\r)/gm,'');
 
     line = line.trim();
