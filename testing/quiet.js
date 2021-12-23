@@ -6655,20 +6655,8 @@ if (lozzaHost == HOST_NODEJS) {
 // Turn off pawn hash.
 //
 
-var epdin  = 'data/lozza.epd';
-var epdout = 'data/lozza-quiet.epd';
-
-//
-// Only every skip lines are used.
-//
-
-var skip = 3;
-
-//
-// Abs evals > maxeval are skipped.
-//
-
-var maxeval = 1600;
+var epdin  = 'data/lozza.epd';        // make with makeepe.bat.
+var epdout = 'data/lozza-quiet.epd';  // for use in gdtuner.js etc.
 
 //{{{  getprob()
 
@@ -6686,36 +6674,40 @@ function getprob (r) {
 }
 
 //}}}
-//{{{  round1
+//{{{  round1()
 
 function round1(x) {
   return Math.round(x*10) / 10;
 }
 
 //}}}
+//{{{  log()
 
-var fs       = lozza.uci.nodefs;
-var uci      = lozza.uci;
-var board    = lozza.board;
-var count    = 0;
-var batch    = 0;
-var min      = 99999;
-var max      = -99999;
-var minb     = '';
-var maxb     = '';
-var raw      = 0;
-var read     = 0;
-var totbytes = 0;
-var out      = '';
+function log () {
+  var progress = totbytes / filesize * 100;
+  var yield    = numquiet / numepds;
+  var guess    = (filesize/avebytes) * yeild * 0.957;
+  console.log('progress% =', round1(progress), 'epds =', round1(numepds/1000000), 'quiet =', round1(numquiet/1000000), 'yield =', round1(yield), 'guess =', round1(guess/1000000));
+}
+
+//}}}
+
+var fs        = lozza.uci.nodefs;
+var uci       = lozza.uci;
+var board     = lozza.board;
+
+var numepds   = 0;
+var numquiet  = 0;
+var totbytes  = 0;
+var avebytes  = 0;
+var out       = '';
 
 var stats     = fs.statSync(epdin)
-var epdbytes  = stats.size;
+var filesize  = stats.size;
 
 fs.writeFileSync(epdout,'');
 
-console.log('epdbytes',epdbytes);
-console.log('skip',skip);
-console.log('maxeval',maxeval);
+console.log('file size',filesize,'bytes');
 
 lozza.newGameInit();
 
@@ -6729,7 +6721,7 @@ const rl = readline.createInterface({
 });
 
 //
-// lozza.epd is made from games/makeepd.bat (which works on cutechess pgn files) and has this form:-
+// lozza.epd is made from a pgn file via ./makeepd.bat and has lines of this form:-
 // rnbqkbnr/2p2ppp/1p1pp3/pP6/3P1P2/8/P1P1P1PP/RNBQKBNR w KQkq - c0 released-coalface soaktest ? 2021.11.04; c1 1-0;
 // 0                                                    1 2    3 4  5                 6        7 8           9  10
 //
@@ -6739,8 +6731,6 @@ rl.on('line', function (line) {
   if (!line.length) {
     return;
   }
-
-  read += line.length;
 
   line = line.replace(/(\r\n|\n|\r|;)/gm,'');
 
@@ -6755,12 +6745,9 @@ rl.on('line', function (line) {
     process.exit();
   }
 
-  batch++;
-  if (batch < skip)
-    return;
-  batch = 0;
-
-  raw++;
+  numepds++;
+  totbytes  += line.length;
+  avebytes  = totbytes / numepds;
 
   uci.spec.board    = parts[0];
   uci.spec.turn     = parts[1];
@@ -6779,34 +6766,30 @@ rl.on('line', function (line) {
   lozza.position();
 
   var inCheck  = board.isKingAttacked(board.turn);
-  if (inCheck) {
+  if (inCheck)
     return;
-  }
 
   var nextTurn = ~board.turn & COLOR_MASK;
 
   var inCheck  = board.isKingAttacked(nextTurn);
-  if (inCheck) {
+  if (inCheck)
     return;
-  }
 
   var e = board.evaluate(board.turn);
-  if (board.turn == BLACK) {
+  if (board.turn == BLACK)
     e = -e;
-  }
 
   if (isNaN(e)) {
     console.log('nan e',e);
     process.exit();
   }
 
-  if (Math.abs(e) > maxeval)
+  if (Math.abs(e) > 1600)
     return;
 
   var q = lozza.qSearch(lozza.rootNode,0,board.turn,-INFINITY,INFINITY);
-  if (board.turn == BLACK) {
+  if (board.turn == BLACK)
     q = -q;
-  }
 
   if (isNaN(q)) {
     console.log('nan q',q);
@@ -6816,29 +6799,13 @@ rl.on('line', function (line) {
   if (q != e)
     return;
 
-  if (e < min) {
-    min  = e;
-    //minb = uci.spec.board;
-  }
+  numquiet++
 
-  if (e > max) {
-    max  = e;
-    //maxb = uci.spec.board;
-  }
-
-  count++
-
-  totbytes += line.length;
-  var avebytes = totbytes / count;
-
-  if (count % 100000 == 0) {
-    var progress = read / epdbytes * 100;
-    var yeild = count / raw;
-    var guess = ((epdbytes/avebytes) * yeild / skip) * 0.957;
-    console.log('progress% =', round1(progress), 'used =', round1(raw/1000000), 'quiet =', round1(count/1000000), 'yeild =', round1(yeild), 'guess =', round1(guess/1000000), 'min eval =', min, 'max eval =', max);
-  }
+  if (numquiet % 100000 == 0)
+    log();
 
   out += parts[0] + ' ' + parts[1] + ' ' + parts[2] + ' ' + parts[3] + ' ' + getprob(parts[10]) + '\r\n';
+
   if (out.length > 1000000) {
     fs.appendFileSync(epdout,out);
     out = '';
@@ -6846,7 +6813,7 @@ rl.on('line', function (line) {
 });
 
 rl.on('close', function(){
-  console.log(count);
+  log();
   process.exit();
 });
 
