@@ -6662,7 +6662,7 @@ var epdout = 'data/lozza-quiet.epd';
 // Only every skip lines are used.
 //
 
-var skip = 4;
+var skip = 1;
 
 //
 // Abs evals > maxeval are skipped.
@@ -6753,10 +6753,6 @@ rl.on('line', function (line) {
   if (parts.length != 11) {
     console.log('line',line);
     process.exit();
-  }
-
-  if (parts.length != 11) {
-    return;
   }
 
   batch++;
