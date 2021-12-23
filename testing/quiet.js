@@ -6684,9 +6684,11 @@ function round1(x) {
 //{{{  log()
 
 function log () {
+
   var progress = totbytes / filesize * 100;
   var yield    = numquiet / numepds;
-  var guess    = (filesize/avebytes) * yield;
+  var guess    = filesize / avebytes * yield;
+
   console.log('progress% =', round1(progress), 'epds =', round1(numepds/1000000), 'quiet =', round1(numquiet/1000000), 'yield =', round1(yield), 'guess =', round1(guess/1000000));
 }
 
