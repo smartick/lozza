@@ -13,15 +13,5 @@
   "name": "released",
   "command": "c:\\program files\\nodejs\\node.exe c:\\projects\\lozza\\trunk\\history\\2.0\\lozza.js",
   "protocol": "uci"
-},
-{
-  "name": "tomitank",
-  "command": "c:\\program files\\nodejs\\node.exe c:\\projects\\chessdata\\engines\\tomitank\\tomitank51.js",
-  "protocol": "uci"
-},
-{
-  "name": "ethereal",
-  "command": "c:\\projects\\chessdata\\engines\\ethereal.exe",
-  "protocol": "uci"
 }
 ]

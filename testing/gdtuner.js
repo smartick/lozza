@@ -12,7 +12,7 @@ var USEPAWNHASH = 0;
 /*
 
 2.1 20/12/21 Handle old Node versions WRT stdin.resume() for CCRL;
-2.1 17/12/21 Optimise pruning to pre makeMove(). stc 19, ltc 14 elo v 2.0a.
+2.1 17/12/21 Optimise pruning to pre makeMove().
 
 2.0a 27/09/21 Fix timeouts.
 2.0a 27/09/21 Add USEPAWNHASH - useful when testing.
@@ -2309,9 +2309,6 @@ function lozBoard () {
   this.ploHash      = 0;
   this.phiHash      = 0;
 
-  this.gd         = {};
-  this.gd.outpost = 0;
-
   // use separate typed arrays to save space.  optimiser probably has a go anyway but better
   // to be explicit at the expense of some conversion.  total width is 16 bytes.
 
@@ -4019,8 +4016,60 @@ var ATT_L = 7;
 
 lozBoard.prototype.evaluate = function (turn) {
 
-  this.gd.outpost = 0;
-
+  //{{{  ev assignments
+  
+  var MOB_NS               = EV[iMOB_NS];
+  var MOB_NE               = EV[iMOB_NE];
+  var MOB_BS               = EV[iMOB_BS];
+  var MOB_BE               = EV[iMOB_BE];
+  var MOB_RS               = EV[iMOB_RS];
+  var MOB_RE               = EV[iMOB_RE];
+  var MOB_QS               = EV[iMOB_QS];
+  var MOB_QE               = EV[iMOB_QE];
+  var ATT_N                = EV[iATT_N];
+  var ATT_B                = EV[iATT_B];
+  var ATT_R                = EV[iATT_R];
+  var ATT_Q                = EV[iATT_Q];
+  var ATT_M                = EV[iATT_M];
+  var PAWN_DOUBLED_S       = EV[iPAWN_DOUBLED_S];
+  var PAWN_DOUBLED_E       = EV[iPAWN_DOUBLED_E];
+  var PAWN_ISOLATED_S      = EV[iPAWN_ISOLATED_S];
+  var PAWN_ISOLATED_E      = EV[iPAWN_ISOLATED_E];
+  var PAWN_BACKWARD_S      = EV[iPAWN_BACKWARD_S];
+  var PAWN_BACKWARD_E      = EV[iPAWN_BACKWARD_E];
+  var PAWN_PASSED_OFFSET_S = EV[iPAWN_PASSED_OFFSET_S];
+  var PAWN_PASSED_OFFSET_E = EV[iPAWN_PASSED_OFFSET_E];
+  var PAWN_PASSED_MULT_S   = EV[iPAWN_PASSED_MULT_S];
+  var PAWN_PASSED_MULT_E   = EV[iPAWN_PASSED_MULT_E];
+  var TWOBISHOPS_S         = EV[iTWOBISHOPS_S];
+  var ROOK7TH_S            = EV[iROOK7TH_S];
+  var ROOK7TH_E            = EV[iROOK7TH_E];
+  var ROOKOPEN_S           = EV[iROOKOPEN_S];
+  var ROOKOPEN_E           = EV[iROOKOPEN_E];
+  var QUEEN7TH_S           = EV[iQUEEN7TH_S];
+  var QUEEN7TH_E           = EV[iQUEEN7TH_E];
+  var TRAPPED              = EV[iTRAPPED];
+  var KING_PENALTY         = EV[iKING_PENALTY];
+  var PAWN_OFFSET_S        = EV[iPAWN_OFFSET_S];
+  var PAWN_OFFSET_E        = EV[iPAWN_OFFSET_E];
+  var PAWN_MULT_S          = EV[iPAWN_MULT_S];
+  var PAWN_MULT_E          = EV[iPAWN_MULT_E];
+  var PAWN_PASS_FREE       = EV[iPAWN_PASS_FREE];
+  var PAWN_PASS_UNSTOP     = EV[iPAWN_PASS_UNSTOP];
+  var PAWN_PASS_KING1      = EV[iPAWN_PASS_KING1];
+  var PAWN_PASS_KING2      = EV[iPAWN_PASS_KING2];
+  var MOBOFF_NS            = EV[iMOBOFF_NS];
+  var MOBOFF_NE            = EV[iMOBOFF_NE];
+  var MOBOFF_BS            = EV[iMOBOFF_BS];
+  var MOBOFF_BE            = EV[iMOBOFF_BE];
+  var MOBOFF_RS            = EV[iMOBOFF_RS];
+  var MOBOFF_RE            = EV[iMOBOFF_RE];
+  var TWOBISHOPS_E         = EV[iTWOBISHOPS_E];
+  var TEMPO_S              = EV[iTEMPO_S];
+  var TEMPO_E              = EV[iTEMPO_E];
+  var SHELTERM             = EV[iSHELTERM];
+  
+  //}}}
   //this.hashCheck(turn);
 
   //{{{  init
@@ -4774,7 +4823,6 @@ lozBoard.prototype.evaluate = function (turn) {
           knightsS += outpost;
           knightsS += outpost * IS_WP[b[fr+11]];
           knightsS += outpost * IS_WP[b[fr+13]];
-          this.gd.outpost += 1 + IS_WP[b[fr+11]] + IS_WP[b[fr+13]];
         }
       }
       
@@ -5003,7 +5051,6 @@ lozBoard.prototype.evaluate = function (turn) {
           knightsS -= outpost;
           knightsS -= outpost * IS_BP[b[fr-11]];
           knightsS -= outpost * IS_BP[b[fr-13]];
-          this.gd.outpost -= 1 + IS_BP[b[fr-11]] + IS_BP[b[fr-13]];
         }
       }
       
@@ -6671,12 +6718,13 @@ board = lozza.board;
 var epds   = [];
 var params = [];
 
-var gK            = 3.656;
-var gLearningRate = 0.1;
-var gEpdFile      = 'data/lozza-quiet.epd';
-var gOutFile      = 'gdtuner.txt';
-var gMaxPositions = 100000000;
-var gErrStep      = 10;
+var gK             = 3.656;
+var gSkip          = 0.2;
+var gLearningRate  = 0.1;
+var gEpdFile       = 'data/lozza-quiet.epd';
+var gOutFile       = 'gdtuner.txt';
+var gMaxPositions  = 1000000000;
+var gErrStep       = 10;
 
 //}}}
 //{{{  functions
@@ -6696,7 +6744,7 @@ function findK () {
   var step = 1.0;
   var x    = 1.0;
   var err  = 0;
-  var dp   = 4;
+  var dp   = 3;
 
   while (dp) {
     gK = x;
@@ -6908,7 +6956,8 @@ function grunt () {
 
   lozza.newGameInit();
 
-  //findK();
+  findK();
+  process.exit();
 
   //{{{  create params
   
@@ -7091,6 +7140,9 @@ const rl = readline.createInterface({
 
 rl.on('line', function (line) {
 
+  if (gSkip && Math.random() > gSkip)
+    return;
+
   thisPosition += 1;
 
   if (thisPosition <= gMaxPositions) {
@@ -7106,8 +7158,10 @@ rl.on('line', function (line) {
 
     var parts = line.split(' ');
 
-    if (parts.length != 5)
-      return;
+    if (parts.length && parts.length != 6) {
+      console.log('file format',line);
+      process.exit();
+    }
 
     epds.push({board:   parts[0],
                turn:    parts[1],
@@ -7144,6 +7198,7 @@ rl.on('close', function(){
   
     else if (epd.prob == 0.5)
       draw++;
+  
     else {
       console.log('not a prob',epd.prob);
       process.exit();

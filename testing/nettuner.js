@@ -1,5 +1,5 @@
 
-var maxPositions   = 100000000;
+var maxPositions   = 10000000;
 var testFraction   = 0.2;
 var netInputSize   = 768;
 var netHiddenSize  = 32;
@@ -639,7 +639,7 @@ function grunt () {
 //}}}
 //{{{  kick it off
 
-var epdfile      = 'c:/projects/chessdata/quiet-labeled.epd';
+var epdfile      = 'data/lozza-quiet.epd';
 var thisPosition = 0;
 
 const fs       = require('fs');
@@ -665,7 +665,7 @@ rl.on('line', function (line) {
 
     const parts = line.split(' ');
 
-    if (parts.length < 4) {
+    if (parts.length != 6) {
       console.log('no data');
       return;
     }
@@ -674,8 +674,8 @@ rl.on('line', function (line) {
                turn:    parts[1],
                rights:  parts[2],
                ep:      parts[3],
-               raweval: parseInt(parts[4]),
-               eval:    sigmoid(parseInt(parts[4])/scale)});
+               prob:    parseFloat(parts[4]),
+               eval:    sigmoid(parseInt(parts[5])/scale)});
   }
 });
 

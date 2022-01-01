@@ -1,6 +1,8 @@
 
 //{{{  try ideas
 
+knight in frton of passed pawn good
+
 after a certain depth in Q only look at captures to the same square
 
 tidy commands like start/stop wrt ui - remove uci console?
@@ -595,7 +597,6 @@ lozBoard.prototype.getHistory = function (move) {
 'lozza\trunk\testing\cctry.bat'
 'lozza\trunk\testing\engines.json'
 'lozza\trunk\testing\cctry.pgn'
-'lozza\trunk\testing\cctry.epd'
 
 'lozza\trunk\testing\gdtuner.js'
 'lozza\trunk\testing\gdtuner.txt'
@@ -614,6 +615,7 @@ lozBoard.prototype.getHistory = function (move) {
 'lozza\trunk\testing\eval_flip.js'
 
 'lozza\trunk\testing\quiet.js'
+'lozza\trunk\testing\makeepd.bat'
 
 ----- toynet repo
 

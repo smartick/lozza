@@ -6655,7 +6655,7 @@ if (lozzaHost == HOST_NODEJS) {
 // Turn off pawn hash.
 //
 
-var epdin  = 'data/lozza.epd';        // make with makeepe.bat.
+var epdin  = 'data/lozza.epd';        // make with makeepd.bat.
 var epdout = 'data/lozza-quiet.epd';  // for use in gdtuner.js etc.
 
 //{{{  getprob()
@@ -6812,7 +6812,7 @@ rl.on('line', function (line) {
   if (numquiet % 100000 == 0)
     log();
 
-  out += parts[0] + ' ' + parts[1] + ' ' + parts[2] + ' ' + parts[3] + ' ' + getprob(parts[10]) + '\r\n';
+  out += parts[0] + ' ' + parts[1] + ' ' + parts[2] + ' ' + parts[3] + ' ' + getprob(parts[10]) + ' ' + e + '\r\n';
 
   if (out.length > 1000000) {
     fs.appendFileSync(epdout,out);
@@ -6821,6 +6821,8 @@ rl.on('line', function (line) {
 });
 
 rl.on('close', function(){
+  if (out)
+    fs.appendFileSync(epdout,out);
   log();
   process.exit();
 });

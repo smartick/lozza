@@ -15,13 +15,13 @@ set tc=tc=0/10+0.1
 set e1=-engine conf=coalface  %tc
 set e2=-engine conf=candidate %tc
 
-set t=-event soaktest -tournament round-robin -games 4
+set t=-event soaktest -tournament round-robin -games 20000
 
 set r=-resign movecount=3 score=400
 
 set d=-draw movenumber=40 movecount=8 score=10
 
-set o=-repeat -srand %a -openings file=c:\projects\chessdata\4moves_noob.pgn format=pgn order=random plies=16
+set o=-repeat -srand %a -openings file=c:\projects\lozza\trunk\testing\data\4moves_noob.pgn format=pgn order=random plies=16
 
 set f=-pgnout cctry.pgn fi
 
