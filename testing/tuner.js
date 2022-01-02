@@ -11,8 +11,8 @@ var USEPAWNHASH = 0;
 //{{{  history
 /*
 
-2.1 20/12/21 Handle old Node versions WRT stdin.resume() for CCRL;
-2.1 17/12/21 Optimise pruning to pre makeMove(). stc 19, ltc 14 elo v 2.0a.
+2.1 20/12/21 Handle old Node versions WRT stdin.resume() for CCRL.
+2.1 17/12/21 Optimise pruning to pre makeMove().
 
 2.0a 27/09/21 Fix timeouts.
 2.0a 27/09/21 Add USEPAWNHASH - useful when testing.
@@ -4015,7 +4015,6 @@ var MOB_QIS = IS_QKE;
 var ATT_L = 7;
 
 lozBoard.prototype.evaluate = function (turn) {
-
   //{{{  ev assignments
   
   var MOB_NS               = EV[iMOB_NS];
@@ -7028,7 +7027,7 @@ function grunt () {
     addp(imbalR_E, i);
   }
   
-  for (var i=3; i < WSHELTER.length; i++) {
+  for (var i=0; i < WSHELTER.length; i++) {
     addp(WSHELTER, i);
     addp(WSTORM,   i);
   }

@@ -2,7 +2,7 @@
 var maxPositions   = 10000000;
 var testFraction   = 0.2;
 var netInputSize   = 768;
-var netHiddenSize  = 32;
+var netHiddenSize  = 64;
 var numEpochs      = 20000;
 var learningRate   = 0.1;
 var batchSize      = 1000;
@@ -66,6 +66,26 @@ var epds    = [];
 var outputs = [];
 var debug   = 0;
 
+//{{{  getprob
+
+function getprob (r) {
+  if (r == '[0.5]')
+    return 0.5;
+  else if (r == '[1.0]')
+    return 1.0;
+  else if (r == '[0.0]')
+    return 0.0;
+  else if (r == '"1/2-1/2";')
+    return 0.5;
+  else if (r == '"1-0";')
+    return 1.0;
+  else if (r == '"0-1";')
+    return 0.0;
+  else
+    console.log('unknown result',r);
+}
+
+//}}}
 //{{{  myround
 
 function myround(x) {
@@ -564,7 +584,7 @@ function grunt () {
     
       netForward();
     
-      var targets = [epd.eval];
+      var targets = [epd.prob];
     
       loss += netLoss(targets);
     }
@@ -580,24 +600,6 @@ function grunt () {
     }
     
     console.log ('epoch =',epoch,'loss =',loss,d);
-    
-    //}}}
-    //{{{  compare against eval
-    
-    console.log();
-    
-    for (var i=0; i < 5; i++) {
-    
-      var epd = epds[Math.random() * testPositions|0];
-    
-      decodeFEN(epd.board);
-    
-      netForward();
-    
-      console.log(epd.board,epd.turn,epd.rights,epd.ep,epd.eval,neto[0].out,epd.raweval,myround(neto[0].in*scale)|0);
-    }
-    
-    console.log();
     
     //}}}
     //{{{  batched epoch
@@ -617,7 +619,7 @@ function grunt () {
     
         netForward()
     
-        var targets = [epd.eval];
+        var targets = [epd.prob];
     
         netCalcGradients(targets);
         netAccumulateGradients();
@@ -639,7 +641,7 @@ function grunt () {
 //}}}
 //{{{  kick it off
 
-var epdfile      = 'data/lozza-quiet.epd';
+var epdfile      = 'data/quiet-labeled.epd';
 var thisPosition = 0;
 
 const fs       = require('fs');
@@ -665,8 +667,7 @@ rl.on('line', function (line) {
 
     const parts = line.split(' ');
 
-    if (parts.length != 6) {
-      console.log('no data');
+    if (!parts.length) {
       return;
     }
 
@@ -674,8 +675,7 @@ rl.on('line', function (line) {
                turn:    parts[1],
                rights:  parts[2],
                ep:      parts[3],
-               prob:    parseFloat(parts[4]),
-               eval:    sigmoid(parseInt(parts[5])/scale)});
+               prob:    getprob(parts[5])});
   }
 });
 
