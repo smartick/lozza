@@ -31,7 +31,7 @@ onmessage({data: 'position startpos\n'});
 onmessage({data: 'go depth 10\n'}); 
 ```
 
-All output will go to the console by default. Tweak the ```lozUCI.send``` function to do something else. The best move is send from the ```lozChess.go``` function, which you could also tweak. Ideally though, use a web worker.  
+All output will go to the console by default. Tweak the ```lozUCI.send``` function to do something else. The best move is sent from the ```lozChess.go``` function, which you could also tweak. Ideally though, use a web worker.  
 
 ## Playing Lozza online
 
