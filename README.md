@@ -12,17 +12,26 @@ lozza.onmessage = function (e) {
                                   //parse messages from here as required
 };
 
-lozza.postMessage('uci');         // get build etc
-lozza.postMessage('ucinewgame');  // reset TT
+lozza.postMessage('uci');                // get build etc
+lozza.postMessage('ucinewgame');         // reset TT
 lozza.postMessage('position startpos');
-lozza.postMessage('go depth 10'); // 10 ply search
+lozza.postMessage('go depth 10');        // 10 ply search
 ```
 
 Try this example here:-
 
   https://op12no2.github.io/lozza-ui/ex.htm.
 
-You do not have to use a web worker or the UCI interface, but you will not be able to update a web page until Lozza returns - see for example gdtuner.js in the testing folder above, which just includes lozza.js and uses it's function interface directly. While that is a Nodejs example, the same can be done in web pages.
+You do not have to use a web worker or the UCI interface, but you will not be able to update a web page until Lozza returns - see for example gdtuner.js in the testing folder above, which just includes lozza.js and uses it's function interface directly. While that is a Nodejs example, the same can be done in web pages. As an alternative to teh function interface directly, which required some dev knowledge, you can issue UCI commands like this:-
+
+```Javascript
+onmessage({data: 'uci\n'}); 
+onmessage({data: 'ucinewgame\n'}); 
+onmessage({data: 'position startpos\n'}); 
+onmessage({data: 'go depth 10\n'}); 
+```
+
+All output will go to the console by default. Tweak the ```lozUCI.send``` function to do something else. The best move is send from the ```lozChess.go``` function, which you could also tweak. Ideally though, use a web worker.  
 
 ## Playing Lozza online
 
@@ -33,6 +42,8 @@ This repo has some example web-based user interfaces for playing and analysing w
 You can try them here:-
 
   https://op12no2.github.io/lozza-ui
+
+They use web workers.
 
 ## Playing Lozza offline in Arena, Winboard, Cutechess etc UIs
 
