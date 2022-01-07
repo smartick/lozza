@@ -6882,8 +6882,5 @@ for (var i=0; i < 144; i++) {                                     // ##ifdef
   }                                                               // ##ifdef
 }                                                                 // ##ifdef
                                                                   // ##ifdef
-onmessage({data: 'u\n'});                                         // ##ifdef
-onmessage({data: 'p s\n'});                                       // ##ifdef
-onmessage({data: 'b\n'});                                         // ##ifdef
-onmessage({data: 'g d 10\n'});                                    // ##ifdef
+onmessage({data: 'u\np s\nb'});                                   // ##ifdef
 

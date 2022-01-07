@@ -1,5 +1,12 @@
-cp /mnt/c/projects/lozza/trunk/lozza.js coalface.js
-cp /mnt/c/projects/lozza/trunk/history/2.0/lozza.js released.js
-cp /mnt/c/projects/lozza/trunk/history/2.1/lozza.js candidate.js
+cp cctry        /mnt/c/projects/lozza/trunk/testing/linux/cctry
+cp getlozza     /mnt/c/projects/lozza/trunk/testing/linux/getlozza
+cp engines.json /mnt/c/projects/lozza/trunk/testing/linux/engines.json
+cp /mnt/c/projects/lozza/trunk/lozza.js coalfacedev.js
+cp /mnt/c/projects/lozza/trunk/history/2.0/lozza.js releaseddev.js
+cp /mnt/c/projects/lozza/trunk/history/2.1/lozza.js candidatedev.js
 dos2unix *.js
+grep -v \#\#ifdef coalfacedev.js  > coalface.js
+grep -v \#\#ifdef releaseddev.js  > released.js
+grep -v \#\#ifdef candidatedev.js > candidate.js
+diff coalface.js candidate.js
 
