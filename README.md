@@ -59,7 +59,7 @@ lozza.js is folded using {{{ and }}} (emacs convention) and most easily read usi
 
 ## Acknowledgements
 
-http://wbec-ridderkerk.nl/html/UCIProtocol.html  UCI Syntax
+http://wbec-ridderkerk.nl/html/UCIProtocol.html - UCI Syntax
 
 https://www.chessprogramming.org/Fruit
 
