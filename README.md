@@ -22,7 +22,7 @@ Try this example here:-
 
   https://op12no2.github.io/lozza-ui/ex.htm.
 
-You do not have to use a web worker or the UCI interface, but you will not be able to update a web page until Lozza returns - see for example gdtuner.js in the testing folder above, which just includes lozza.js and uses it's function interface directly. While that is a Nodejs example, the same can be done in web pages. As an alternative to teh function interface directly, which required some dev knowledge, you can issue UCI commands like this:-
+You do not have to use a web worker or the UCI interface, but you will not be able to update a web page until Lozza returns - see for example gdtuner.js in the testing folder above, which just includes lozza.js and uses it's function interface directly. While that is a Nodejs example, the same can be done in web pages. As an alternative to using the function interface directly, which requires some dev knowledge, you can issue UCI commands like this:-
 
 ```Javascript
 onmessage({data: 'uci\n'}); 
