@@ -50,12 +50,16 @@ They use web workers.
 Lozza can be used on almost any platform via Nodejs. Download the latest Lozza release and follow the instructions in readme.txt.
 
   https://github.com/op12no2/lozza/releases
+  
+You can also fire up Lozza using Nodejs from the command line and enter UCI commands manually.  Change directory to the lozza.js location then invoke with: node lozza.
 
 ## Notes
 
 lozza.js is folded using {{{ and }}} (emacs convention) and most easily read using an editor with a folding capability.
 
 ## Acknowledgements
+
+http://wbec-ridderkerk.nl/html/UCIProtocol.html  UCI Syntax
 
 https://www.chessprogramming.org/Fruit
 
