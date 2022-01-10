@@ -4,9 +4,14 @@
 //
 // A Javascript chess engine inspired by Fabien Letouzey's Fruit 2.1.
 //
+// Use lozza.js from the latest release on github for best performance.  // ##ifdef
+// This file includes debug code that is stripped out on release.        // ##ifdef
+//                                                                       // ##ifdef
 
 var BUILD       = "2.1";
-var USEPAWNHASH = 0;
+var BUILD       = "2.1dev";  // ##ifdef
+var USEPAWNHASH = 1;
+var USEPAWNHASH = 0;         // ##ifdef
 
 //{{{  history
 /*
@@ -226,14 +231,17 @@ var HOST_CONSOLE = 2;
 var HOSTS        = ['Web','Node','Console'];
 
 var lozzaHost = HOST_WEB;
+var UILAG     = 500;
 
-if ((typeof process) != 'undefined')
-
+if ((typeof process) != 'undefined') {
   lozzaHost = HOST_NODEJS;
+  UILAG     = 10000;
+}
 
-else if ((typeof WorkerGlobalScope) == 'undefined')
-
+else if ((typeof WorkerGlobalScope) == 'undefined') {
   lozzaHost = HOST_CONSOLE;
+  UILAG     = 10000;
+}
 
 //}}}
 //{{{  funcs
@@ -249,7 +257,7 @@ function myround(x) {
 function wbmap (sq) {          // ##ifdef
   var m = (143-sq)/12|0;       // ##ifdef
   return 12*m + sq%12;         // ##ifdef
-}
+}                              // ##ifdef
 
 //}}}
 
@@ -1134,7 +1142,7 @@ var WOUTPOST = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 
 var BOUTPOST = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,18,21,21,18,26,22,0,0,0,0,0,0,12,19,28,17,36,46,0,0,0,0,0,0,17,17,14,23,23,23,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
 
-var EV = [5,-1,7,2,4,2,2,4,1,1,4,3,21,5,10,13,13,9,9,-3,-1,49,99,23,7,26,18,-1,-3,20,42,7,3,14,56,102,91,793,40,26,0,0,0,0,0,0,61,21,21,2];
+const EV              = [5,-1,7,2,4,2,2,4,1,1,4,3,21,5,10,13,13,9,9,-3,-1,49,99,23,7,26,18,-1,-3,20,42,7,3,14,56,102,91,793,17,56,0,0,0,0,0,0,61,21,21,2];
 
 var imbalN_S = [-91,1,1,-2,2,-1,0,8,22];
 
@@ -1542,10 +1550,9 @@ lozChess.prototype.go = function() {
       //{{{  research
       
       if (score >= beta) {
-        //this.uci.debug('BETA', ply, score, '>=', beta);
+        ;
       }
       else {
-        //this.uci.debug('ALPHA', ply, score, '<=', alpha);
         if (totTime > 30000) {
           movTime              = movTime / 2 | 0;
           this.stats.moveTime += movTime;
@@ -1594,7 +1601,7 @@ lozChess.prototype.search = function (node, depth, turn, alpha, beta) {
   //{{{  housekeeping
   
   if (!node.childNode) {
-    this.uci.debug('S DEPTH');
+    console.log('s depth');  // ##ifdef
     this.stats.timeOut = 1;
     return;
   }
@@ -1731,7 +1738,7 @@ lozChess.prototype.search = function (node, depth, turn, alpha, beta) {
         }
         
         this.uci.send('info',this.stats.nodeStr(),'depth',this.stats.ply,'seldepth',this.stats.selDepth,'score',units,uciScore,'pv',pvStr);
-        this.stats.update();
+        //this.stats.update();
         
         if (this.stats.splits > 5)
           this.uci.send('info hashfull',myround(1000*board.hashUsed/TTSIZE));
@@ -1745,8 +1752,9 @@ lozChess.prototype.search = function (node, depth, turn, alpha, beta) {
       board.addHistory(-depth, move);
   }
 
-  if (numLegalMoves == 0)
-    this.uci.debug('INVALID');
+  if (numLegalMoves == 0) {  // ##ifdef
+    console.log('INVALID');  // ##ifdef
+  }                          // ##ifdef
 
   if (numLegalMoves == 1)
     this.stats.timeOut = 1;  // only one legal move so don't waste any more time.
@@ -1769,7 +1777,7 @@ lozChess.prototype.alphabeta = function (node, depth, turn, alpha, beta, nullOK,
   //{{{  housekeeping
   
   if (!node.childNode) {
-    this.uci.debug('AB DEPTH');
+    console.log('AB DEPTH');  // ##ifdef
     this.stats.timeOut = 1;
     return;
   }
@@ -2093,7 +2101,7 @@ lozChess.prototype.qSearch = function (node, depth, turn, alpha, beta) {
     this.stats.selDepth = node.ply;
   
   if (!node.childNode) {
-    this.uci.debug('Q DEPTH');
+    console.log('Q DEPTH');  // ##ifdef
     return this.board.evaluate(turn);
   }
   
@@ -2704,15 +2712,8 @@ lozBoard.prototype.compact = function () {
     }
   }
   
-  /*
-  console.log('WHITE LIST ' + v.length);
-  for (var i=0; i<this.wCount; i++) {
-    console.log(this.b[this.wList[i]]);
-  }
-  */
-  
-  if (this.b[this.wList[0]] != W_KING)
-    console.log('WHITE INDEX ERR');
+  if (this.b[this.wList[0]] != W_KING)  // ##ifdef
+    console.log('WHITE INDEX ERR');     // ##ifdef
   
   //}}}
   //{{{  compact black list
@@ -2745,15 +2746,8 @@ lozBoard.prototype.compact = function () {
     }
   }
   
-  /*
-  console.log('BLACK LIST ' + v.length);
-  for (var i=0; i<this.bCount; i++) {
-    console.log(this.b[this.bList[i]]);
-  }
-  */
-  
-  if (this.b[this.bList[0]] != B_KING)
-    console.log('BLACK INDEX ERR');
+  if (this.b[this.bList[0]] != B_KING)  // ##ifdef
+    console.log('BLACK INDEX ERR');     // ##ifdef
   
   //}}}
 }
@@ -5743,16 +5737,16 @@ lozBoard.prototype.hashCheck = function (turn) {
   }
 
   if (this.loHash != loHash)
-    lozza.uci.debug('*************** LO',this.loHash,loHash);
+    console.log('*************** LO',this.loHash,loHash);
 
   if (this.hiHash != hiHash)
-    lozza.uci.debug('*************** HI',this.hiHash,hiHash);
+    console.log('*************** HI',this.hiHash,hiHash);
 
   if (this.ploHash != ploHash)
-    lozza.uci.debug('************* PLO',this.ploHash,ploHash);
+    console.log('************* PLO',this.ploHash,ploHash);
 
   if (this.phiHash != phiHash)
-    lozza.uci.debug('************* PHI',this.phiHash,phiHash);
+    console.log('************* PHI',this.phiHash,phiHash);
 }
 
 //}}}
@@ -6384,7 +6378,7 @@ lozStats.prototype.lazyUpdate = function () {
 
   this.checkTime();
 
-  if (Date.now() - this.splitTime > 500) {
+  if (Date.now() - this.splitTime > UILAG) {
     this.splits++;
     this.update();
     this.splitTime = Date.now();
@@ -6580,6 +6574,9 @@ onmessage = function(e) {
     if (uci.command == 'u')
       uci.command = 'ucinewgame';
     
+    if (uci.command == 'q')
+      uci.command = 'quit';
+    
     if (uci.command == 'b')
       uci.command = 'board';
     
@@ -6691,63 +6688,12 @@ onmessage = function(e) {
 
     case 'stop':
       //{{{  stop
+      //
+      // This will have no effect. To stop an analysis or long move
+      // the worker must be killed. It's just the way Javascript works.
+      //
       
       lozza.stats.timeOut = 1;
-      
-      break;
-      
-      //}}}
-
-    case 'bench':
-      //{{{  bench
-      
-      uci.debugging = true;
-      
-      for (var i=0; i < WS_PST.length; i++) {
-        var wpst = WS_PST[i];
-        var bpst = BS_PST[i];
-        if (wpst.length != 144)
-          uci.debug('ws pst len err',i)
-        if (bpst.length != 144)
-          uci.debug('bs pst len err',i)
-        for (var j=0; j < wpst.length; j++) {
-          if (wpst[j] != bpst[wbmap(j)])
-            uci.debug('s pst err',i,j,wpst[j],bpst[wbmap(j)])
-        }
-      }
-      
-      for (var i=0; i < WE_PST.length; i++) {
-        var wpst = WE_PST[i];
-        var bpst = BE_PST[i];
-        if (wpst.length != 144)
-          uci.debug('we pst len err',i)
-        if (bpst.length != 144)
-          uci.debug('be pst len err',i)
-        for (var j=0; j < wpst.length; j++) {
-          if (wpst[j] != bpst[wbmap(j)])
-            uci.debug('e pst err',i,j,wpst[j],bpst[wbmap(j)])
-        }
-      }
-      
-      if (WOUTPOST.length != 144)
-        uci.debug('w outpost len err',i)
-      if (BOUTPOST.length != 144)
-        uci.debug('b outpost len err',i)
-      for (var j=0; j < WOUTPOST.length; j++) {
-        if (WOUTPOST[j] != BOUTPOST[wbmap(j)])
-          uci.debug('outpost err',j,WOUTPOST[j],BOUTPOST[wbmap(j)])
-      }
-      
-      for (var i=0; i < 144; i++) {
-        for (var j=0; j < 144; j++) {
-          if (WKZONES[i][j] != BKZONES[wbmap(i)][wbmap(j)])
-            uci.debug('kzones err',i,j,WKZONES[i][j],BKZONES[i][j])
-        }
-      }
-      
-      uci.debug('bench done ok')
-      
-      uci.debugging = false;
       
       break;
       
@@ -6894,6 +6840,50 @@ if (lozzaHost == HOST_NODEJS) {
 }
 
 //}}}
+                                                                  // ##ifdef
+for (var i=0; i < WS_PST.length; i++) {                           // ##ifdef
+  var wpst = WS_PST[i];                                           // ##ifdef
+  var bpst = BS_PST[i];                                           // ##ifdef
+  if (wpst.length != 144)                                         // ##ifdef
+    console.log('ws pst len err',i);                              // ##ifdef
+  if (bpst.length != 144)                                         // ##ifdef
+    console.log('bs pst len err',i);                              // ##ifdef
+  for (var j=0; j < wpst.length; j++) {                           // ##ifdef
+    if (wpst[j] != bpst[wbmap(j)])                                // ##ifdef
+      console.log('s pst err',i,j,wpst[j],bpst[wbmap(j)]);        // ##ifdef
+  }                                                               // ##ifdef
+}                                                                 // ##ifdef
+                                                                  // ##ifdef
+for (var i=0; i < WE_PST.length; i++) {                           // ##ifdef
+  var wpst = WE_PST[i];                                           // ##ifdef
+  var bpst = BE_PST[i];                                           // ##ifdef
+  if (wpst.length != 144)                                         // ##ifdef
+    console.log('we pst len err',i);                              // ##ifdef
+  if (bpst.length != 144)                                         // ##ifdef
+    console.log('be pst len err',i);                              // ##ifdef
+  for (var j=0; j < wpst.length; j++) {                           // ##ifdef
+    if (wpst[j] != bpst[wbmap(j)])                                // ##ifdef
+      console.log('e pst err',i,j,wpst[j],bpst[wbmap(j)]);        // ##ifdef
+  }                                                               // ##ifdef
+}                                                                 // ##ifdef
+                                                                  // ##ifdef
+if (WOUTPOST.length != 144)                                       // ##ifdef
+  console.log('w outpost len err',i);                             // ##ifdef
+if (BOUTPOST.length != 144)                                       // ##ifdef
+  console.log('b outpost len err',i);                             // ##ifdef
+for (var j=0; j < WOUTPOST.length; j++) {                         // ##ifdef
+  if (WOUTPOST[j] != BOUTPOST[wbmap(j)])                          // ##ifdef
+    console.log('outpost err',j,WOUTPOST[j],BOUTPOST[wbmap(j)]);  // ##ifdef
+}                                                                 // ##ifdef
+                                                                  // ##ifdef
+for (var i=0; i < 144; i++) {                                     // ##ifdef
+  for (var j=0; j < 144; j++) {                                   // ##ifdef
+    if (WKZONES[i][j] != BKZONES[wbmap(i)][wbmap(j)])             // ##ifdef
+      console.log('kzones err',i,j,WKZONES[i][j],BKZONES[i][j]);  // ##ifdef
+  }                                                               // ##ifdef
+}                                                                 // ##ifdef
+                                                                  // ##ifdef
+onmessage({data: 'u\np s\nb'});                                   // ##ifdef
 
 //}}}
 //
@@ -7030,6 +7020,9 @@ for (var i=0; i < epds.length; i++) {
 
   var e = board.evaluate(board.turn);
 
+  var k1 = board.features.pawnPassedKing1E;
+  var k2 = board.features.pawnPassedKing2E;
+
   var epdf = epdsf[i];
 
   uci.spec.board    = epdf.board;
@@ -7056,6 +7049,11 @@ for (var i=0; i < epds.length; i++) {
     console.log(ef,epdf.board,epdf.turn,epdf.rights,epdf.ep);
     //process.exit();
   }
+
+  if (k1 != -board.features.pawnPassedKing1E)
+    console.log('k1',k1,board.features.pawnPassedKing1E);
+  if (k2 != -board.features.pawnPassedKing2E)
+    console.log('k2',k2,board.features.pawnPassedKing2E);
 }
 
 console.log('yay, no differences');
