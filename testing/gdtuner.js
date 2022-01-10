@@ -4019,6 +4019,9 @@ var MOB_RIS = IS_RQKE;
 var MOB_QIS = IS_QKE;
 
 var ATT_L = 7;
+var ATT_W = [0,0.01,0.42,0.78,1.11,1.52,0.97,0.99];
+
+var PAWN_PASSED = [0,0,0,0,0.1,0.3,0.7,1.2,0];
 
 lozBoard.prototype.evaluate = function (turn) {
 
@@ -4047,12 +4050,12 @@ lozBoard.prototype.evaluate = function (turn) {
   f.pawnPassedFreeE    = 0;    // ##ifdef
   f.pawnPassedUnstopE  = 0;    // ##ifdef
   f.mobNS              = 0;    // ##ifdef
-  f.mobNS              = 0;    // ##ifdef
-  f.mobBE              = 0;    // ##ifdef
+  f.mobNE              = 0;    // ##ifdef
   f.mobBS              = 0;    // ##ifdef
-  f.mobRE              = 0;    // ##ifdef
+  f.mobBE              = 0;    // ##ifdef
   f.mobRS              = 0;    // ##ifdef
-  f.mobQE              = 0;    // ##ifdef
+  f.mobRE              = 0;    // ##ifdef
+  f.mobQS              = 0;    // ##ifdef
   f.mobQE              = 0;    // ##ifdef
 
   //this.hashCheck(turn);
@@ -6883,10 +6886,7 @@ for (var i=0; i < 144; i++) {                                     // ##ifdef
   }                                                               // ##ifdef
 }                                                                 // ##ifdef
                                                                   // ##ifdef
-onmessage({data: 'u\n'});                                         // ##ifdef
-onmessage({data: 'p s\n'});                                       // ##ifdef
-onmessage({data: 'b\n'});                                         // ##ifdef
-onmessage({data: 'g d 10\n'});                                    // ##ifdef
+onmessage({data: 'u\np s\nb'});                                   // ##ifdef
 
 //}}}
 //
@@ -6904,7 +6904,7 @@ board = lozza.board;
 var epds   = [];
 var params = [];
 
-var gK             = 3.464;
+var gK             = 3.461;
 var gLearningRate  = 0.1;
 var gEpdFile       = 'data/quiet-labeled.epd';
 var gOutFile       = 'gdtuner.txt';
@@ -7086,7 +7086,7 @@ function logpst (p,s) {
 function saveparams (err, epochs) {
 
   var d   = new Date();
-  var out = '//{{{  tuned running eval\r\n\r\n';
+  var out = '//{{{  tuned feature weights\r\n\r\n';
 
   out += '// data=' + gEpdFile;
   out += '\r\n';
@@ -7188,7 +7188,6 @@ function grunt () {
     addp(WKING_PSTS,   sq, function (sq,mg,eg) {return (is(W_KING,sq)   - is(B_KING,  wbmap(sq))) * mg;});
     addp(WKING_PSTE,   sq, function (sq,mg,eg) {return (is(W_KING,sq)   - is(B_KING,  wbmap(sq))) * eg;});
   }
-  
   var ko =[51,52,53,54,55,56,63,64,65,66,67,68,75,76,77,78,79,80]; //knight outpost squares
   for (var i=0; i < ko.length; i++) {
     var sq = ko[i];
@@ -7202,8 +7201,8 @@ function grunt () {
     addp(imbalB_E, i, function (pawns,mg,eg) {return (board.wCounts[BISHOP] * (board.wCounts[PAWN] == pawns) - board.bCounts[BISHOP] * (board.bCounts[PAWN] == pawns)) * eg});
     addp(imbalR_S, i, function (pawns,mg,eg) {return (board.wCounts[ROOK]   * (board.wCounts[PAWN] == pawns) - board.bCounts[ROOK]   * (board.bCounts[PAWN] == pawns)) * mg});
     addp(imbalR_E, i, function (pawns,mg,eg) {return (board.wCounts[ROOK]   * (board.wCounts[PAWN] == pawns) - board.bCounts[ROOK]   * (board.bCounts[PAWN] == pawns)) * eg});
-    addp(imbalR_S, i, function (pawns,mg,eg) {return (board.wCounts[QUEEN]  * (board.wCounts[PAWN] == pawns) - board.bCounts[QUEEN]  * (board.bCounts[PAWN] == pawns)) * mg});
-    addp(imbalR_E, i, function (pawns,mg,eg) {return (board.wCounts[QUEEN]  * (board.wCounts[PAWN] == pawns) - board.bCounts[QUEEN]  * (board.bCounts[PAWN] == pawns)) * eg});
+    addp(imbalQ_S, i, function (pawns,mg,eg) {return (board.wCounts[QUEEN]  * (board.wCounts[PAWN] == pawns) - board.bCounts[QUEEN]  * (board.bCounts[PAWN] == pawns)) * mg});
+    addp(imbalQ_E, i, function (pawns,mg,eg) {return (board.wCounts[QUEEN]  * (board.wCounts[PAWN] == pawns) - board.bCounts[QUEEN]  * (board.bCounts[PAWN] == pawns)) * eg});
   }
   
   for (var i=0; i < WSHELTER.length; i++) {
@@ -7229,6 +7228,7 @@ function grunt () {
   addp(EV, iPAWN_PASS_KING2,      function (i,mg,eg) {return board.features.pawnPassedKing2E   * eg;});
   addp(EV, iPAWN_PASS_FREE,       function (i,mg,eg) {return board.features.pawnPassedFreeE    * eg;});
   addp(EV, iPAWN_PASS_UNSTOP,     function (i,mg,eg) {return board.features.pawnPassedUnstopE  * eg;});
+  /*
   addp(EV, iMOB_NS,               function (i,mg,eg) {return board.features.mobNS              * mg;});
   addp(EV, iMOB_NE,               function (i,mg,eg) {return board.features.mobNE              * eg;});
   addp(EV, iMOB_BS,               function (i,mg,eg) {return board.features.mobBS              * mg;});
@@ -7237,7 +7237,7 @@ function grunt () {
   addp(EV, iMOB_RE,               function (i,mg,eg) {return board.features.mobRE              * eg;});
   addp(EV, iMOB_QS,               function (i,mg,eg) {return board.features.mobQS              * mg;});
   addp(EV, iMOB_QE,               function (i,mg,eg) {return board.features.mobQE              * eg;});
-  
+  */
   //}}}
   //{{{  tune params
   
@@ -7260,7 +7260,7 @@ function grunt () {
   
     if (epoch % gErrStep == 0) {
       err = calcErr();
-      console.log(epoch,err,err-lastErr);
+      console.log(epoch,err,err-lastErr,VALUE_VECTOR.toString());
       lastErr = err;
       saveparams(err,epoch);
     }
