@@ -9,4 +9,6 @@ grep -v \#\#ifdef coalfacedev.js  > coalface.js
 grep -v \#\#ifdef releaseddev.js  > released.js
 grep -v \#\#ifdef candidatedev.js > candidate.js
 diff coalface.js candidate.js
+grep Greenwich coalface.js
+grep epochs coalface.js
 

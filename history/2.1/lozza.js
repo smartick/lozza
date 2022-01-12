@@ -1163,10 +1163,6 @@ var WSHELTER = [0,0,0,7,12,13,36,9,0,28];
 
 var WSTORM = [0,0,0,35,7,4,-8,-1,0,5];
 
-var ATT_W = [0,0.01,0.41999999999999993,0.78,1.11,1.5200000000000005,0.97,0.99];
-
-var PAWN_PASSED = [0,0,0,0,0.1,0.3,0.7,1.2,0];
-
 // bestErr=0.05580612020741582
 
 // last update Tue Feb 16 2021 05:37:57 GMT+0000 (Greenwich Mean Time)
@@ -4012,12 +4008,15 @@ lozBoard.prototype.formatMove = function (move, fmt) {
 //}}}
 //{{{  .evaluate
 
+var PAWN_PASSED = [0,0,0,0,0.1,0.3,0.7,1.2,0];
+
 var MOB_NIS = IS_NBRQKE;
 var MOB_BIS = IS_NBRQKE;
 var MOB_RIS = IS_RQKE;
 var MOB_QIS = IS_QKE;
 
 var ATT_L = 7;
+var ATT_W = [0,0.01,0.42,0.78,1.11,1.52,0.97,0.99];
 
 lozBoard.prototype.evaluate = function (turn) {
 
