@@ -22,9 +22,11 @@ Try this example here:-
 
 https://op12no2.github.io/lozza-ui/ex.htm.
 
+You just need the lozza.js file in the root of this repo.
+
 ## Playing Lozza online
 
-This repo has some example web-based user interfaces for playing and analysing with Lozza:-
+Another repo has further example web-based user interfaces for playing and analysing with Lozza:-
 
 https://github.com/op12no2/lozza-ui
 
@@ -32,11 +34,9 @@ You can try them here:-
 
 https://op12no2.github.io/lozza-ui
 
-They use web workers.
-
 ## Playing Lozza offline in Arena, Winboard, Cutechess etc UIs
 
-Lozza can be used on almost any platform via Nodejs. Download the latest Lozza release and follow the instructions in readme.txt.
+While primarily intended for use in a browser context, Lozza can be used offline on almost any platform via Nodejs. Download the latest Lozza release and follow the instructions in readme.txt.
 
 https://github.com/op12no2/lozza/releases
   
@@ -46,7 +46,7 @@ You can also fire up Lozza using Nodejs from the command line and enter UCI comm
 
 lozza.js is folded using {{{ and }}} (emacs convention) and most easily read using an editor with a folding capability.
 
-lozza.js in the repo has debug code marked with ##ifdef, which can be removed on release of your project with:-
+lozza.js in the repo root has debug code marked with ##ifdef, which can be removed on release of your project with:-
 
 ```
 Windows: findstr -V ##ifdef lozza.js
