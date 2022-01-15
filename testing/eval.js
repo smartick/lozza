@@ -1,6 +1,5 @@
 //
 // Copy lozza.js above here.
-// Turn off pawn hash.
 //
 
 //{{{  lozza globals

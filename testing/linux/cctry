@@ -17,7 +17,7 @@ o="-repeat -srand $RANDOM -openings file=books/4moves_noob.pgn format=pgn order=
 
 f="-pgnout cctry.pgn fi"
 
-s="-sprt elo0=0 elo1=3 alpha=0.05 beta=0.05"
+s="-sprt elo0=-1 elo1=4 alpha=0.05 beta=0.05"
 
 v="-ratinginterval 10"
 
