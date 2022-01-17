@@ -53,24 +53,28 @@ Windows: findstr -V ##ifdef lozza.js
 Linux:   grep -v \#\#ifdef lozza.js
 ```
 
+Lozza's evaluation is tuned using the 'Texel tuning' method applied to self play games. See testing/gdtuner.js above.
+
 ## Acknowledgements
 
-http://wbec-ridderkerk.nl/html/UCIProtocol.html - UCI Syntax
+http://wbec-ridderkerk.nl/html/UCIProtocol.html - UCI syntax
 
-https://www.chessprogramming.org/Fruit
+https://www.chessprogramming.org/Fruit - Fruit
 
-https://www.chessprogramming.org/Main_Page
+https://www.chessprogramming.org/Main_Page - Chess programming wiki
 
-https://cutechess.com
+https://cutechess.com - Cutechess
 
-https://nodejs.org/en
+https://nodejs.org/en - Nodejs
 
-http://ccrl.chessdom.com/ccrl/4040
+http://ccrl.chessdom.com/ccrl/4040 - CCRL rating list
 
-http://rebel13.nl
+http://rebel13.nl - Gambit rating list and other goodies
 
-https://github.com/glinscott/nnue-pytorch/blob/master/docs/nnue.md
+https://github.com/glinscott/nnue-pytorch/blob/master/docs/nnue.md - NNUE notes
 
-https://github.com/AndyGrant/Ethereal/blob/master/Tuning.pdf
+https://github.com/AndyGrant/Ethereal/blob/master/Tuning.pdf - Tuning notes
 
-https://github.com/asdfjkl/neural_network_chess
+https://github.com/asdfjkl/neural_network_chess - NN book
+
+https://www.chessprogramming.org/Texel%27s_Tuning_Method - Texel tuning
