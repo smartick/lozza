@@ -53,7 +53,18 @@ Windows: findstr -V ##ifdef lozza.js
 Linux:   grep -v \#\#ifdef lozza.js
 ```
 
-Lozza's evaluation is tuned using the 'Texel tuning' method applied to self play games. See testing/gdtuner.js above.
+## Tuning
+
+Lozza's hand coded evaluation is tuned using the 'Texel tuning' method applied to self play games. See testing/gdtuner.js. The PGN files from self play must be in testing/games. The tuning procedure is then:-
+
+```
+cd lozza\testing
+copy games\*.pgn games\lozza.pgn
+.\makeepd.bat
+node quiet
+node gdtuner
+```
+Note that none of the PGN files must be called lozza.pgn prior to the procedure. makeepd.bat creates testing/data/lozza.epd, which is read by quiet.js to create lozza-quiet.epd, which is used by gdtuner.js.  gdtuner.js creates gdtuner.txt containing the new feature weights that can be used to replace those in lozza.js. gdtuner.js gives console clues about convergence but essentially the weights can be tried at any time to see how they do.
 
 ## Acknowledgements
 
