@@ -53,7 +53,7 @@ Windows: findstr -V ##ifdef lozza.js
 Linux:   grep -v \#\#ifdef lozza.js
 ```
 
-## Tuning
+## Tuning Lozza
 
 Lozza's hand coded evaluation is tuned using the 'Texel tuning' method applied to self play games. See testing/gdtuner.js. The PGN files from self play must be in testing/games. The tuning procedure is then:-
 
