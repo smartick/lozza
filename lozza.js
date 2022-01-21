@@ -2419,7 +2419,7 @@ lozChess.prototype.qSearch = function (node, depth, turn, alpha, beta) {
     standPat = board.evaluate(turn);
     if (standPat >= beta)
       return standPat;
-    if (standPat > alpha)
+    if (standPat >= alpha)
       alpha = standPat;
     phase = board.cleanPhase(board.phase);
   }
