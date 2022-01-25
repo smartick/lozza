@@ -16,6 +16,7 @@ var USEPAWNHASH = 0;         // ##ifdef
 //{{{  history
 /*
 
+2.1 21/01/22 Fixate on one square in Q search at depth -12.
 2.1 12/01/22 Retune using gd tuner.
 2.1 06/01/22 Extract imbalance as a separate eval term.
 2.1 06/01/22 Add eval feature extraction code (for gd tuner) which is removed on release.
@@ -2133,7 +2134,7 @@ lozChess.prototype.alphabeta = function (node, depth, turn, alpha, beta, nullOK,
     if (score != TTSCORE_UNKNOWN)
       return score;
   
-    score = this.qSearch(node, -1, turn, alpha, beta);
+    score = this.qSearch(node, -1, turn, alpha, beta, 0);
   
     return score;
   }
@@ -2386,7 +2387,7 @@ lozChess.prototype.alphabeta = function (node, depth, turn, alpha, beta, nullOK,
 //}}}
 //{{{  .quiescence
 
-lozChess.prototype.qSearch = function (node, depth, turn, alpha, beta) {
+lozChess.prototype.qSearch = function (node, depth, turn, alpha, beta, sq) {
 
   //{{{  housekeeping
   
@@ -2410,6 +2411,7 @@ lozChess.prototype.qSearch = function (node, depth, turn, alpha, beta) {
   var standPat      = 0;
   var phase         = 0;
   var nextTurn      = ~turn & COLOR_MASK;
+  var to            = 0;
 
   if (depth > -2)
     var inCheck = board.isKingAttacked(nextTurn);
@@ -2420,7 +2422,7 @@ lozChess.prototype.qSearch = function (node, depth, turn, alpha, beta) {
     standPat = board.evaluate(turn);
     if (standPat >= beta)
       return standPat;
-    if (standPat > alpha)
+    if (standPat >= alpha)
       alpha = standPat;
     phase = board.cleanPhase(board.phase);
   }
@@ -2429,10 +2431,15 @@ lozChess.prototype.qSearch = function (node, depth, turn, alpha, beta) {
 
   this.stats.nodes++;
 
-  if (inCheck)
+  if (inCheck) {
     board.genEvasions(node, turn);
-  else
-    board.genQMoves(node, turn);
+  }
+  else {
+    if (sq && depth < -12)
+      board.genQMovesTo(node, turn, sq);
+    else
+      board.genQMoves(node, turn);
+  }
 
   while (move = node.getNextMove()) {
 
@@ -2462,7 +2469,7 @@ lozChess.prototype.qSearch = function (node, depth, turn, alpha, beta) {
 
     numLegalMoves++;
 
-    var score = -this.qSearch(node.childNode, depth-1, nextTurn, -beta, -alpha);
+    var score = -this.qSearch(node.childNode, depth-1, nextTurn, -beta, -alpha, (move & MOVE_TO_MASK) >>> MOVE_TO_BITS);
 
     //{{{  unmake move
     
@@ -3592,6 +3599,173 @@ lozBoard.prototype.genQMoves = function(node, turn) {
       
         if (CAPTURE[toObj])
           node.addQMove(frMove | (toObj << MOVE_TOOBJ_BITS) | to);
+      }
+      
+      //}}}
+    }
+
+    next++;
+    count++
+  }
+}
+
+//}}}
+//{{{  .genQMovesTo
+
+lozBoard.prototype.genQMovesTo = function(node, turn, sq) {
+
+  node.numMoves    = 0;
+  node.sortedIndex = 0;
+
+  var b = this.b;
+
+  //{{{  colour based stuff
+  
+  if (turn == WHITE) {
+  
+    var pOffsetOrth  = WP_OFFSET_ORTH;
+    var pOffsetDiag1 = WP_OFFSET_DIAG1;
+    var pOffsetDiag2 = WP_OFFSET_DIAG2;
+    var pPromoteRank = 7;
+    var pList        = this.wList;
+    var theirKingSq  = this.bList[0];
+    var pCount       = this.wCount;
+    var CAPTURE      = IS_B;
+  }
+  
+  else {
+  
+    var pOffsetOrth  = BP_OFFSET_ORTH;
+    var pOffsetDiag1 = BP_OFFSET_DIAG1;
+    var pOffsetDiag2 = BP_OFFSET_DIAG2;
+    var pPromoteRank = 2;
+    var pList        = this.bList;
+    var theirKingSq  = this.wList[0];
+    var pCount       = this.bCount;
+    var CAPTURE      = IS_W;
+  }
+  
+  //}}}
+
+  var next    = 0;
+  var count   = 0;
+  var to      = 0;
+  var toObj   = 0;
+  var fr      = 0;
+  var frObj   = 0;
+  var frPiece = 0;
+  var frMove  = 0;
+  var frRank  = 0;
+
+  while (count < pCount) {
+
+    fr = pList[next];
+    if (!fr) {
+      next++;
+      continue;
+    }
+
+    frObj   = b[fr];
+    frPiece = frObj & PIECE_MASK;
+    frMove  = (frObj << MOVE_FROBJ_BITS) | (fr << MOVE_FR_BITS);
+    frRank  = RANK[fr];
+
+    if (frPiece == PAWN) {
+      //{{{  P
+      
+      frMove |= MOVE_PAWN_MASK;
+      
+      to = fr + pOffsetDiag1;
+      if (to == sq) {
+        toObj = b[to];
+        if (CAPTURE[toObj]) {
+          if (frRank == pPromoteRank)
+            node.addQPromotion(MOVE_PROMOTE_MASK | frMove | (toObj << MOVE_TOOBJ_BITS) | to);
+          else
+            node.addQMove(frMove | (toObj << MOVE_TOOBJ_BITS) | to);
+        }
+        else if (!toObj && to == this.ep)
+          node.addQMove(MOVE_EPTAKE_MASK | frMove | to);
+      }
+      
+      to = fr + pOffsetDiag2;
+      if (to == sq) {
+        toObj = b[to];
+        if (CAPTURE[toObj]) {
+          if (frRank == pPromoteRank)
+            node.addQPromotion(MOVE_PROMOTE_MASK | frMove | (toObj << MOVE_TOOBJ_BITS) | to);
+          else
+            node.addQMove(frMove | (toObj << MOVE_TOOBJ_BITS) | to);
+        }
+        else if (!toObj && to == this.ep)
+          node.addQMove(MOVE_EPTAKE_MASK | frMove | to);
+      }
+      
+      //}}}
+    }
+
+    else if (IS_N[frObj]) {
+      //{{{  N
+      
+      var offsets = OFFSETS[frPiece];
+      var dir     = 0;
+      
+      while (dir < 8) {
+      
+        to = fr + offsets[dir++];
+        if (to == sq) {
+          toObj = b[to];
+          if (CAPTURE[toObj])
+            node.addQMove(frMove | (toObj << MOVE_TOOBJ_BITS) | to);
+          break;
+        }
+      }
+      
+      //}}}
+    }
+
+    else if (IS_K[frObj]) {
+      //{{{  K
+      
+      var offsets = OFFSETS[frPiece];
+      var dir     = 0;
+      
+      while (dir < 8) {
+      
+        to = fr + offsets[dir++];
+        if (to == sq) {
+          toObj = b[to];
+          if (CAPTURE[toObj] && DIST[to][theirKingSq] > 1)
+            node.addQMove(frMove | (toObj << MOVE_TOOBJ_BITS) | to);
+          break;
+        }
+      }
+      
+      //}}}
+    }
+
+    else {
+      //{{{  BRQ
+      
+      var offsets = OFFSETS[frPiece];
+      var len     = offsets.length;
+      var dir     = 0;
+      
+      while (dir < len) {
+      
+        var offset = offsets[dir++];
+      
+        to = fr + offset;
+      
+        while (!b[to])
+          to += offset;
+      
+        if (to == sq) {
+          toObj = b[to];
+          if (CAPTURE[toObj])
+            node.addQMove(frMove | (toObj << MOVE_TOOBJ_BITS) | to);
+          break;
+        }
       }
       
       //}}}
@@ -7343,12 +7517,12 @@ board = lozza.board;
 var epds   = [];
 var params = [];
 
-var gEpdFile       = 'data/lozza-quiet.epd';
-var gParts         = 5;
-var gProb          = 4;
-var gK             = 1;
-var gErrStep       = 10;
+var gEpdFile       = 'data/quiet-labeled.epd';
 var gOutFile       = 'gdtuner.txt';
+var gParts         = 6;
+var gProb          = 5;
+var gK             = 3.646;
+var gErrStep       = 10;
 var gLearningRate  = 0.1;
 
 //}}}
@@ -7533,23 +7707,27 @@ function logpst (p,s) {
 //}}}
 //{{{  saveparams
 
+var lastOut = '';
+
 function saveparams (err, epochs) {
 
-  var d   = new Date();
-  var out = '//{{{  tuned feature weights\r\n\r\n';
+  var d    = new Date();
+  var out1 = '//{{{  tuned feature weights\r\n\r\n';
 
-  out += '// data=' + gEpdFile;
-  out += '\r\n';
-  out += '// features=' + params.length;
-  out += '\r\n';
-  out += '// k='+gK;
-  out += '\r\n';
-  out += '// loss='+err;
-  out += '\r\n';
-  out += '// epochs='+epochs;
-  out += '\r\n';
-  out += '// last update '+d;
-  out += '\r\n\r\n';
+  out1 += '// data=' + gEpdFile;
+  out1 += '\r\n';
+  out1 += '// features=' + params.length;
+  out1 += '\r\n';
+  out1 += '// k='+gK;
+  out1 += '\r\n';
+  out1 += '// loss='+err;
+  out1 += '\r\n';
+  out1 += '// epochs='+epochs;
+  out1 += '\r\n';
+  out1 += '// last update '+d;
+  out1 += '\r\n\r\n';
+
+  var out = '';
 
   out += loga(VALUE_VECTOR,     'VALUE_VECTOR   ');
 
@@ -7596,12 +7774,17 @@ function saveparams (err, epochs) {
   out += loga(imbalQ_S,         'imbalQ_S       ');
   out += loga(imbalQ_E,         'imbalQ_E       ');
 
+  if (out == lastOut)
+    console.log(epochs,err,'POSSIBLE CONVERGENCE');
+
+  lastOut = out;
+
   out = out + '\r\n//}}}\r\n\r\n';
 
   if (epochs == 0)
-    fs.writeFileSync('0'+gOutFile,out);
+    fs.writeFileSync('0'+gOutFile, out1+out);
   else
-    fs.writeFileSync(gOutFile,out);
+    fs.writeFileSync(gOutFile, out1+out);
 }
 
 //}}}

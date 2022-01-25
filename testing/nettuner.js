@@ -1,5 +1,5 @@
 
-var maxPositions   = 10000000;
+var maxPositions   = 100000000;
 var testFraction   = 0.2;
 var netInputSize   = 768;
 var netHiddenSize  = 64;
