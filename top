@@ -2,9 +2,6 @@
 'food\log.txt'
 'food\food.js'
 
-'\lichess-bot\engines\lozzabot.bat'
-'\lichess-bot\config.yml'
-
 //{{{  saved
 //{{{  06/01/22 CRJ after king and all pawn extraction, did well against candidate
 //
@@ -6991,6 +6988,22 @@ lozBoard.prototype.getHistory = function (move) {
 }
 
 //}}}
+//{{{  readline
+if (lozzaHost == HOST_NODEJS) {
+
+  const readline = require('readline');
+  const rl       = readline.createInterface({
+    input:  process.stdin,
+    output: process.stdout
+  });
+
+  rl.on('line', (line) => {
+    onmessage({data: line.trim()});
+  })
+
+}
+
+//}}}
 
 //}}}
 
@@ -7083,6 +7096,9 @@ lozBoard.prototype.getHistory = function (move) {
 'lozza-ui\trunk\mate.htm'
 'lozza-ui\trunk\mate.js'
 
+'lozza-ui\trunk\tune.htm'
+'lozza-ui\trunk\tune.js'
+
 //}}}
 //{{{  roller
 
@@ -7093,4 +7109,10 @@ lozBoard.prototype.getHistory = function (move) {
 //}}}
 
 'c:\winboard\winboard\wb.bat'
+
+//{{{  lichess
+'\lichess-bot\engines\lozzabot.bat'
+'\lichess-bot\config.yml'
+
+//}}}
 

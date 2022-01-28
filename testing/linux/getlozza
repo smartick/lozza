@@ -11,4 +11,5 @@ grep -v \#\#ifdef candidatedev.js > candidate.js
 diff coalface.js candidate.js
 grep Greenwich coalface.js
 grep epochs coalface.js
+cp /mnt/c/projects/lozza/trunk/lozza.js /mnt/c/projects/lozza/trunk/currentlytesting.js
 

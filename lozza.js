@@ -11,10 +11,12 @@ var BUILD       = "2.1";
 var BUILD       = "2.1dev";  // ##ifdef
 var USEPAWNHASH = 1;
 var USEPAWNHASH = 0;         // ##ifdef
+var LICHESS     = 0;
 
 //{{{  history
 /*
 
+2.1 28/01/22 Add Lichess support.
 2.1 21/01/22 Fixate on one square in Q search from depth -12.
 2.1 12/01/22 Retune using gd tuner.
 2.1 06/01/22 Extract imbalance as a separate eval term.
@@ -1893,7 +1895,10 @@ lozChess.prototype.go = function() {
   if (lozzaHost == HOST_WEB)
     board.makeMove(this.rootNode,this.stats.bestMove);
 
-  this.uci.send('bestmove',bestMoveStr);
+  if (LICHESS)
+    console.log('bestmove',bestMoveStr);
+  else
+    this.uci.send('bestmove',bestMoveStr);
 }
 
 //}}}
@@ -1962,7 +1967,7 @@ lozChess.prototype.search = function (node, depth, turn, alpha, beta) {
 
     //{{{  send current move to UCI
     
-    if (this.stats.splits > 3)
+    if (!LICHESS && this.stats.splits > 3)
       this.uci.send('info currmove ' + board.formatMove(move,SAN_FMT) + ' currmovenumber ' + numLegalMoves);
     
     //}}}
@@ -2040,11 +2045,13 @@ lozChess.prototype.search = function (node, depth, turn, alpha, beta) {
             uciScore = -uciScore;
         }
         
-        this.uci.send('info',this.stats.nodeStr(),'depth',this.stats.ply,'seldepth',this.stats.selDepth,'score',units,uciScore,'pv',pvStr);
-        //this.stats.update();
+        if (!LICHESS) {
+          this.uci.send('info',this.stats.nodeStr(),'depth',this.stats.ply,'seldepth',this.stats.selDepth,'score',units,uciScore,'pv',pvStr);
+          //this.stats.update();
         
-        if (this.stats.splits > 5)
-          this.uci.send('info hashfull',myround(1000*board.hashUsed/TTSIZE));
+          if (this.stats.splits > 5)
+            this.uci.send('info hashfull',myround(1000*board.hashUsed/TTSIZE));
+        }
         
         //}}}
       }
@@ -4497,6 +4504,51 @@ var MOB_RIS = IS_RQKE;
 var MOB_QIS = IS_QKE;
 
 var ATT_W = [0,0.01,0.42,0.78,1.11,1.52,1,1,1,1,1,1,1,1,1,1,1];
+
+if (LICHESS) {
+  //{{{  daily style
+  
+  var XX = new Date();
+  var XD = XX.getDay();
+  
+  if (XD == 1) {
+    for (var X=0; X < PAWN_PASSED.length; X++)
+      PAWN_PASSED[X] *= 2;
+  }
+  
+  else if (XD == 2) {
+    for (var X=0; X < ATT_W.length; X++)
+      ATT_W[X] *= 2;
+  }
+  
+  else if (XD == 3) {
+    TWOBISHOPS_S *= 2;
+    TWOBISHOPS_E *= 2;
+    VALUE_VECTOR[BISHOP] += 40;
+  }
+  
+  else if (XD == 4) {
+    MOB_NS *= 3;
+    MOB_NE *= 3;
+    VALUE_VECTOR[KNIGHT] += 40;
+  }
+  
+  else if (XD == 5) {
+    for (var X=0; X < PAWN_PASSED.length; X++)
+      PAWN_PASSED[X] *= 1 * Math.random();
+    for (var X=0; X < ATT_W.length; X++)
+      ATT_W[X] *= 1 * Math.random();
+  }
+  
+  else if (XD == 6) {
+    MOB_QS *= 4;
+    MOB_QE *= 4;
+    MOB_RS *= 4;
+    MOB_RE *= 4;
+  }
+  
+  //}}}
+}
 
 lozBoard.prototype.evaluate = function (turn) {
 
@@ -7031,7 +7083,8 @@ lozStats.prototype.update = function () {
   var tim = Date.now() - this.startTime;
   var nps = (this.nodes * 1000) / tim | 0;
 
-  lozza.uci.send('info',this.nodeStr());
+  if (!LICHESS)
+    lozza.uci.send('info',this.nodeStr());
 }
 
 //}}}
@@ -7329,10 +7382,16 @@ onmessage = function(e) {
     case 'uci':
       //{{{  uci
       
-      uci.send('id name Lozza',BUILD);
-      uci.send('id author Colin Jenkins');
-      //uci.send('option');
-      uci.send('uciok');
+      if (LICHESS) {
+        console.log('id name Lozza',BUILD);
+        console.log('id author Colin Jenkins');
+        console.log('uciok');
+      }
+      else {
+        uci.send('id name Lozza',BUILD);
+        uci.send('id author Colin Jenkins');
+        uci.send('uciok');
+      }
       
       break;
       
@@ -7341,7 +7400,10 @@ onmessage = function(e) {
     case 'isready':
       //{{{  isready
       
-      uci.send('readyok');
+      if (LICHESS)
+        console.log('readyok');
+      else
+        uci.send('readyok');
       
       break;
       
@@ -7414,7 +7476,8 @@ onmessage = function(e) {
     default:
       //{{{  ?
       
-      uci.send('info string','unknown command',uci.command);
+      if (!LICHESS)
+        uci.send('info string','unknown command',uci.command);
       
       break;
       
