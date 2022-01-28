@@ -34,6 +34,10 @@ You can try them here:-
 
 https://op12no2.github.io/lozza-ui
 
+You can also play Lozza on Lichess:-
+
+https://lichess.org/@/lozzaBot
+
 ## Playing Lozza offline in Arena, Winboard, Cutechess etc UIs
 
 While primarily intended for use in a browser context, Lozza can be used offline on almost any platform via Nodejs. Download the latest Lozza release and follow the instructions in readme.txt.
