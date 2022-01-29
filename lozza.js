@@ -4535,7 +4535,7 @@ if (LICHESS) {
   
   else if (XD == 5) {
     for (var X=0; X < PAWN_PASSED.length; X++)
-      PAWN_PASSED[X] *= 2 * 2 * Math.random();
+      PAWN_PASSED[X] *= 2 + 2 * Math.random();
     for (var X=0; X < ATT_W.length; X++)
       ATT_W[X] *= 2 + 2 * Math.random();
   }
