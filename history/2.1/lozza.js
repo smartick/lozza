@@ -4535,9 +4535,9 @@ if (LICHESS) {
   
   else if (XD == 5) {
     for (var X=0; X < PAWN_PASSED.length; X++)
-      PAWN_PASSED[X] *= 1 * Math.random();
+      PAWN_PASSED[X] *= 2 + 2 * Math.random();
     for (var X=0; X < ATT_W.length; X++)
-      ATT_W[X] *= 1 * Math.random();
+      ATT_W[X] *= 2 + 2 * Math.random();
   }
   
   else if (XD == 6) {
@@ -4545,6 +4545,10 @@ if (LICHESS) {
     MOB_QE *= 4;
     MOB_RS *= 4;
     MOB_RE *= 4;
+    MOB_BS *= 4;
+    MOB_BE *= 4;
+    MOB_NS *= 4;
+    MOB_NE *= 4;
   }
   
   //}}}

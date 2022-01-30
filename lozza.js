@@ -4545,6 +4545,10 @@ if (LICHESS) {
     MOB_QE *= 4;
     MOB_RS *= 4;
     MOB_RE *= 4;
+    MOB_BS *= 4;
+    MOB_BE *= 4;
+    MOB_NS *= 4;
+    MOB_NE *= 4;
   }
   
   //}}}
