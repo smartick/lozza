@@ -4497,62 +4497,12 @@ lozBoard.prototype.formatMove = function (move, fmt) {
 //{{{  .evaluate
 
 var PAWN_PASSED = [0,0,0,0,0.1,0.3,0.7,1.2,0];
+var ATT_W       = [0,0.01,0.42,0.78,1.11,1.52,1,1,1,1,1,1,1,1,1,1,1];
 
 var MOB_NIS = IS_NBRQKE;
 var MOB_BIS = IS_NBRQKE;
 var MOB_RIS = IS_RQKE;
 var MOB_QIS = IS_QKE;
-
-var ATT_W = [0,0.01,0.42,0.78,1.11,1.52,1,1,1,1,1,1,1,1,1,1,1];
-
-if (LICHESS) {
-  //{{{  daily style
-  
-  var XX = new Date();
-  var XD = XX.getDay();
-  
-  if (XD == 1) {
-    for (var X=0; X < PAWN_PASSED.length; X++)
-      PAWN_PASSED[X] *= 2;
-  }
-  
-  else if (XD == 2) {
-    for (var X=0; X < ATT_W.length; X++)
-      ATT_W[X] *= 2;
-  }
-  
-  else if (XD == 3) {
-    TWOBISHOPS_S *= 2;
-    TWOBISHOPS_E *= 2;
-    VALUE_VECTOR[BISHOP] += 40;
-  }
-  
-  else if (XD == 4) {
-    MOB_NS *= 3;
-    MOB_NE *= 3;
-    VALUE_VECTOR[KNIGHT] += 40;
-  }
-  
-  else if (XD == 5) {
-    for (var X=0; X < PAWN_PASSED.length; X++)
-      PAWN_PASSED[X] *= 2 + 2 * Math.random();
-    for (var X=0; X < ATT_W.length; X++)
-      ATT_W[X] *= 2 + 2 * Math.random();
-  }
-  
-  else if (XD == 6) {
-    MOB_QS *= 4;
-    MOB_QE *= 4;
-    MOB_RS *= 4;
-    MOB_RE *= 4;
-    MOB_BS *= 4;
-    MOB_BE *= 4;
-    MOB_NS *= 4;
-    MOB_NE *= 4;
-  }
-  
-  //}}}
-}
 
 lozBoard.prototype.evaluate = function (turn) {
 
