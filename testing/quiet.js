@@ -7580,45 +7580,47 @@ onmessage({data: 'u\np s\nb'});                                   // ##ifdef
 // 'lozza/trunk/testing/data/lozza-test.epd'
 //
 
-//var epdin  = 'data/lozza-test.epd';          // one quiet position.
-//var wdl    = 10;
-//var epdout = 'data/lozza-test-quiet.epd';
+//var epdin    = 'data/lozza-test.epd';            // one quiet position.
+//var wdl      = 10;
+//var epdout   = 'data/lozza-test-quiet.epd';
 
-//var epdin  = 'data/lozza.epd';               // make with makeepd.bat.
-//var wdl    = 10;
-//var epdout = 'data/lozza-quiet.epd';
+//var epdin    = 'data/lozza.epd';                 // make with makeepd.bat.
+//var wdl      = 10;
+//var epdout   = 'data/lozza-quiet.epd';
 
-var epdin    = 'data/quiet-labeled.epd';       //zurichess
-var wdl      = 5;
-var epdout   = 'data/quiet-labeled2.epd';
+//var epdin    = 'data/quiet-labeled.epd';         //zurichess
+//var wdl      = 5;
+//var epdout   = 'data/quiet-labeled2.epd';
+
+var epdin    = 'data/eth.epd';                   //ethereal
+var wdl      = 6;
+var epdout   = 'data/eth2.epd';
 
 //{{{  getprob
 
 function getprob (r) {
+
   if (r == '[0.5]')
     return 0.5;
   else if (r == '[1.0]')
     return 1.0;
   else if (r == '[0.0]')
     return 0.0;
+
   else if (r == '"1/2-1/2";')
     return 0.5;
   else if (r == '"1-0";')
     return 1.0;
   else if (r == '"0-1";')
     return 0.0;
-  else if (r == '"1/2-1/2"')
+
+  else if (r == '0.5')
     return 0.5;
-  else if (r == '"1-0"')
-    return 1.0;
-  else if (r == '"0-1"')
-    return 0.0;
   else if (r == '1.0')
     return 1.0;
   else if (r == '0.0')
     return 0.0;
-  else if (r == '0.5')
-    return 0.5;
+
   else
     console.log('unknown result',r);
 }

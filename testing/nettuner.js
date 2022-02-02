@@ -1,12 +1,10 @@
 
-var maxPositions   = 100000000;
-var testFraction   = 0.2;
+var epdfile        = 'data/eth2.epd';  // assumed to have been nade with quiet.js
 var netInputSize   = 768;
 var netHiddenSize  = 64;
 var numEpochs      = 20000;
 var learningRate   = 0.1;
 var batchSize      = 1000;
-var scale          = 200;
 //var useBias        = 0;
 
 //{{{  constants
@@ -66,26 +64,6 @@ var epds    = [];
 var outputs = [];
 var debug   = 0;
 
-//{{{  getprob
-
-function getprob (r) {
-  if (r == '[0.5]')
-    return 0.5;
-  else if (r == '[1.0]')
-    return 1.0;
-  else if (r == '[0.0]')
-    return 0.0;
-  else if (r == '"1/2-1/2";')
-    return 0.5;
-  else if (r == '"1-0";')
-    return 1.0;
-  else if (r == '"0-1";')
-    return 0.0;
-  else
-    console.log('unknown result',r);
-}
-
-//}}}
 //{{{  myround
 
 function myround(x) {
@@ -95,7 +73,7 @@ function myround(x) {
 //}}}
 //{{{  decodeFEN
 //
-// Also accumulates the hidden.in nnue style and creates a list of input
+// Also accumulates hidden.in nnue style and creates a list of input
 // vector elements that are 1.0 for calculating and accumulating gradients
 // without scanning the whole input vector.
 //
@@ -114,7 +92,7 @@ function decodeFEN(board) {
 
   inNum = 0;
 
-  var sq  = 0;
+  var sq = 0;
 
   for (var j=0; j < board.length; j++) {
 
@@ -491,15 +469,17 @@ function netSaveWeights (loss) {
   var d   = new Date();
   var out = '//{{{  network weights\r\n\r\n';
 
-  out += '// last update '+d;
+  out += '// last update ' + d;
+  out += '\r\n';
+
+  out += '// epds = ' + epdfile;
   out += '\r\n';
 
   out += '// hidden layer size = ' + netHiddenSize;
-  out += '// loss = ' + loss;
-  out += '\r\n';
   out += '\r\n';
 
-  out = out + 'this.netScale = ' + scale + ';\r\n';
+  out += '// loss = ' + loss;
+  out += '\r\n';
 
   for (var h=0; h < netHiddenSize; h++) {
     out = out + 'this.h1['+h+'].weights = [' + neth[h].weights.toString();
@@ -526,16 +506,12 @@ function netSaveWeights (loss) {
 function grunt () {
 
   console.log('positions =',epds.length);
-  console.log('scaling =',scale);
-
-  var testPositions = epds.length * testFraction | 0;
-  var tunePositions = epds.length - testPositions;
 
   //{{{  check decoding
   
   process.stdout.write('checking decoding...\r');
   
-  debug  = 1;
+  debug = 1;
   
   var t1 = Date.now();
   
@@ -555,13 +531,10 @@ function grunt () {
   //}}}
   //{{{  tune
   
-  var numBatches = tunePositions / batchSize | 0;
+  var numBatches = epds.length / batchSize | 0;
+  var loss       = 0;
   
-  var loss     = 0;
-  var bestLoss = 100;
-  
-  console.log('test positions =',testPositions);
-  console.log('tune positions =',tunePositions);
+  console.log('positions =',epds.length);
   console.log('input layer size =',netInputSize);
   console.log('hidden layer size =',netHiddenSize);
   console.log('batch size =',batchSize);
@@ -574,44 +547,41 @@ function grunt () {
   for (var epoch=0; epoch < numEpochs; epoch++) {
     //{{{  get loss
     
-    lastLoss = loss;
+    if (epoch % 10 == 0) {
     
-    for (var i=0; i < testPositions; i++) {
+      loss = 0;
     
-      var epd = epds[i];
+      for (var i=0; i < epds.length; i++) {
     
-      decodeFEN(epd.board);
+        var epd = epds[i];
     
-      netForward();
+        decodeFEN(epd.board);
     
-      var targets = [epd.prob];
+        netForward();
     
-      loss += netLoss(targets);
-    }
+        var targets = [epd.prob];
     
-    loss = loss / testPositions;
+        loss += netLoss(targets);
+      }
     
-    var d = '+';
+      loss = loss / epds.length;
     
-    if (loss < bestLoss) {
-      d = '-';
-      bestLoss = loss;
+      console.log ('epoch =',epoch,'loss =',loss);
+    
       netSaveWeights(loss);
     }
-    
-    console.log ('epoch =',epoch,'loss =',loss,d);
     
     //}}}
     //{{{  batched epoch
     
     for (var batch=0; batch < numBatches; batch++) {
     
-      if (batch % 10000 == 0)
+      if (batch % 100 == 0)
         process.stdout.write('epoch ' + epoch + ', batch ' + batch + '\r');
     
       netResetGradientSums();
     
-      for (var i = testPositions + batch*batchSize; i < testPositions + (batch+1)*batchSize; i++) {
+      for (var i = batch*batchSize; i < (batch+1)*batchSize; i++) {
     
         var epd = epds[i];
     
@@ -641,7 +611,6 @@ function grunt () {
 //}}}
 //{{{  kick it off
 
-var epdfile      = 'data/quiet-labeled.epd';
 var thisPosition = 0;
 
 const fs       = require('fs');
@@ -661,22 +630,18 @@ rl.on('line', function (line) {
   if (thisPosition % 100000 == 0)
     process.stdout.write(thisPosition+'\r');
 
-  if (thisPosition <= maxPositions) {
+  line = line.replace(/(\r\n|\n|\r)/gm,'');
 
-    line = line.replace(/(\r\n|\n|\r)/gm,'');
+  const parts = line.split(' ');
 
-    const parts = line.split(' ');
+  if (!parts.length)
+    return;
 
-    if (!parts.length) {
-      return;
-    }
-
-    epds.push({board:   parts[0],
-               turn:    parts[1],
-               rights:  parts[2],
-               ep:      parts[3],
-               prob:    getprob(parts[5])});
-  }
+  epds.push({board:   parts[0],
+             turn:    parts[1],
+             rights:  parts[2],
+             ep:      parts[3],
+             prob:    parseFloat(parts[4])});
 });
 
 rl.on('close', function(){

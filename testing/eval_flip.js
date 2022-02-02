@@ -1482,6 +1482,14 @@ const imbalR_S        = [35,7,-4,-9,-10,-10,-5,-4,-1];
 const imbalR_E        = [-1,-9,0,2,4,10,12,18,26];
 const imbalQ_S        = [2,-9,-5,2,3,2,0,-3,-16];
 const imbalQ_E        = [-19,-16,-2,-4,-8,-5,2,-2,-6];
+const cwtchN_S        = [0,9,14,5,-11,-6,-3,-3];
+const cwtchN_E        = [0,6,8,5,-3,-3,-5,-2];
+const cwtchB_S        = [0,17,3,-2,-4,-6,-3,-2];
+const cwtchB_E        = [0,5,7,-2,3,-1,-2,-1];
+const cwtchR_S        = [0,-9,2,9,15,7,-9,-5];
+const cwtchR_E        = [0,-12,9,4,6,9,3,-4];
+const cwtchQ_S        = [0,3,6,4,-2,-3,3,-1];
+const cwtchQ_E        = [0,0,1,3,-1,0,6,0];
 
 //}}}
 //{{{  init feature weights
@@ -2620,6 +2628,10 @@ function lozBoard () {
   this.features.wShelter = Array(WSHELTER.length);  // ##ifdef
   this.features.wStorm   = Array(WSTORM.length);    // ##ifdef
   this.features.wOutpost = Array(144);              // ##ifdef
+  this.features.cwtchN   = Array(8);                // ##ifdef
+  this.features.cwtchB   = Array(8);                // ##ifdef
+  this.features.cwtchR   = Array(8);                // ##ifdef
+  this.features.cwtchQ   = Array(8);                // ##ifdef
 
   this.lozza        = null;
   this.verbose      = false;
@@ -4514,6 +4526,10 @@ lozBoard.prototype.evaluate = function (turn) {
   
   var f = this.features;       // ##ifdef
                                // ##ifdef
+  f.cwtchN.fill(0);            // ##ifdef
+  f.cwtchB.fill(0);            // ##ifdef
+  f.cwtchR.fill(0);            // ##ifdef
+  f.cwtchQ.fill(0);            // ##ifdef
   f.wOutpost.fill(0);          // ##ifdef
   f.wShelter.fill(0);          // ##ifdef
   f.wStorm.fill(0);            // ##ifdef
@@ -5431,6 +5447,9 @@ lozBoard.prototype.evaluate = function (turn) {
   var imbalS = 0;
   var imbalE = 0;
   
+  var cwtchS = 0;
+  var cwtchE = 0;
+  
   var mobS = 0;
   var mobE = 0;
   
@@ -5466,6 +5485,7 @@ lozBoard.prototype.evaluate = function (turn) {
   var attackN = 0;
   var attackV = 0;
   var att     = 0;
+  var kDist   = 0;
   
   var pList  = this.wList;
   var pCount = this.wCount - 1 - wNumPawns;
@@ -5483,10 +5503,11 @@ lozBoard.prototype.evaluate = function (turn) {
     if (frObj == W_PAWN)
       continue;
   
-    frRank = RANK[fr];
-    frFile = FILE[fr];
-    frBits = (frFile-1) << 2;
-    frMask = 0xF << frBits;
+    frRank  = RANK[fr];
+    frFile  = FILE[fr];
+    frBits  = (frFile-1) << 2;
+    frMask  = 0xF << frBits;
+    kDist   = DIST[wKingSq][fr];
   
     if (frObj == W_KNIGHT) {
       //{{{  N
@@ -5536,6 +5557,10 @@ lozBoard.prototype.evaluate = function (turn) {
       imbalS += imbalN_S[wNumPawns];
       imbalE += imbalN_E[wNumPawns];
       
+      cwtchS += cwtchN_S[kDist];
+      cwtchE += cwtchN_E[kDist];
+      f.cwtchN[kDist] += 1;            // ##ifdef
+      
       //}}}
     }
   
@@ -5567,6 +5592,10 @@ lozBoard.prototype.evaluate = function (turn) {
       
       imbalS += imbalB_S[wNumPawns];
       imbalE += imbalB_E[wNumPawns];
+      
+      cwtchS += cwtchB_S[kDist];
+      cwtchE += cwtchB_E[kDist];
+      f.cwtchB[kDist] += 1;            // ##ifdef
       
       //}}}
     }
@@ -5634,6 +5663,10 @@ lozBoard.prototype.evaluate = function (turn) {
       imbalS += imbalR_S[wNumPawns];
       imbalE += imbalR_E[wNumPawns];
       
+      cwtchS += cwtchR_S[kDist];
+      cwtchE += cwtchR_E[kDist];
+      f.cwtchR[kDist] += 1;            // ##ifdef
+      
       //}}}
     }
   
@@ -5674,6 +5707,10 @@ lozBoard.prototype.evaluate = function (turn) {
       
       imbalS += imbalQ_S[wNumPawns];
       imbalE += imbalQ_E[wNumPawns];
+      
+      cwtchS += cwtchQ_S[kDist];
+      cwtchE += cwtchQ_E[kDist];
+      f.cwtchQ[kDist] += 1;            // ##ifdef
       
       //}}}
     }
@@ -5720,6 +5757,7 @@ lozBoard.prototype.evaluate = function (turn) {
   var attackN = 0;
   var attackV = 0;
   var att     = 0;
+  var kDist   = 0;
   
   var pList  = this.bList;
   var pCount = this.bCount - 1 - bNumPawns;
@@ -5742,6 +5780,7 @@ lozBoard.prototype.evaluate = function (turn) {
     frFile  = FILE[fr];
     frBits  = (frFile-1) << 2;
     frMask  = 0xF << frBits;
+    kDist   = DIST[bKingSq][fr];
   
     if (frObj == B_KNIGHT) {
       //{{{  N
@@ -5791,6 +5830,10 @@ lozBoard.prototype.evaluate = function (turn) {
       imbalS -= imbalN_S[bNumPawns];
       imbalE -= imbalN_E[bNumPawns];
       
+      cwtchS -= cwtchN_S[kDist];
+      cwtchE -= cwtchN_E[kDist];
+      f.cwtchN[kDist] -= 1;            // ##ifdef
+      
       //}}}
     }
   
@@ -5822,6 +5865,10 @@ lozBoard.prototype.evaluate = function (turn) {
       
       imbalS -= imbalB_S[bNumPawns];
       imbalE -= imbalB_E[bNumPawns];
+      
+      cwtchS -= cwtchB_S[kDist];
+      cwtchE -= cwtchB_E[kDist];
+      f.cwtchB[kDist] -= 1;            // ##ifdef
       
       //}}}
     }
@@ -5889,6 +5936,10 @@ lozBoard.prototype.evaluate = function (turn) {
       imbalS -= imbalR_S[bNumPawns];
       imbalE -= imbalR_E[bNumPawns];
       
+      cwtchS -= cwtchR_S[kDist];
+      cwtchE -= cwtchR_E[kDist];
+      f.cwtchR[kDist] -= 1;            // ##ifdef
+      
       //}}}
     }
   
@@ -5929,6 +5980,10 @@ lozBoard.prototype.evaluate = function (turn) {
       
       imbalS -= imbalQ_S[bNumPawns];
       imbalE -= imbalQ_E[bNumPawns];
+      
+      cwtchS -= cwtchQ_S[kDist];
+      cwtchE -= cwtchQ_E[kDist];
+      f.cwtchQ[kDist] -= 1;            // ##ifdef
       
       //}}}
     }
@@ -5987,6 +6042,23 @@ lozBoard.prototype.evaluate = function (turn) {
     console.log('mobility s',mobS,xxS,this.fen(this.turn));         // ##ifdef
   if (Math.abs(mobE - xxE) > 0.000001)                              // ##ifdef
     console.log('mobility e',mobE,xxE,this.fen(this.turn));         // ##ifdef
+                                                                    // ##ifdef
+  var xxS = 0;                                                      // ##ifdef
+  var xxE = 0;                                                      // ##ifdef
+  for (var zz=1; zz<8; zz++) {                                      // ##ifdef
+    xxS += f.cwtchN[zz] * cwtchN_S[zz];                             // ##ifdef
+    xxE += f.cwtchN[zz] * cwtchN_E[zz];                             // ##ifdef
+    xxS += f.cwtchB[zz] * cwtchB_S[zz];                             // ##ifdef
+    xxE += f.cwtchB[zz] * cwtchB_E[zz];                             // ##ifdef
+    xxS += f.cwtchR[zz] * cwtchR_S[zz];                             // ##ifdef
+    xxE += f.cwtchR[zz] * cwtchR_E[zz];                             // ##ifdef
+    xxS += f.cwtchQ[zz] * cwtchQ_S[zz];                             // ##ifdef
+    xxE += f.cwtchQ[zz] * cwtchQ_E[zz];                             // ##ifdef
+  }                                                                 // ##ifdef
+  if (Math.abs(cwtchS - xxS) > 0.000001)                            // ##ifdef
+    console.log('cwtch s',cwtchS,xxS,this.fen(this.turn));          // ##ifdef
+  if (Math.abs(cwtchE - xxE) > 0.000001)                            // ##ifdef
+    console.log('cwtch e',cwtchE,xxE,this.fen(this.turn));          // ##ifdef
   
   attS = myround(myround(attS * 1000) / 1000);
   
@@ -6161,6 +6233,7 @@ lozBoard.prototype.evaluate = function (turn) {
     uci.send('info string','mobility =    ',mobS,mobE);
     uci.send('info string','attacks =     ',attS,attE);
     uci.send('info string','imbalance =   ',imbalS,imbalE);
+    uci.send('info string','cwtch =       ',cwtchS,cwtchE);
     uci.send('info string','king safety = ',kingS,kingE);
     uci.send('info string','queens =      ',queensS,queensE);
     uci.send('info string','rooks =       ',rooksS,rooksE);
