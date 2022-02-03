@@ -12,8 +12,8 @@ del  cctry.pgn
 
 set tc=tc=0/60+0.6
 
-set e1=-engine conf=coalface    %tc
-set e2=-engine conf=coalfacebin %tc
+set e1=-engine conf=coalface %tc
+set e2=-engine conf=coalface %tc
 
 set t=-event soaktest -tournament round-robin -games 20000
 

@@ -1,7 +1,7 @@
 
 var epdfile        = 'data/eth2.epd';  // assumed to have been nade with quiet.js
 var netInputSize   = 768;
-var netHiddenSize  = 64;
+var netHiddenSize  = 512;
 var numEpochs      = 20000;
 var learningRate   = 0.1;
 var batchSize      = 1000;
