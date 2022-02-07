@@ -59,16 +59,8 @@ Linux:   grep -v \#\#ifdef lozza.js
 
 ## Acknowledgements
 
-http://wbec-ridderkerk.nl/html/UCIProtocol.html - UCI syntax
-
 https://www.chessprogramming.org/Fruit - Fruit
 
 https://www.chessprogramming.org/Main_Page - Chess programming wiki
 
-https://cutechess.com - Cutechess
-
-https://nodejs.org/en - Nodejs
-
 http://ccrl.chessdom.com/ccrl/4040 - CCRL rating list
-
-https://www.chessprogramming.org/Texel%27s_Tuning_Method - Texel tuning
