@@ -1,6 +1,6 @@
 # Lozza
 
-A Javascript chess engine inspired by Fabien Letouzey's Fruit 2.1. It's easy to embed Lozza into your web project or use it offline in client user interfaces like Arena and Winboard. A sister project also allows Lozza to be played online in your web browser via PC/laptop/tablet/phone etc. 
+A Javascript chess engine inspired by Fabien Letouzey's Fruit 2.1. It's easy to embed Lozza into your web project or use it offline in client user interfaces like Arena and Winboard. A sister project also allows Lozza to be played online in your web browser via PC/laptop/tablet/phone etc. Lozza was an exercise in traditional search alpha-beta search and hand-coded evaluation. 
 
 ## Example use in a web  project
 
@@ -70,13 +70,5 @@ https://cutechess.com - Cutechess
 https://nodejs.org/en - Nodejs
 
 http://ccrl.chessdom.com/ccrl/4040 - CCRL rating list
-
-http://rebel13.nl - Gambit rating list and other goodies
-
-https://github.com/glinscott/nnue-pytorch/blob/master/docs/nnue.md - NNUE notes
-
-https://github.com/AndyGrant/Ethereal/blob/master/Tuning.pdf - Tuning notes
-
-https://github.com/asdfjkl/neural_network_chess - NN book
 
 https://www.chessprogramming.org/Texel%27s_Tuning_Method - Texel tuning
