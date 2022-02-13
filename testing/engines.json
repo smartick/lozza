@@ -8,6 +8,11 @@
   "name": "coalfacebin",
   "command": "c:\\projects\\lozza\\trunk\\coalface.exe",
   "protocol": "uci"
+},
+{
+  "name": "lc0",
+  "command": "c:\\projects\\lc0\\lc0.exe",
+  "protocol": "uci"
 }
 ]
 
