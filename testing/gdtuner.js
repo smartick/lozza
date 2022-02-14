@@ -245,6 +245,15 @@ function saveparams (err, epochs) {
   out += loga(IMBALQ_S,         'IMBALQ_S       ');
   out += loga(IMBALQ_E,         'IMBALQ_E       ');
 
+  out += loga(MOBN_S,           'MOBN_S         ');
+  out += loga(MOBN_E,           'MOBN_E         ');
+  out += loga(MOBB_S,           'MOBB_S         ');
+  out += loga(MOBB_E,           'MOBB_E         ');
+  out += loga(MOBR_S,           'MOBR_S         ');
+  out += loga(MOBR_E,           'MOBR_E         ');
+  out += loga(MOBQ_S,           'MOBQ_S         ');
+  out += loga(MOBQ_E,           'MOBQ_E         ');
+
   if (out == lastOut)
     console.log(epochs,err,'POSSIBLE CONVERGENCE');
 
@@ -318,14 +327,22 @@ function grunt () {
   }
   addp('k penalty s', EV, iKING_PENALTY, function (i,mg,eg) {return board.features.kingPenalty * mg;});
   
-  addp('', EV, iMOB_NS,               function (i,mg,eg) {return board.features.mobNS              * mg;});
-  addp('', EV, iMOB_NE,               function (i,mg,eg) {return board.features.mobNE              * eg;});
-  addp('', EV, iMOB_BS,               function (i,mg,eg) {return board.features.mobBS              * mg;});
-  addp('', EV, iMOB_BE,               function (i,mg,eg) {return board.features.mobBE              * eg;});
-  addp('', EV, iMOB_RS,               function (i,mg,eg) {return board.features.mobRS              * mg;});
-  addp('', EV, iMOB_RE,               function (i,mg,eg) {return board.features.mobRE              * eg;});
-  addp('', EV, iMOB_QS,               function (i,mg,eg) {return board.features.mobQS              * mg;});
-  addp('', EV, iMOB_QE,               function (i,mg,eg) {return board.features.mobQE              * eg;});
+  for (var i=0; i < MOBN_S.length; i++) {
+    addp('', MOBN_S, i, function (mob,mg,eg) {return board.features.mobN[mob] * mg});
+    addp('', MOBN_E, i, function (mob,mg,eg) {return board.features.mobN[mob] * eg});
+  }
+  for (var i=0; i < MOBB_S.length; i++) {
+    addp('', MOBB_S, i, function (mob,mg,eg) {return board.features.mobB[mob] * mg});
+    addp('', MOBB_E, i, function (mob,mg,eg) {return board.features.mobB[mob] * eg});
+  }
+  for (var i=0; i < MOBR_S.length; i++) {
+    addp('', MOBR_S, i, function (mob,mg,eg) {return board.features.mobR[mob] * mg});
+    addp('', MOBR_E, i, function (mob,mg,eg) {return board.features.mobR[mob] * eg});
+  }
+  for (var i=0; i < MOBQ_S.length; i++) {
+    addp('', MOBQ_S, i, function (mob,mg,eg) {return board.features.mobQ[mob] * mg});
+    addp('', MOBQ_E, i, function (mob,mg,eg) {return board.features.mobQ[mob] * eg});
+  }
   
   addp('', EV, iTIGHT_NS,             function (i,mg,eg) {return board.features.tightNS            * mg;});
   addp('', EV, iTIGHT_NE,             function (i,mg,eg) {return board.features.tightNE            * eg;});
