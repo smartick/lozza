@@ -60,3 +60,5 @@ https://www.chessprogramming.org/Fruit - Fruit
 https://www.chessprogramming.org/Main_Page - Chess programming wiki
 
 http://ccrl.chessdom.com/ccrl/4040 - CCRL rating list
+
+https://github.com/AndyGrant/Ethereal/blob/master/Tuning.pdf - A nice overview of gradient descent.
