@@ -1,6 +1,6 @@
 # Lozza
 
-A Javascript chess engine inspired by Fabien Letouzey's Fruit 2.1. Lozza was an exercise in principal variation search and hand-coded evaluation. 
+A Javascript chess engine inspired by Fabien Letouzey's Fruit 2.1. Lozza was an exercise in principal variation search and hand-coded evaluation. It's easy to use lozza.js into your web projects. Communication is via the UCI protocol, which also allows it to be used offline in chess user interfaces via for example Nodejs.
 
 ## Basic use
 
