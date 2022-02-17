@@ -36,7 +36,7 @@ https://op12no2.github.io/lozza-ui
 
 https://lichess.org/@/lozzaBot
 
-## Play Lozza offline in chess user interfaces.
+## Play Lozza offline in chess user interfaces
 
 While primarily intended for use in a browser context, Lozza can be used offline on almost any platform via Nodejs and chess user interfaces like Winboard, Arena, Cutechess and Banksia. Download the latest Lozza release and follow the instructions in readme.txt.
 
