@@ -14,7 +14,7 @@ var epds   = [];
 var params = [];
 
 var gEpdFile       = 'data/quiet-labeled2.epd';
-var gK             = 3.17;
+var gK             = 3.233;
 
 var gOutFile       = 'gdtuner.txt';
 var gErrStep       = 10;
