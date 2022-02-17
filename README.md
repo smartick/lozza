@@ -4,7 +4,7 @@ A Javascript chess engine inspired by Fabien Letouzey's Fruit 2.1. Lozza was an 
 
 ## Basic use
 
-All you need is lozza.js in the root of the repository.
+All you need is lozza.js from the root of the repository.
 
 ```Javascript
 var lozza = new Worker('lozza.js');
@@ -36,9 +36,9 @@ https://op12no2.github.io/lozza-ui
 
 https://lichess.org/@/lozzaBot
 
-## Play Lozza offline in Arena, Winboard, Cutechess and Banksia etc UIs.
+## Play Lozza offline in chess user interfaces.
 
-While primarily intended for use in a browser context, Lozza can be used offline on almost any platform via Nodejs. Download the latest Lozza release and follow the instructions in readme.txt.
+While primarily intended for use in a browser context, Lozza can be used offline on almost any platform via Nodejs and chess user interfaces like Winboard, Arena, Cutechess and Banksia. Download the latest Lozza release and follow the instructions in readme.txt.
 
 https://github.com/op12no2/lozza/releases
   
