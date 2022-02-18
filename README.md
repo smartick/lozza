@@ -2,7 +2,7 @@
 
 ## Note to Testers
 
-Thank you for your CPU cycles, but please use the release version, not the version in the repository root.
+Thank you for your CPU cycles, but please use the release version, not the version in the repository root; thanks.
 
 https://github.com/op12no2/lozza/releases
 
