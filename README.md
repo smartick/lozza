@@ -1,5 +1,13 @@
 # Lozza
 
+## Note to Testers
+
+Please use the release version, not the version in the repository root.
+
+https://github.com/op12no2/lozza/releases
+
+## Overview
+
 A Javascript chess engine inspired by Fabien Letouzey's Fruit 2.1. Lozza was an exercise in principal variation search and hand-coded evaluation. It's easy to use Lozza into your web projects. Communication is via the UCI protocol, which also allows it to be used offline in chess user interfaces via Nodejs (etc.).
 
 ## Basic use
@@ -46,12 +54,13 @@ https://github.com/op12no2/lozza/releases
 
 lozza.js is folded using {{{ and }}} (emacs convention) and most easily read using an editor with a folding capability.
 
-lozza.js in the repo root has debug code marked with ##ifdef, which can be removed on release of your project with:-
+Unlike the release versions, the development lozza.js in the repository root has debug code marked with ##ifdef, which will signigicantly affect performance. It can be removed on release of your project like this:-
 
 ```
 Windows: findstr -V ##ifdef lozza.js
 Linux:   grep -v \#\#ifdef lozza.js
 ```
+You should also change TTSIZE from a power of 22 to 24 if using long time controls (again, as per the release version).
 
 ## Acknowledgements
 
