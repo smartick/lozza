@@ -54,7 +54,7 @@ https://github.com/op12no2/lozza/releases
 
 lozza.js is folded using {{{ and }}} (emacs convention) and most easily read using an editor with a folding capability.
 
-Unlike the release versions, the development lozza.js in the repository root has debug code marked with ##ifdef, which will signigicantly affect performance. It can be removed on release of your project like this:-
+Unlike the release versions, the development lozza.js in the repository root has tuning and debug code marked with ##ifdef, which will signigicantly affect performance. It can be removed on release of your project like this:-
 
 ```
 Windows: findstr -V ##ifdef lozza.js
