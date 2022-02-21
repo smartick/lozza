@@ -50,7 +50,7 @@ While primarily intended for use in a browser context, Lozza can be used offline
 
 https://github.com/op12no2/lozza/releases
   
-## Notes
+## Developer notes
 
 lozza.js is folded using {{{ and }}} (emacs convention) and most easily read using an editor with a folding capability.
 
