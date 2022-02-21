@@ -1,14 +1,14 @@
 # Lozza
 
-## Note to Testers
+## Note to testers
 
-Thank you for your CPU cycles; please use the release version, not the version in the repository root; many thanks.
+If you are tesing Lozza for a rating list etc., please use the release version, not the version in the repository root, which has lots of tuning and debug code, significantly affecting performance; many thanks and thanks for your CPU cycles.
 
 https://github.com/op12no2/lozza/releases
 
 ## Overview
 
-A Javascript chess engine inspired by Fabien Letouzey's Fruit 2.1. Lozza was an exercise in principal variation search and hand-coded evaluation. It's easy to use Lozza into your web projects. Communication is via the UCI protocol, which also allows it to be used offline in chess user interfaces via Nodejs (etc.).
+A Javascript chess engine inspired by Fabien Letouzey's Fruit 2.1. Lozza was an exercise in principal variation search and hand-coded evaluation. It's easy to use Lozza in your web projects. Communication is via the UCI protocol, which also allows it to be used offline in chess user interfaces via something like Nodejs.
 
 ## Basic use
 
