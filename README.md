@@ -2,7 +2,7 @@
 
 ## Note to testers
 
-If you are tesing Lozza for a rating list etc., please use lozza.js from the latest release, not the version in the repository root, which has lots of tuning and debug code, which will significantly affect performance; many thanks and also thanks for your CPU cycles.
+If you are tesing Lozza for a rating list etc., please use lozza.js from the latest release, not the version in the repository root, which has lots of tuning and debug code, which will significantly affect performance; many thanks and also thanks for your CPU cycles :)
 
 https://github.com/op12no2/lozza/releases
 
