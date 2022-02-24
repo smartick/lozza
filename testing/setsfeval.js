@@ -1,19 +1,17 @@
 //
-// Updates sfeval in the given std epd file.
+// Append sfeval hybrid to fen.
 //
-// Use: node setsfeval epdfile
-//
-
-//{{{  globals
 
 const { spawn } = require("child_process");
 
 var fs      = require('fs');
 var next    = -1;
-var epdfile = process.argv[2];
+var epdfile = 'data/makedata-quiet.epd';
+var outfile = 'data/makedata-quiet-sf.epd';
 var child   = 0;
 
-//}}}
+fs.writeFileSync(outfile,'');
+
 //{{{  functions
 
 function getEval(s) {
@@ -41,6 +39,7 @@ function kick () {
   var epd = epds[next];
   var fen = epd.board + ' ' + epd.turn + ' ' + epd.rights + ' ' + epd.ep;
 
+  //console.log('position fen ' + fen + '\r\n');
   child.stdin.write('position fen ' + fen + '\r\n');
   child.stdin.write('eval\r\n');
 }
@@ -69,24 +68,27 @@ for (var i=0; i < lines.length; i++) {
 
   var parts = line.split(' ');
 
-  if (parts.length != 7) {
-    console.log('file format',line);
-    process.exit();
-  }
+  if (!parts.length)
+    continue;
+
+  //if (parts.length != 7) {
+    //console.log('file format',line);
+    //process.exit();
+  //}
 
   epds.push({board:   parts[0],
              turn:    parts[1],
              rights:  parts[2],
-             ep:      parts[3],
-             prob:    parts[4],
-             lozeval: parts[5]});
+             ep:      parts[3]});
 }
 
 lines = ''; // release
 
+//console.log(epds.length);
+
 //}}}
 
-child = spawn('c:\\projects\\chessdata\\engines\\stockfish\\sf.exe');
+child = spawn('c:\\projects\\lozza\\trunk\\testing\\sf.exe');
 
 child.stdout.on('data', function (data) {
   var sfdata = data.toString();
@@ -94,12 +96,16 @@ child.stdout.on('data', function (data) {
     if (sfdata.includes("in check")) {
       kick();
     }
+    //console.log('----');
+    //console.log(sfdata);
+    //console.log('----');
   }
   else {
     var epd  = epds[next];
     var fen  = epd.board + ' ' + epd.turn + ' ' + epd.rights + ' ' + epd.ep;
     var eval = getEval(sfdata);
-    console.log(fen, epd.prob, epd.lozeval, eval);
+    fs.appendFileSync(outfile,fen + ' ' + eval + '\r\n');
+    //console.log(fen, eval);
     kick();
   }
 });

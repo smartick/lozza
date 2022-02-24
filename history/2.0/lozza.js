@@ -10,6 +10,7 @@ var USEPAWNHASH = 1;
 //{{{  history
 /*
 
+2.0a 22/02/22 CCRL 2613.
 2.0a 27/09/21 Fix timeouts.
 2.0a 27/09/21 Add USEPAWNHASH - useful when testing.
 2.0a 27/09/21 Set mob offsets to 0 while buggy.

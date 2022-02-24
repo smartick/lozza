@@ -2,10 +2,10 @@
 
 mv cctry.pgn games/$RANDOM$RAMDOM.pgn
 
-tc="tc=0/180+1"
+tc="tc=0/10+0.1"
 
 e1="-engine conf=coalface  $tc"
-e2="-engine conf=released  $tc"
+e2="-engine conf=released20 $tc"
 
 t="-event soaktest -tournament round-robin -games 20000"
 
@@ -13,7 +13,7 @@ r="-resign movecount=3 score=400"
 
 d="-draw movenumber=40 movecount=8 score=10"
 
-o="-repeat -srand $RANDOM -openings file=books/4moves_noob.pgn format=pgn order=random plies=16"
+o="-repeat -srand $RANDOM -openings file=books/4moves_noob.epd format=epd order=random plies=16"
 
 f="-pgnout cctry.pgn fi"
 

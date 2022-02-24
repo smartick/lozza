@@ -1,23 +1,10 @@
 //
 // Copy lozza.js above here.
-// 'lozza/trunk/testing/data/lozza-test.epd'
 //
 
-//var epdin    = 'data/lozza-test.epd';            // one quiet position.
-//var wdl      = 10;
-//var epdout   = 'data/lozza-test-quiet.epd';
-
-//var epdin    = 'data/lozza.epd';                 // make with makeepd.bat.
-//var wdl      = 10;
-//var epdout   = 'data/lozza-quiet.epd';
-
-var epdin    = 'data/quiet-labeled.epd';           //zurichess
-var wdl      = 5;
-var epdout   = 'data/quiet-labeled2.epd';
-
-//var epdin    = 'data/eth.epd';                   //ethereal
-//var wdl      = 6;
-//var epdout   = 'data/eth2.epd';
+var epdin    = 'data/makedata-noisey.epd';   // via makedata.js
+var wdl      = -1;
+var epdout   = 'data/makedata-quiet.epd';
 
 //{{{  getprob
 
@@ -58,6 +45,9 @@ var numepds   = 0;
 var numquiet  = 0;
 var out       = '';
 
+var aveW = 0;
+var aveB = 0;
+
 fs.writeFileSync(epdout,'');
 
 lozza.newGameInit();
@@ -72,7 +62,7 @@ const rl = readline.createInterface({
 });
 
 rl.on('line', function (line) {
-  //{{{  get epds
+  //{{{  process epds
   
   //{{{  valid line?
   
@@ -88,8 +78,9 @@ rl.on('line', function (line) {
   
   var parts = line.split(' ');
   
-  if (!parts.length) {
-    return;
+  if (parts.length < 4) {
+    console.log('invalid format', line);
+    process.exit();
   }
   
   //if (parts.length != 11) {
@@ -110,7 +101,7 @@ rl.on('line', function (line) {
     uci.spec.board    = parts[0];
     uci.spec.turn     = parts[1];
     uci.spec.rights   = parts[2];
-    uci.spec.ep       = parts[3];
+    uci.spec.ep       = '-';//parts[3];
     uci.spec.fmc      = 0;
     uci.spec.hmc      = 0;
     uci.spec.id       = 'id';
@@ -154,8 +145,8 @@ rl.on('line', function (line) {
       //}}}
     }
     
-    if (0) {
-      //{{{  capture? yeild ~= 0.3
+    if (1) {
+      //{{{  capture?
       
       var node = lozza.rootNode;
       var move = 0;
@@ -197,11 +188,11 @@ rl.on('line', function (line) {
       //}}}
     }
     
-    if (1) {
-      //{{{  e == q? yeild ~= 0.7
+    if (0) {
+      //{{{  e ~= q?
       
-      var e = board.evaluate(board.turn);
       var q = lozza.qSearch(lozza.rootNode,0,board.turn,-INFINITY,INFINITY);
+      var e = board.evaluate(board.turn);
       
       if (isNaN(e)) {
         console.log('nan e',e);
@@ -212,7 +203,7 @@ rl.on('line', function (line) {
         process.exit();
       }
       
-      if (Math.abs(q-e) != 0) {
+      if (Math.abs(q-e) > 50) {
         //console.log(numepds,'FILTER EVAL',parts[6],board.formatMove(move,SAN_FMT),line,e,q);
         return;
       }
@@ -222,17 +213,20 @@ rl.on('line', function (line) {
     
     //console.log(numepds,'KEEP',parts[6],board.formatMove(move,SAN_FMT));
     
+    aveW += board.wCount;
+    aveB += board.bCount;
+    
     //}}}
   }
   
   numquiet++
   
-  out += parts[0] + ' ' + parts[1] + ' ' + parts[2] + ' ' + parts[3] + ' ' + getprob(parts[wdl]) + '\r\n';
+  if (wdl >= 0)
+    out = parts[0] + ' ' + parts[1] + ' ' + parts[2] + ' ' + parts[3] + ' ' + getprob(parts[wdl]) + '\r\n';
+  else
+    out = parts[0] + ' ' + parts[1] + ' ' + parts[2] + ' ' + parts[3] + '\r\n';
   
-  if (out.length > 1000000) {
-    fs.appendFileSync(epdout,out);
-    out = '';
-  }
+  fs.appendFileSync(epdout,out);
   
   //}}}
 });
@@ -240,10 +234,7 @@ rl.on('line', function (line) {
 rl.on('close', function(){
   //{{{  done
   
-  if (out)
-    fs.appendFileSync(epdout,out);
-  
-  console.log('epds =', numepds, 'quiet =', numquiet, 'yield =', numquiet/numepds);
+  console.log('epds =', numepds, 'quiet =', numquiet, 'yield =', numquiet/numepds, 'ave w =', aveW/numquiet, 'ave b =', aveB/numquiet);
   
   console.log('done');
   

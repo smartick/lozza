@@ -14,11 +14,12 @@ var epds   = [];
 var params = [];
 
 var gEpdFile       = 'data/quiet-labeled2.epd';
-var gK             = 3.233;
+var gK             = 3.446;
 
 var gOutFile       = 'gdtuner.txt';
 var gErrStep       = 10;
 var gLearningRate  = 0.1;
+var gMaxEpochs     = 3020000;
 
 //}}}
 //{{{  functions
@@ -151,7 +152,7 @@ function loga (p,s) {
 
 function logpst (p,s) {
 
-  return loga(p,s);
+  //return loga(p,s);
 
   var a = Array(p.length);
 
@@ -279,10 +280,10 @@ function grunt () {
 
   //{{{  create params
   
-  addp('', VALUE_VECTOR, KNIGHT, function (piece,mg,eg) {return (board.wCounts[KNIGHT] - board.bCounts[KNIGHT]);});
-  addp('', VALUE_VECTOR, BISHOP, function (piece,mg,eg) {return (board.wCounts[BISHOP] - board.bCounts[BISHOP]);});
-  addp('', VALUE_VECTOR, ROOK,   function (piece,mg,eg) {return (board.wCounts[ROOK]   - board.bCounts[ROOK]);});
-  addp('', VALUE_VECTOR, QUEEN,  function (piece,mg,eg) {return (board.wCounts[QUEEN]  - board.bCounts[QUEEN]);});
+  //addp('', VALUE_VECTOR, KNIGHT, function (piece,mg,eg) {return (board.wCounts[KNIGHT] - board.bCounts[KNIGHT]);});
+  //addp('', VALUE_VECTOR, BISHOP, function (piece,mg,eg) {return (board.wCounts[BISHOP] - board.bCounts[BISHOP]);});
+  //addp('', VALUE_VECTOR, ROOK,   function (piece,mg,eg) {return (board.wCounts[ROOK]   - board.bCounts[ROOK]);});
+  //addp('', VALUE_VECTOR, QUEEN,  function (piece,mg,eg) {return (board.wCounts[QUEEN]  - board.bCounts[QUEEN]);});
   
   for (var i=8; i < 56; i++) {
     var sq = B88[i];
@@ -303,7 +304,7 @@ function grunt () {
     addp('', WKING_PSTS,   sq, function (sq,mg,eg) {return (is(W_KING,sq)   - is(B_KING,  wbmap(sq))) * mg;});
     addp('', WKING_PSTE,   sq, function (sq,mg,eg) {return (is(W_KING,sq)   - is(B_KING,  wbmap(sq))) * eg;});
   }
-  
+  /*
   var ko =[51,52,53,54,55,56,63,64,65,66,67,68,75,76,77,78,79,80]; //knight outpost squares
   for (var i=0; i < ko.length; i++) {
     var sq = ko[i];
@@ -402,7 +403,7 @@ function grunt () {
   addp('', EV, iATT_B,                function (i,mg,eg) {return board.features.attB               * mg;});
   addp('', EV, iATT_R,                function (i,mg,eg) {return board.features.attR               * mg;});
   addp('', EV, iATT_Q,                function (i,mg,eg) {return board.features.attQ               * mg;});
-  
+  */
   //}}}
   //{{{  tune params
   
@@ -416,10 +417,18 @@ function grunt () {
   console.log('num params =', numParams);
   console.log('batch size =', batchSize);
   console.log('num batches =', numBatches);
+  console.log('epochs =', gMaxEpochs);
   
   var K2 = gK / 200.0;
   
-  while (1) {
+  while (gMaxEpochs--) {
+  
+    //{{{  reset adagrad
+    
+    //for (var i=0; i < numParams; i++)
+      //params[i].ag = 0;
+    
+    //}}}
   
     if (epoch % gErrStep == 0) {
       err = calcErr();
@@ -515,6 +524,8 @@ function grunt () {
     }
   }
   
+  console.log('Done',err);
+  
   //}}}
 
   process.exit();
@@ -558,7 +569,7 @@ rl.on('line', function (line) {
   if (thisPosition % 100000 == 0)
     process.stdout.write(thisPosition+'\r');
 
-  line = line.replace(/(\r\n|\n|\r)/gm,'');
+  line = line.replace(/(\r\n|\n|\r|;)/gm,'');
 
   line = line.trim();
   if (!line.length)
@@ -566,10 +577,10 @@ rl.on('line', function (line) {
 
   var parts = line.split(' ');
 
-  if (parts.length && parts.length != 5) {
-    console.log('file format',line);
-    process.exit();
-  }
+  //if (parts.length && parts.length != 5) {
+    //console.log('file format',line);
+    //process.exit();
+  //}
 
 //  epds.push({board:   parts[0],
 //             turn:    parts[1],

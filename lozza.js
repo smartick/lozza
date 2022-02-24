@@ -16,6 +16,8 @@ var LICHESS     = 0;
 //{{{  history
 /*
 
+2.2 23/02/22 Don't use TT in PV node.
+
 ##ifdef 2.1 14/02/22 Non-linear mobility.
 ##ifdef 2.1 11/02/22 Split up mobility into mobility, tightness and tension.
 ##ifdef 2.1 28/01/22 Add Lichess support.
@@ -1861,7 +1863,7 @@ lozChess.prototype.alphabeta = function (node, depth, turn, alpha, beta, nullOK,
   
   score = board.ttGet(node, depth, alpha, beta);  // sets/clears node.hashMove.
   
-  if (score != TTSCORE_UNKNOWN) {
+  if (!pvNode && score != TTSCORE_UNKNOWN) {
     return score;
   }
   
@@ -2110,9 +2112,9 @@ lozChess.prototype.qSearch = function (node, depth, turn, alpha, beta, sq) {
 
   //{{{  housekeeping
   
-  this.stats.checkTime();
-  if (this.stats.timeOut)
-    return;
+  //this.stats.checkTime();
+  //if (this.stats.timeOut)
+    //return;
   
   if (node.ply > this.stats.selDepth)
     this.stats.selDepth = node.ply;
