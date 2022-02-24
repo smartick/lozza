@@ -7,8 +7,8 @@
 // This file includes debug code that is stripped out on release.        // ##ifdef
 //                                                                       // ##ifdef
 
-var BUILD       = "2.2";
-var BUILD       = "2.2dev";  // ##ifdef
+var BUILD       = "2.2a";
+var BUILD       = "2.2deva";  // ##ifdef
 var USEPAWNHASH = 1;
 var USEPAWNHASH = 0;         // ##ifdef
 var LICHESS     = 0;
@@ -6103,16 +6103,6 @@ lozBoard.prototype.evaluate = function (turn) {
     uci.send('info string','knights =     ',knightsS,knightsE);
     uci.send('info string','pawns =       ',pawnsS,pawnsE);
     uci.send('info string','tempo =       ',tempoS,tempoE);
-  
-    var XXMOBILITY = [MOB_NS,MOB_NE,MOB_BS,MOB_BE,MOB_RS,MOB_RE,MOB_QS,MOB_QE]; // ##ifdef
-    var XXATTACKS  = [ATT_N,ATT_B,ATT_R,ATT_Q];                                 // ##ifdef
-                                                                                // ##ifdef
-    console.log('material     ', VALUE_VECTOR.toString());                      // ##ifdef
-    console.log('k shelter    ', WSHELTER.toString());                          // ##ifdef
-    console.log('k storm      ', WSTORM.toString());                            // ##ifdef
-    console.log('k penalty    ', KING_PENALTY);                                 // ##ifdef
-    console.log('mobility     ', XXMOBILITY.toString());                        // ##ifdef
-    console.log('attacks      ', XXATTACKS.toString());                         // ##ifdef
   }
   
   //}}}
