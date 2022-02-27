@@ -1,5 +1,4 @@
 //{{{  // https://github.com/op12no2/lozza
-//
 // https://github.com/op12no2/lozza
 //
 // A Javascript chess engine inspired by Fabien Letouzey's Fruit 2.1.
@@ -8,8 +7,8 @@
 // This file includes debug code that is stripped out on release.        // ##ifdef
 //                                                                       // ##ifdef
 
-var BUILD       = "2.2a";
-var BUILD       = "2.2deva";  // ##ifdef
+var BUILD       = "2.2b";
+var BUILD       = "2.2devb";  // ##ifdef
 var USEPAWNHASH = 1;
 var USEPAWNHASH = 0;         // ##ifdef
 var LICHESS     = 0;
@@ -17,6 +16,7 @@ var LICHESS     = 0;
 //{{{  history
 /*
 
+2.2 25/02/22 Less LMR in PV node, more otherwise.
 2.2 23/02/22 Don't use TT in PV node.
 
 ##ifdef 2.1 14/02/22 Non-linear mobility.
@@ -1696,7 +1696,7 @@ lozChess.prototype.search = function (node, depth, turn, alpha, beta) {
       keeper     = node.base >= BASE_LMR || (move & KEEPER_MASK) || givesCheck || board.alphaMate(alpha);
     
       if (!keeper && numSlides > 4) {
-        R = 1 + depth/5 + numSlides/20 | 0;
+        R = 1 + depth/6 + numSlides/20 | 0;
       }
     }
     
@@ -1940,7 +1940,7 @@ lozChess.prototype.alphabeta = function (node, depth, turn, alpha, beta, nullOK,
   var numSlides      = 0;
   var givesCheck     = INCHECK_UNKNOWN;
   var keeper         = false;
-  var doFutility     = !pvNode && !inCheck && depth <= 4 && (standPat + depth * 120) < alpha && !lonePawns;
+  var doFutility     = !inCheck && depth <= 4 && (standPat + depth * 120) < alpha && !lonePawns;
   var doLMR          = !inCheck && depth >= 3;
   var doLMP          = !pvNode && !inCheck && depth <= 2 && !lonePawns;
   var doIID          = !node.hashMove && pvNode && depth > 3;
@@ -1983,6 +1983,10 @@ lozChess.prototype.alphabeta = function (node, depth, turn, alpha, beta, nullOK,
 
     //{{{  extend/reduce/prune
     
+    var lmrDiv = 4;
+    if (pvNode)
+      lmrDiv = 6;
+    
     givesCheck = INCHECK_UNKNOWN;
     E          = 0;
     R          = 0;
@@ -2010,7 +2014,7 @@ lozChess.prototype.alphabeta = function (node, depth, turn, alpha, beta, nullOK,
         }
     
         if (doLMR && !givesCheck && node.sortedIndex > 4) {
-          R = 1 + depth/5 + numSlides/20 | 0;
+          R = 1 + depth/lmrDiv + numSlides/20 | 0;
         }
       }
     }
@@ -7469,17 +7473,31 @@ board = lozza.board;
 var epds   = [];
 var params = [];
 
-var gEpdFile       = 'data/quiet.epd';
-var gK             = 2.573;
+var gEpdFile       = 'data/quiet-labeled.epd';
+var gK             = 3.053;
 
 var gOutFile       = 'gdtuner.txt';
 var gErrStep       = 10;
 var gLearningRate  = 0.1;
-var gMaxEpochs     = 400;
+var gMaxEpochs     = 4000;
 
 //}}}
 //{{{  functions
 
+//{{{  getprob
+
+function getprob (r) {
+  if (r == '1/2-1/2')
+    return 0.5;
+  else if (r == '1-0')
+    return 1.0;
+  else if (r == '0-1')
+    return 0.0;
+  else
+    console.log('unknown result',r);
+}
+
+//}}}
 //{{{  is
 
 function is (obj,sq) {
@@ -7559,10 +7577,8 @@ function calcErr () {
 
     uci.spec.board    = epd.board;
     uci.spec.turn     = epd.turn;
-//    uci.spec.rights   = epd.rights;
-//    uci.spec.ep       = epd.ep;
-    uci.spec.rights   = '-';
-    uci.spec.ep       = '-';
+    uci.spec.rights   = epd.rights;
+    uci.spec.ep       = epd.ep;
     uci.spec.fmc      = 0;
     uci.spec.hmc      = 0;
     uci.spec.id       = '';
@@ -7731,8 +7747,8 @@ function grunt () {
 
   lozza.newGameInit();
 
-  //findK();
-  //process.exit();
+  findK();
+  process.exit();
 
   //{{{  create params
   
@@ -7931,10 +7947,8 @@ function grunt () {
       
         uci.spec.board    = epd.board;
         uci.spec.turn     = epd.turn;
-        //uci.spec.rights   = epd.rights;
-        //uci.spec.ep       = epd.ep;
-        uci.spec.rights   = '-';
-        uci.spec.ep       = '-';
+        uci.spec.rights   = epd.rights;
+        uci.spec.ep       = epd.ep;
         uci.spec.fmc      = 0;
         uci.spec.hmc      = 0;
         uci.spec.id       = 'id' + j;
@@ -8037,7 +8051,7 @@ rl.on('line', function (line) {
   if (thisPosition % 100000 == 0)
     process.stdout.write(thisPosition+'\r');
 
-  line = line.replace(/(\r\n|\n|\r|;)/gm,'');
+  line = line.replace(/(\r\n|\n|\r|;|")/gm,'');
 
   line = line.trim();
   if (!line.length)
@@ -8045,20 +8059,17 @@ rl.on('line', function (line) {
 
   var parts = line.split(' ');
 
-  if (parts.length && parts.length != 5) {
+  if (parts.length && parts.length != 6) {
     console.log('file format',line);
     process.exit();
   }
 
-//  epds.push({board:   parts[0],
-//             turn:    parts[1],
-//             rights:  parts[2],
-//             ep:      parts[3],
-//             prob:    parseFloat(parts[4])});
+  epds.push({board:   parts[0],
+             turn:    parts[1],
+             rights:  parts[2],
+             ep:      parts[3],
+             prob:    getprob(parts[5])});
 
-  epds.push({board: parts[0],
-             turn:  parts[1],
-             prob:  parseFloat(parts[4])});
 });
 
 rl.on('close', function(){
