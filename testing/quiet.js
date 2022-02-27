@@ -2,9 +2,9 @@
 // Copy lozza.js above here.
 //
 
-var epdin    = 'data/makedata-noisey.epd';   // via makedata.js
-var wdl      = -1;
-var epdout   = 'data/makedata-quiet.epd';
+var epdin    = 'data/eth.epd';
+var wdl      = 6;
+var epdout   = 'data/eth2.epd';
 
 //{{{  getprob
 
@@ -45,9 +45,6 @@ var numepds   = 0;
 var numquiet  = 0;
 var out       = '';
 
-var aveW = 0;
-var aveB = 0;
-
 fs.writeFileSync(epdout,'');
 
 lozza.newGameInit();
@@ -83,11 +80,6 @@ rl.on('line', function (line) {
     process.exit();
   }
   
-  //if (parts.length != 11) {
-    //console.log('line',line);
-    //process.exit();
-  //}
-  
   //}}}
   
   numepds++;
@@ -95,7 +87,7 @@ rl.on('line', function (line) {
   if (numepds % 100000 == 0)
     console.log('epds =', numepds, 'quiet =', numquiet, 'yield =', numquiet/numepds);
   
-  if (1) {
+  if (0) {
     //{{{  position
     
     uci.spec.board    = parts[0];
@@ -119,7 +111,7 @@ rl.on('line', function (line) {
     //}}}
     //{{{  filter?
     
-    if (1) {
+    if (0) {
       //{{{  in check?
       
       var inCheck  = board.isKingAttacked(nextTurn);
@@ -132,7 +124,7 @@ rl.on('line', function (line) {
       //}}}
     }
     
-    if (1) {
+    if (0) {
       //{{{  gives check?
       
       var inCheck  = board.isKingAttacked(board.turn);
@@ -145,7 +137,7 @@ rl.on('line', function (line) {
       //}}}
     }
     
-    if (1) {
+    if (0) {
       //{{{  capture?
       
       var node = lozza.rootNode;
@@ -213,20 +205,20 @@ rl.on('line', function (line) {
     
     //console.log(numepds,'KEEP',parts[6],board.formatMove(move,SAN_FMT));
     
-    aveW += board.wCount;
-    aveB += board.bCount;
-    
     //}}}
   }
   
   numquiet++
   
   if (wdl >= 0)
-    out = parts[0] + ' ' + parts[1] + ' ' + parts[2] + ' ' + parts[3] + ' ' + getprob(parts[wdl]) + '\r\n';
+    out += parts[0] + ' ' + parts[1] + ' ' + parts[2] + ' ' + parts[3] + ' ' + getprob(parts[wdl]) + '\r\n';
   else
-    out = parts[0] + ' ' + parts[1] + ' ' + parts[2] + ' ' + parts[3] + '\r\n';
+    out += parts[0] + ' ' + parts[1] + ' ' + parts[2] + ' ' + parts[3] + '\r\n';
   
-  fs.appendFileSync(epdout,out);
+  if (out.length > 10000000) {
+    fs.appendFileSync(epdout,out);
+    out = '';
+  }
   
   //}}}
 });
@@ -234,7 +226,11 @@ rl.on('line', function (line) {
 rl.on('close', function(){
   //{{{  done
   
-  console.log('epds =', numepds, 'quiet =', numquiet, 'yield =', numquiet/numepds, 'ave w =', aveW/numquiet, 'ave b =', aveB/numquiet);
+  if (out.length > 0) {
+    fs.appendFileSync(epdout,out);
+  }
+  
+  console.log('epds =', numepds, 'quiet =', numquiet, 'yield =', numquiet/numepds);
   
   console.log('done');
   
