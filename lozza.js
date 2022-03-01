@@ -7,8 +7,8 @@
 // This file includes debug code that is stripped out on release.        // ##ifdef
 //                                                                       // ##ifdef
 
-var BUILD       = "2.2b";
-var BUILD       = "2.2devb";  // ##ifdef
+var BUILD       = "2.2";
+var BUILD       = "2.2dev";  // ##ifdef
 var USEPAWNHASH = 1;
 var USEPAWNHASH = 0;         // ##ifdef
 var LICHESS     = 0;
