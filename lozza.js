@@ -16,7 +16,6 @@ var LICHESS     = 0;
 //{{{  history
 /*
 
-2.2 25/02/22 Less LMR in PV node, more otherwise.
 2.2 23/02/22 Don't use TT in PV node.
 
 ##ifdef 2.1 14/02/22 Non-linear mobility.
@@ -1696,7 +1695,7 @@ lozChess.prototype.search = function (node, depth, turn, alpha, beta) {
       keeper     = node.base >= BASE_LMR || (move & KEEPER_MASK) || givesCheck || board.alphaMate(alpha);
     
       if (!keeper && numSlides > 4) {
-        R = 1 + depth/6 + numSlides/20 | 0;
+        R = 1 + depth/5 + numSlides/20 | 0;
       }
     }
     
@@ -1983,10 +1982,6 @@ lozChess.prototype.alphabeta = function (node, depth, turn, alpha, beta, nullOK,
 
     //{{{  extend/reduce/prune
     
-    var lmrDiv = 4;
-    if (pvNode)
-      lmrDiv = 6;
-    
     givesCheck = INCHECK_UNKNOWN;
     E          = 0;
     R          = 0;
@@ -2014,7 +2009,7 @@ lozChess.prototype.alphabeta = function (node, depth, turn, alpha, beta, nullOK,
         }
     
         if (doLMR && !givesCheck && node.sortedIndex > 4) {
-          R = 1 + depth/lmrDiv + numSlides/20 | 0;
+          R = 1 + depth/5 + numSlides/20 | 0;
         }
       }
     }

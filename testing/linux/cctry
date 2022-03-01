@@ -2,10 +2,10 @@
 
 mv cctry.pgn games/$RANDOM$RAMDOM.pgn
 
-tc="tc=0/10+0.1"
+tc="tc=0/60+0.6"
 
 e1="-engine conf=coalface  $tc"
-e2="-engine conf=candidate $tc"
+e2="-engine conf=released20 $tc"
 
 t="-event soaktest -tournament round-robin -games 20000"
 
