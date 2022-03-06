@@ -10,8 +10,8 @@
   "protocol": "uci"
 },
 {
-  "name": "released21",
-  "command": "node /home/colinj/lozza/released21.js",
+  "name": "released22",
+  "command": "node /home/colinj/lozza/released22.js",
   "protocol": "uci"
 },
 { "name": "released20",

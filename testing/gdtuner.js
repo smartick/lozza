@@ -14,13 +14,13 @@ var epds   = [];
 var params = [];
 
 var gEpdFile       = 'data/quiet-labeled.epd';
-var gK             = 3.232;
+var gK             = 3.17;
 var gProb          = 5;
 
 var gOutFile       = 'gdtuner.txt';
 var gErrStep       = 10;
-var gLearningRate  = 0.1;
-var gMaxEpochs     = 400;
+var gLearningRate  = 0.6;
+var gMaxEpochs     = 4000;
 
 //}}}
 //{{{  functions
@@ -422,7 +422,7 @@ function grunt () {
   
   var epoch      = 0;
   var numParams  = params.length;
-  var batchSize  = 10000;
+  var batchSize  = 7250;
   var numBatches = epds.length / batchSize | 0;
   var err        = 0;
   var lastErr    = 0;
@@ -435,13 +435,6 @@ function grunt () {
   var K2 = gK / 200.0;
   
   while (gMaxEpochs--) {
-  
-    //{{{  reset adagrad
-    
-    //for (var i=0; i < numParams; i++)
-      //params[i].ag = 0;
-    
-    //}}}
   
     if (epoch % gErrStep == 0) {
       //{{{  report loss
@@ -465,6 +458,12 @@ function grunt () {
       }
       */
       //}}}
+      //{{{  reset adagrad
+      
+      for (var i=0; i < numParams; i++)
+        params[i].ag = 0;
+      
+      //}}}
     }
     else {
       process.stdout.write(epoch+'\r');
@@ -481,10 +480,11 @@ function grunt () {
       //}}}
       //{{{  accumulate gradients
       
-      //for (var i=batch*batchSize; i < (batch+1)*batchSize; i++) {
-      for (var i=0; i < batchSize; i++) {
+      for (var i=batch*batchSize; i < (batch+1)*batchSize; i++) {
+      //for (var i=0; i < batchSize; i++) {
       
-        var epd = epds[Math.random() * epds.length | 0];
+        //var epd = epds[Math.random() * epds.length | 0];
+        var epd = epds[i];
       
         uci.spec.board    = epd.board;
         uci.spec.turn     = epd.turn;
