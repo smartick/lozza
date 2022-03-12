@@ -1,14 +1,6 @@
 # Lozza
 
-## Note to testers
-
-If you are tesing Lozza for a rating list etc., please use lozza.js from the latest release, not the above development version in the repository root, which has lots of tuning and debug code that will significantly affect performance; many thanks and also thanks for your CPU cycles :)
-
-https://github.com/op12no2/lozza/releases
-
-## Overview
-
-A Javascript chess engine inspired by Fabien Letouzey's Fruit 2.1. Lozza was an exercise in principal variation search and hand-coded evaluation. It's easy to use Lozza in your web projects. Communication is via the UCI protocol, which also allows it to be used offline in chess user interfaces via something like Nodejs.
+A Javascript chess engine inspired by Fabien Letouzey's Fruit 2.1. Lozza was an exercise in principal variation search and hand-coded evaluation. It's easy to use Lozza in your web projects. Communication is via the UCI protocol.
 
 ## Basic use
 
@@ -46,8 +38,6 @@ https://lichess.org/@/lozzaBot
 
 ## Play Lozza offline in chess user interfaces
 
-While primarily intended for use in a browser context, Lozza can be used offline on almost any platform via Nodejs and chess user interfaces like Winboard, Arena, Cutechess and Banksia. Download the latest Lozza release and follow the instructions in readme.txt.
-
 https://github.com/op12no2/lozza/releases
   
 ## Developer notes
@@ -60,7 +50,7 @@ Unlike the release versions, the development lozza.js in the repository root has
 Windows: findstr -V ##ifdef lozza.js
 Linux:   grep -v \#\#ifdef lozza.js
 ```
-You should also change TTSIZE from a power of 22 to 24 if using long time controls (again, as per the release version).
+You should also change TTSIZE from a power of 22 to 24 if using long time controls.
 
 ## Acknowledgements
 
