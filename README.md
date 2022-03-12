@@ -2,7 +2,7 @@
 
 A Javascript chess engine inspired by Fabien Letouzey's Fruit 2.1. 
 
-It's easy to use Lozza in your web projects by firing up Lozza in a web worker and communicating via the UCI protocol.
+It's easy to use Lozza in your web projects by firing up Lozza in a web worker and communicating with the UCI protocol.
 
 ## Basic use
 
