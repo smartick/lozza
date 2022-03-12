@@ -53,10 +53,10 @@ lozza.js is folded using {{{ and }}} (emacs convention) and most easily read usi
 lozza.js has tuning and debug code marked with ##ifdef, which will _signigicantly affect performance_. It can be removed like this:-
 
 ```
-Windows: findstr -V ##ifdef lozza.js
-Linux:   grep -v \#\#ifdef lozza.js
+Windows: findstr -V ##ifdef lozza.js > mylozza.js
+Linux:   grep -v \#\#ifdef lozza.js > mylozza.js
 ```
-You should also change TTSIZE from a power of 22 to 24 if using long time controls.
+You should also change TTSIZE from a power of 22 to 24 if using long time controls (minutes).
 
 ## Acknowledgements
 
