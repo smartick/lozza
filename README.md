@@ -1,10 +1,12 @@
 # Lozza
 
-A Javascript chess engine inspired by Fabien Letouzey's Fruit 2.1. Lozza was an exercise in principal variation search and hand-coded evaluation. It's easy to use Lozza in your web projects. Communication is via the UCI protocol.
+A Javascript chess engine inspired by Fabien Letouzey's Fruit 2.1. 
+
+It's easy to use Lozza in your web projects by firing up Lozza in a web worker and communicating via the UCI protocol.
 
 ## Basic use
 
-All you need is lozza.js from the root of the repository.
+All you need is lozza.js from the root of the repo.
 
 ```Javascript
 var lozza = new Worker('lozza.js');
@@ -24,7 +26,9 @@ Try this example here:-
 
 https://op12no2.github.io/lozza-ui/ex.htm.
 
-## More examples for playing and analysing
+## More examples
+
+A sister repo has more examples for playing and analysing etc. with Lozza.
 
 https://github.com/op12no2/lozza-ui
 
@@ -38,13 +42,15 @@ https://lichess.org/@/lozzaBot
 
 ## Play Lozza offline in chess user interfaces
 
+Lozza has been packaged into Windows, Linux and Mac executables for offline use in chess user interfaces.
+
 https://github.com/op12no2/lozza/releases
   
 ## Developer notes
 
 lozza.js is folded using {{{ and }}} (emacs convention) and most easily read using an editor with a folding capability.
 
-lozza.js has tuning and debug code marked with ##ifdef, which will _signigicantly affect performance_. It can be removed on release of your project like this:-
+lozza.js has tuning and debug code marked with ##ifdef, which will _signigicantly affect performance_. It can be removed like this:-
 
 ```
 Windows: findstr -V ##ifdef lozza.js
@@ -61,3 +67,5 @@ https://www.chessprogramming.org/Main_Page - Chess programming wiki
 http://ccrl.chessdom.com/ccrl/4040 - CCRL rating list
 
 https://github.com/AndyGrant/Ethereal/blob/master/Tuning.pdf - A nice overview of gradient descent.
+
+http://wbec-ridderkerk.nl/html/UCIProtocol.html - UCI protocol.
