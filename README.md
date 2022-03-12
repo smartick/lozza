@@ -69,3 +69,10 @@ http://ccrl.chessdom.com/ccrl/4040 - CCRL rating list
 https://github.com/AndyGrant/Ethereal/blob/master/Tuning.pdf - A nice overview of gradient descent.
 
 http://wbec-ridderkerk.nl/html/UCIProtocol.html - UCI protocol.
+
+https://www.npmjs.com/package/pkg - tool used to package Lozza into executables.
+
+https://github.com/davidbau/seedrandom - random number generator.
+
+
+
