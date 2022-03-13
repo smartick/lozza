@@ -4,9 +4,21 @@ A Javascript chess engine inspired by Fabien Letouzey's Fruit 2.1.
 
 It's easy to use Lozza in your web projects by firing it up a web worker and then communicating using the UCI protocol.
 
+Lozza code is folded using {{{ and }}} (emacs convention) and most easily read using an editor with a folding capability.
+
 ## Basic use
 
-All you need is lozza.js from the root of the repo.
+All you need is lozza.js from the root of the repo. 
+
+Note that lozza.js has tuning and debug code marked with ##ifdef, which will _signigicantly affect performance_. It can be removed like this:-
+
+```
+Windows: findstr -V ##ifdef lozza.js > mylozza.js
+Linux:   grep -v \#\#ifdef lozza.js > mylozza.js
+```
+You should also change TTSIZE from a power of 22 to 24 if using long time controls (minutes).
+
+Here is a little example to do a 10 ply search:-
 
 ```Javascript
 var lozza = new Worker('lozza.js');
@@ -46,18 +58,6 @@ Lozza has been packaged into Windows, Linux and Mac executables for offline use 
 
 https://github.com/op12no2/lozza/releases
   
-## Developer notes
-
-lozza.js is folded using {{{ and }}} (emacs convention) and most easily read using an editor with a folding capability.
-
-lozza.js has tuning and debug code marked with ##ifdef, which will _signigicantly affect performance_. It can be removed like this:-
-
-```
-Windows: findstr -V ##ifdef lozza.js > mylozza.js
-Linux:   grep -v \#\#ifdef lozza.js > mylozza.js
-```
-You should also change TTSIZE from a power of 22 to 24 if using long time controls (minutes).
-
 ## Acknowledgements
 
 https://www.chessprogramming.org/Fruit - Fruit
