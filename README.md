@@ -10,13 +10,13 @@ Lozza code is folded using {{{ and }}} (emacs convention) and most easily read u
 
 All you need is lozza.js from the root of the repo. 
 
-Note that lozza.js has tuning and debug code marked with ##ifdef, which will _signigicantly affect performance_. It can be removed like this:-
+Note that lozza.js has tuning and debug code marked with ##ifdef, which will _signigicantly affect performance_. It it potentially useful during development, but can be removed like this:-
 
 ```
 Windows: findstr -V ##ifdef lozza.js > mylozza.js
 Linux:   grep -v \#\#ifdef lozza.js > mylozza.js
 ```
-You should also change TTSIZE from a power of 22 to 24 if using long time controls (minutes).
+You should also change the TTSIZE constant from a power of 22 to 24 if using long time controls; i.e. minutes not seconds per game.
 
 Here is a little example to do a 10 ply search:-
 
@@ -73,6 +73,3 @@ http://wbec-ridderkerk.nl/html/UCIProtocol.html - UCI protocol
 https://www.npmjs.com/package/pkg - Tool used to package Lozza into executables
 
 https://github.com/davidbau/seedrandom - Random number generator used for Zobrist hashing
-
-
-
