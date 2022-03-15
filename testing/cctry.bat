@@ -10,10 +10,10 @@ set a=%@random[1,9999999]
 copy cctry.pgn games\%a.pgn
 del  cctry.pgn
 
-set tc=tc=0/1000+100 depth=4
+set tc=tc=0/20+0.2
 
-set e1=-engine conf=coalface %tc
-set e2=-engine conf=coalface %tc
+set e1=-engine conf=exe14 %tc
+set e2=-engine conf=exe17 %tc
 
 set t=-event soaktest -tournament round-robin -games 20000
 
@@ -29,7 +29,7 @@ set s=-sprt elo0=0 elo1=5 alpha=0.05 beta=0.05
 
 set v=-ratinginterval 10
 
-set m=-recover -concurrency 1
+set m=-recover -concurrency 4
 
-"C:\Program Files (x86)\Cute Chess\cutechess-cli" %e1 %e2 %t %r %d %o %f %v %m
+"C:\Program Files (x86)\Cute Chess\cutechess-cli" %e1 %e2 %t %r %d %o %f %v %m %s
 
