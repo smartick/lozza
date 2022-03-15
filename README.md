@@ -54,6 +54,8 @@ https://lichess.org/@/lozzaBot
 
 ## Play Lozza offline in chess user interfaces
 
+*CURRENTLY AVAILABLE*
+
 Lozza has been packaged into Windows, Linux and Mac executables for offline use in chess user interfaces like Winboard, Cutechess, Arena and Banksia for example.
 
 https://github.com/op12no2/lozza/releases
