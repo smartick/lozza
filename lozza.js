@@ -16,6 +16,7 @@ var LICHESS     = 0;
 //{{{  history
 /*
 
+2.3 16/03/22 Base aspiration window on previous scores.
 2.3 16/03/22 Don't use TT in PV node.
 
 ##ifdef 2.1 14/02/22 Non-linear mobility.
@@ -357,9 +358,6 @@ var NULL_Y          = 1;
 var NULL_N          = 0;
 var INCHECK_UNKNOWN = MATE + 1;
 var TTSCORE_UNKNOWN = MATE + 2;
-var ASP_MAX         = 75;
-var ASP_DELTA       = 3;
-var ASP_MIN         = 10;
 var EMPTY           = 0;
 var UCI_FMT         = 0;
 var SAN_FMT         = 1;
@@ -1540,11 +1538,11 @@ lozChess.prototype.go = function() {
 
   var alpha       = -INFINITY;
   var beta        = INFINITY;
-  var asp         = ASP_MAX;
   var ply         = 1;
   var maxPly      = spec.depth;
   var bestMoveStr = '';
   var score       = 0;
+  var lastScore   = 0;
 
   while (ply <= maxPly) {
 
@@ -1556,38 +1554,36 @@ lozChess.prototype.go = function() {
       break;
     }
 
-    if (score <= alpha || score >= beta) {
-      //{{{  research
-      
-      if (score >= beta) {
-        ;
-      }
-      else {
-        if (totTime > 30000) {
-          movTime              = movTime / 2 | 0;
-          this.stats.moveTime += movTime;
-        }
-      }
-      
+    if (score <= alpha) {
       alpha = -INFINITY;
-      beta  = INFINITY;
-      asp   = ASP_MAX * 10;
-      
+      beta = alpha + beta / 2 | 0;
+      //console.log('alpha');
       continue;
-      
-      //}}}
+    }
+
+    if (score >= beta) {
+      alpha = alpha + beta / 2 | 0;
+      beta = INFINITY;
+      //console.log('beta');
+      continue;
     }
 
     if (Math.abs(score) >= MINMATE && Math.abs(score) <= MATE) {
       break;
     }
 
-    alpha = score - asp;
-    beta  = score + asp;
+    if (ply > 3) {
 
-    asp -= ASP_DELTA;       //  shrink the window.
-    if (asp < ASP_MIN)
-      asp = ASP_MIN;
+      var delta   = Math.abs(score - lastScore);
+      var window  = Math.max(delta*2,20);
+
+      alpha = score - window;
+      beta  = score + window;
+
+      //console.log('window',window);
+    }
+
+    lastScore = score;
 
     ply += 1;
   }

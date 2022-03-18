@@ -31,5 +31,5 @@ set v=-ratinginterval 10
 
 set m=-recover -concurrency 4
 
-"C:\Program Files (x86)\Cute Chess\cutechess-cli" %e1 %e2 %t %r %d %o %f %v %m %s
+"C:\Program Files (x86)\Cute Chess\cutechess-cli" %e1 %e2 %t %r %d %o %f %v %m %s -debug
 
