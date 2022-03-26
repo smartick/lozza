@@ -2,10 +2,10 @@
 
 mv cctry.pgn games/$RANDOM$RAMDOM.pgn
 
-tc="tc=0/10+0.1"
+tc="tc=0/30+0.3"
 
 e1="-engine conf=coalface  $tc book=books/Perfect2021.bin bookdepth=6"
-e2="-engine conf=candidate $tc book=books/Perfect2021.bin bookdepth=6"
+e2="-engine conf=released22 $tc book=books/Perfect2021.bin bookdepth=6"
 
 t="-event soaktest -tournament round-robin -games 20000"
 
