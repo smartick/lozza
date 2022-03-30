@@ -7,8 +7,8 @@
 // This file includes debug code that is stripped out on release.        // ##ifdef
 //                                                                       // ##ifdef
 
-var BUILD       = "2.2";
-var BUILD       = "2.2dev";  // ##ifdef
+var BUILD       = "2.3";
+var BUILD       = "2.3dev";  // ##ifdef
 var USEPAWNHASH = 1;
 var USEPAWNHASH = 0;         // ##ifdef
 var LICHESS     = 0;
@@ -16,8 +16,10 @@ var LICHESS     = 0;
 //{{{  history
 /*
 
-2.2 23/03/22 Fix TT bug which was saving alpha not bestScore.
-2.2 23/02/22 Don't use TT in PV node.
+2.3 30/03/22 Allow mate scores from NMP.
+2.3 30/03/22 Use fail soft for beta pruning.
+2.3 23/03/22 Fix TT bug which was saving alpha not bestScore.
+2.3 23/02/22 Don't use TT in PV node.
 
 ##ifdef 2.1 14/02/22 Non-linear mobility.
 ##ifdef 2.1 11/02/22 Split up mobility into mobility, tightness and tension.
@@ -1882,7 +1884,7 @@ lozChess.prototype.alphabeta = function (node, depth, turn, alpha, beta, nullOK,
   //{{{  prune?
   
   if (doBeta && depth <= 2 && (standPat - depth * 200) >= beta) {
-    return beta;
+    return standPat;
   }
   
   //}}}
@@ -1917,8 +1919,8 @@ lozChess.prototype.alphabeta = function (node, depth, turn, alpha, beta, nullOK,
       return;
   
     if (score >= beta) {
-      if (board.betaMate(score))
-        score = beta;
+      //if (board.betaMate(score))
+        //score = beta;
       return score;
     }
   
