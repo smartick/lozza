@@ -1,6 +1,6 @@
 @echo off
 
-rem ******** config start
+xrem ******** config start
 
 set e1=coalface
 set e2=candidate
@@ -13,9 +13,15 @@ set tc=10+0.1
 set thisver=2.3
 set lastver=2.2
 
-set g=20000
+set games=20000
+
+set threads=2
 
 rem ******** config end
+
+iff not isdir games then
+  mkdir games
+endiff
 
 iff "%e1" != "coalface" .and. "%e1" != "candidate" .and. "%e1" != "released" then
   echo no engine e1 %e1
@@ -36,33 +42,54 @@ iff isfile cctry.pgn then
   del  /q cctry.pgn
 endiff
 
+set x=..\lozza.js
+
+iff isfile %x then
+  findstr -V ##ifdef %x > coalface.js
+else
+  echo coalface %x missing
+  quit
+endiff
+
+set x=..\history\%thisver\lozza.js
+
+iff isfile %x then
+  findstr -V ##ifdef %x > candidate.js
+else
+  echo candidate %x missing
+  quit
+endiff
+
+set x=..\history\%lastver\lozza.js
+
+iff isfile %x then
+  findstr -V ##ifdef %x > released.js
+else
+  echo released %x missing
+  quit
+endiff
+
+rem ffind /vt"ifdef" coalface.js
+rem ffind /vt"ifdef" candidate.js
+rem ffind /vt"ifdef" released.js
+
+fc %e1.js %e2.js
+
+node --version
+node -p process.versions.v8
+
 set ee1=-engine conf=%e1 tc=0/%tc
 set ee2=-engine conf=%e2 tc=0/%tc
-set t=-event soaktest -tournament round-robin -games %g
+set t=-event soaktest -tournament round-robin -games %games
 set r=-resign movecount=3 score=400
 set d=-draw movenumber=40 movecount=8 score=10
 set o=-repeat -srand %a -openings file=c:\projects\lozza\trunk\testing\data\4moves_noob.epd format=epd order=random plies=16
 set f=-pgnout cctry.pgn fi
 set s=-sprt elo0=%elo0 elo1=%elo1 alpha=0.05 beta=0.05
 set v=-ratinginterval 10
-set m=-recover -concurrency 2
+set m=-recover -concurrency %threads
 
-findstr -V ##ifdef ..\lozza.js                  > coalface.js
-findstr -V ##ifdef ..\history\%thisver\lozza.js > candidate.js
-findstr -V ##ifdef ..\history\%lastver\lozza.js > released.js
-
-rem ffind /vt"ifdef" coalface.js
-rem ffind /vt"ifdef" candidate.js
-rem ffind /vt"ifdef" released.js
-
-node --version
-node -p process.versions.v8
-
-fc %e1.js %e2.js
-
-echo.
-echo %e1 v %e2 - %g games or [%elo0,%elo1] at %tc
-echo.
+echo %e1 v %e2 of %g games or [%elo0,%elo1] at %tc
 
 "C:\Program Files (x86)\Cute Chess\cutechess-cli" %ee1 %ee2 %t %r %d %o %f %v %m %s
 
