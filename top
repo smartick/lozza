@@ -560,18 +560,19 @@ if (lozzaHost == HOST_NODEJS) {
 
 //{{{  other lozzas
 
+'lozza\trunk\clean.js'
+
+'lozza\trunk\history\2.0\release\lozza.js'
+'lozza\trunk\history\2.0\release\lozza.bat'
+'lozza\trunk\history\2.0\release\readme.txt'
+
 'lozza\trunk\history\2.3\lozza.js'
 'lozza\trunk\history\2.2\lozza.js'
 'lozza\trunk\history\2.1\lozza.js'
 'lozza\trunk\history\2.0\lozza.js'
 'lozza\trunk\history\1.18\lozza.js'
 
-'lozza\trunk\currentlytesting.js'
-'lozza\trunk\clean.js'
-
 'lozza\trunk\testing\deadends.js'
-
-'lichess-bot\engines\clean.js'
 
 //}}}
 
