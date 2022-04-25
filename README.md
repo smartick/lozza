@@ -48,17 +48,9 @@ You can try them here:-
 
 https://op12no2.github.io/lozza-ui
 
-## Play Lozza on Lichess
-
-_CURRENTLY OFFLINE_
-
 https://lichess.org/@/lozzaBot
 
 ## Play Lozza offline in chess user interfaces
-
-*CURRENTLY UNAVAILABLE*
-
-Lozza has been packaged into Windows, Linux and Mac executables for offline use in chess user interfaces like Winboard, Cutechess, Arena and Banksia for example.
 
 https://github.com/op12no2/lozza/releases
   
