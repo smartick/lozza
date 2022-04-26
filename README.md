@@ -47,8 +47,6 @@ You can try them here:-
 
 https://op12no2.github.io/lozza-ui
 
-https://lichess.org/@/lozzaBot
-
 ## Play Lozza offline in chess user interfaces
 
 https://github.com/op12no2/lozza/releases
