@@ -16,7 +16,6 @@ Note that lozza.js has tuning and debug code marked with ##ifdef, which will _si
 Windows: findstr -V ##ifdef lozza.js > mylozza.js
 Linux:   grep -v \#\#ifdef lozza.js > mylozza.js
 ```
-You should also change the TTSIZE constant from a power of 22 to 24 if using long time controls; i.e. minutes not seconds per game.
 
 Here is a little example to do a 10 ply search:-
 
