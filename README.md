@@ -65,6 +65,4 @@ https://github.com/AndyGrant/Ethereal/blob/master/Tuning.pdf - A nice overview o
 
 http://wbec-ridderkerk.nl/html/UCIProtocol.html - UCI protocol
 
-https://www.npmjs.com/package/pkg - Tool used to package Lozza into executables
-
 https://github.com/davidbau/seedrandom - Random number generator used for Zobrist hashing
