@@ -1,9 +1,9 @@
 @echo off
 
-xrem ******** config start
+rem ******** config start
 
 set e1=coalface
-set e2=candidate
+set e2=released
 
 set elo0=0
 set elo1=5

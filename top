@@ -562,9 +562,9 @@ if (lozzaHost == HOST_NODEJS) {
 
 'lozza\trunk\clean.js'
 
-'lozza\trunk\history\2.0\release\lozza.js'
-'lozza\trunk\history\2.0\release\lozza.bat'
-'lozza\trunk\history\2.0\release\readme.txt'
+'lozza\trunk\history\2.3\release\lozza.js'
+'lozza\trunk\history\2.3\release\lozza.bat'
+'lozza\trunk\history\2.3\release\readme.txt'
 
 'lozza\trunk\history\2.3\lozza.js'
 'lozza\trunk\history\2.2\lozza.js'
