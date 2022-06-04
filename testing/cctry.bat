@@ -3,15 +3,15 @@
 rem ******** config start
 
 set e1=coalface
-set e2=released
+set e2=candidate
 
 set elo0=0
-set elo1=5
+set elo1=3
 
-set tc=10+0.1
+set tc=60+1
 
-set thisver=2.3
-set lastver=2.2
+set thisver=2.4
+set lastver=2.3
 
 set games=20000
 
@@ -23,24 +23,19 @@ iff not isdir games then
   mkdir games
 endiff
 
-iff "%e1" != "coalface" .and. "%e1" != "candidate" .and. "%e1" != "released" then
-  echo no engine e1 %e1
+iff "%e1" != "coalface" .and. "%e1" != "candidate" .and. "%e1" != "released" .and. "%e1" != "tt" then
+  echo no engine e1 = %e1
   quit
 endiff
 
-iff "%e2" != "coalface" .and. "%e2" != "candidate" .and. "%e2" != "released" then
-  echo no engine e2 %e2
+iff "%e2" != "coalface" .and. "%e2" != "candidate" .and. "%e2" != "released" .and. "%e2" != "tt" then
+  echo no engine e2 = %e2
   quit
 endiff
 
 copy /q ..\..\..\top ..
 
 set a=%@random[1,9999999]
-
-iff isfile cctry.pgn then
-  copy /q cctry.pgn games\%a.pgn
-  del  /q cctry.pgn
-endiff
 
 set x=..\lozza.js
 
@@ -75,6 +70,10 @@ rem ffind /vt"ifdef" released.js
 
 fc %e1.js %e2.js
 
+echo coalface  ver = %thisver
+echo candidate ver = %thisver
+echo released  ver = %lastver
+
 node --version
 node -p process.versions.v8
 
@@ -84,7 +83,7 @@ set t=-event soaktest -tournament round-robin -games %games
 set r=-resign movecount=3 score=400
 set d=-draw movenumber=40 movecount=8 score=10
 set o=-repeat -srand %a -openings file=c:\projects\lozza\trunk\testing\data\4moves_noob.epd format=epd order=random plies=16
-set f=-pgnout cctry.pgn fi
+set f=-pgnout cctry.pgn min fi
 set s=-sprt elo0=%elo0 elo1=%elo1 alpha=0.05 beta=0.05
 set v=-ratinginterval 10
 set m=-recover -concurrency %threads

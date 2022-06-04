@@ -7,8 +7,6 @@ dont update tt is no moves in alphabeta
 
 staged move gen - sounds slow but saves sorting
 
-tt q (all 0 depth)
-
 tt buckets etc
 
 update tt on alpha raise?
@@ -566,6 +564,7 @@ if (lozzaHost == HOST_NODEJS) {
 'lozza\trunk\history\2.3\release\lozza.bat'
 'lozza\trunk\history\2.3\release\readme.txt'
 
+'lozza\trunk\history\2.4\lozza.js'
 'lozza\trunk\history\2.3\lozza.js'
 'lozza\trunk\history\2.2\lozza.js'
 'lozza\trunk\history\2.1\lozza.js'
