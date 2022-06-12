@@ -6,7 +6,7 @@ set e1=coalface
 set e2=candidate
 
 set elo0=0
-set elo1=3
+set elo1=5
 
 set tc=60+1
 
@@ -18,10 +18,6 @@ set games=20000
 set threads=2
 
 rem ******** config end
-
-iff not isdir games then
-  mkdir games
-endiff
 
 iff "%e1" != "coalface" .and. "%e1" != "candidate" .and. "%e1" != "released" .and. "%e1" != "tt" then
   echo no engine e1 = %e1
