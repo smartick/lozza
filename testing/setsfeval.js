@@ -1,16 +1,26 @@
+//
+// Adds sf hybrid eval to <infile>.epd.
+// Writes as <infile>_sf.epd.
+//
 
-//{{{  globals
+var epdin = process.argv[2];
+if (!epdin) {
+  console.log('use: node strip <infile> (assumed .epd)');
+  process.exit();
+}
+
+var epdout = epdin + '_sf';
+
+epdin  += '.epd';
+epdout += '.epd';
 
 const { spawn } = require("child_process");
 
 var fs      = require('fs');
 var next    = -1;
-var epdfile = 'data/eth2.epd';
-var outfile = 'data/eth2sf.epd';
 var child   = 0;
 var out     = '';
 
-//}}}
 //{{{  functions
 
 function getEval(s) {
@@ -44,13 +54,13 @@ function kick () {
 
 //}}}
 
-fs.writeFileSync(outfile, '');
+fs.writeFileSync(epdout, '');
 
 process.stdin.setEncoding('utf8');
 
 //{{{  get the epds
 
-var data  = fs.readFileSync(epdfile, 'utf8');
+var data  = fs.readFileSync(epdin, 'utf8');
 var lines = data.split('\n');
 var epds  = [];
 
@@ -96,7 +106,7 @@ child.stdout.on('data', function (data) {
     var eval = getEval(sfdata);
     out = out + fen + ' ' + eval + '\r\n';
     if (out.length > 1000000 || next == epds.length-1) {
-      fs.appendFileSync(outfile,out);
+      fs.appendFileSync(epdout,out);
       out = '';
     }
     kick();
