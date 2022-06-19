@@ -7615,9 +7615,9 @@ function calcErr () {
     err += (pr-sg) * (pr-sg);
   }
 
-  console.log('calc err out');
+  //console.log('calc err out');
 
-  //return err / num;
+  return err / num;
 }
 
 //}}}
