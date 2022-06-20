@@ -566,6 +566,7 @@ if (lozzaHost == HOST_NODEJS) {
 
 'lozza\trunk\history\2.4\lozza.js'
 'lozza\trunk\history\2.3\lozza.js'
+'lozza\trunk\history\2.2\gdtuner.js'
 'lozza\trunk\history\2.2\lozza.js'
 'lozza\trunk\history\2.1\lozza.js'
 'lozza\trunk\history\2.0\lozza.js'
@@ -578,7 +579,9 @@ if (lozzaHost == HOST_NODEJS) {
 'lozza\trunk\testing\gdtuner.js'
 'lozza\trunk\testing\gdtuner.txt'
 'lozza\trunk\testing\0gdtuner.txt'
+'lozza\trunk\testing\tunings.js'
 
+'lozza\trunk\testing\strip.js'
 'lozza\trunk\testing\setsfeval.js'
 
 'lozza\trunk\testing\nettuner.js'
