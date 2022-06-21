@@ -1,4 +1,4 @@
-//{{{  2.3 tuned feature weights
+//{{{  2.4 tuned feature weights
 
 // data=data/eth_min_sf.epd
 // features=1033
@@ -394,7 +394,7 @@ const MOBQ_S          = [2,2,3,3,7,10,14,16,20,22,24,24,24,27,28,31,31,33,36,39,
 const MOBQ_E          = [0,8,16,20,30,40,46,58,67,76,86,94,105,109,115,122,128,136,142,151,156,162,174,180,190,200,207,216];
 
 //}}}
-//{{{  2.3 tuned feature weights
+//{{{  2.4 tuned feature weights
 
 // data=data/eth_min_sf.epd
 // features=1033

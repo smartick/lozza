@@ -7489,7 +7489,7 @@ var gBatchSize     = 100000;
 var gLearningRate  = 0.1;
 var gResetAdagrad  = false;
 var gOutFile       = 'gdtuner.txt';
-var gErrStep       = 5;              // update results and get loss rate.
+var gErrStep       = 10;             // update results and get loss rate.
 var gMaxEpochs     = 2000;
 
 //{{{  functions
@@ -7670,7 +7670,7 @@ var lastOut = '';
 function saveparams (err, epochs) {
 
   var d    = new Date();
-  var out1 = '//{{{  ' + BUILD + ' tuned feature weights\r\n\r\n';
+  var out1 = '//{{{  ' + BUILD + ' tuned feature weights\r\n';
 
   out1 += '//';
   out1 += '\r\n';
@@ -7689,6 +7689,8 @@ function saveparams (err, epochs) {
   out1 += '// num features = ' + params.length;
   out1 += '\r\n';
   out1 += '// batch size = ' + gBatchSize;
+  out1 += '\r\n';
+  out1 += '// num batches = ' + Vtotal/gBatchSize|0;
   out1 += '\r\n';
   out1 += '// learning rate = ' + gLearningRate;
   out1 += '\r\n';
@@ -8054,7 +8056,7 @@ function grunt () {
 
 function readfile() {
 
-  process.stdout.write(Vfileno+'\r');
+  //process.stdout.write(Vfileno+'\r');
 
   var data  = fs.readFileSync('data/data_min_' + Vfileno + '_sf.epd', 'utf8');
   var lines = data.split('\n');

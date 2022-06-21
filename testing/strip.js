@@ -1,4 +1,7 @@
-
+//
+// strip all but board, turn, rights, ep from a .epd file and split into
+// multiple files of <max> positions. For example if x.epd contained 2M
+// positions and max was 1M, node strip x would create 2 files: x_min
 var fs = require('fs');
 
 var max    = 2000000;
