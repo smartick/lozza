@@ -554,8 +554,10 @@ if (lozzaHost == HOST_NODEJS) {
 
 //}}}
 
-'lozza\trunk\l24.js'
 'lozza\trunk\lozza.js'
+
+'lozza\trunk\l24.js'               - raid this - testing carefully!!
+'lozza\trunk\history\2.3\lozza.js' - then this - testing carefully!!
 
 //{{{  other lozzas
 
