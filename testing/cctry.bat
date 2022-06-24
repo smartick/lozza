@@ -3,15 +3,15 @@
 rem ******** config start
 
 set e1=coalface
-set e2=candidate
+set e2=released
 
 set elo0=0
 set elo1=5
 
-set tc=20+0.2
+set tc=60+1
 
 set thisver=2.4
-set lastver=2.3
+set lastver=2.2
 
 set games=20000
 

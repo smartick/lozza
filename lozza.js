@@ -5,239 +5,19 @@
 //
 // Use lozza.js from the latest release on github for best performance.  // ##ifdef
 // This file includes debug code that is stripped out on release.        // ##ifdef
-//                                                                       // ##ifdef
+//                                                                        // ##ifdef
 
 var BUILD       = "2.4";
 var BUILD       = "2.4dev";  // ##ifdef
 var USEPAWNHASH = 1;
 var USEPAWNHASH = 0;         // ##ifdef
+var LICHESS     = 0;
 
 //{{{  history
 /*
 
-2.4 22/06/22 Remove Lichess stuff.
-2.4 22/06/22 Retune against 5M AGE data dump positions and sigmoid(sf hybrid eval) (not WDL).
-2.4 22/06/22 Revert to v2.2 code after evidence from CCRL that 2.3 is -ve ELO.
+2.4 24/06/22 Retune.
 
-##ifdef
-##ifdef 2.3 06/04/22 Fix qsearch pruning bug.
-##ifdef 2.3 31/03/22 Add eval to TT and lazy compute eval as needed. See board.getEval().
-##ifdef 2.3 31/03/22 Use TT in qsearch but prioritise main search entries.
-##ifdef 2.3 30/03/22 Allow mate scores from NMP.
-##ifdef 2.3 30/03/22 Use fail soft for beta pruning.
-##ifdef 2.3 23/03/22 Fix TT bug which was saving alpha not bestScore.
-##ifdef
-##ifdef 2.2 23/02/22 Don't use TT in PV node.
-##ifdef
-##ifdef 2.1 14/02/22 Non-linear mobility.
-##ifdef 2.1 11/02/22 Split up mobility into mobility, tightness and tension.
-##ifdef 2.1 28/01/22 Add Lichess support.
-##ifdef 2.1 21/01/22 Fixate on one square in Q search from depth -12.
-##ifdef 2.1 12/01/22 Retune using gd tuner.
-##ifdef 2.1 06/01/22 Add eval feature extraction code (for gd tuner) which is removed on release.
-##ifdef 2.1 06/01/22 Extract imbalance as a separate eval term.
-##ifdef 2.1 20/12/21 Handle old node versions WRT stdin.resume(). I think.
-##ifdef 2.1 17/12/21 Optimise pruning to pre makeMove().
-##ifdef
-##ifdef 2.0a 27/09/21 Fix timeouts.
-##ifdef 2.0a 27/09/21 Add USEPAWNHASH - useful when testing.
-##ifdef 2.0a 27/09/21 Set mob offsets to 0 while buggy.
-##ifdef
-##ifdef 2.0 19/02/21 Add imbalance terms when no pawns.
-##ifdef 2.0 17/02/21 Tune all eval params.
-##ifdef 2.0 16/02/21 Swap mate and draw testing order in search.
-##ifdef 2.0 12/02/21 Do LMR earlier.
-##ifdef 2.0 11/02/21 Add draft bench command.
-##ifdef 2.0 10/02/21 Use pre generated random numbers using https://github.com/davidbau/seedrandom.
-##ifdef 2.0 10/02/21 Use depth^3 (>=beta), depth^2 (>=alpha) and -depth  (< alpha) for history.
-##ifdef 2.0 09/02/21 Add -ve history scores for moves < alpha.
-##ifdef 2.0 08/02/21 Don't do LMP in a pvNode. We need a move!
-##ifdef 2.0 07/02/21 Don't _try and reduce when in check (optimisation).
-##ifdef 2.0 06/02/21 Remove support for jsUCI.
-##ifdef 2.0 23/01/21 Tune piece values and PSTs.
-##ifdef 2.0 10/01/21 Rearrange eval params so they can be tuned.
-##ifdef 2.0 03/01/21 Simplify phase and eval calc.
-##ifdef
-##ifdef 1.18 Don't pseudo-move king adjacent to king.
-##ifdef 1.18 Fix black king endgame PST.
-##ifdef 1.18 Fix tapered eval calc.
-##ifdef 1.18 Fix alpha/beta mate predicates.
-##ifdef 1.18 Fix trapped knights bug (thanks Tamas).
-##ifdef 1.18 Fix hash table put bug.
-##ifdef 1.18 Add depth element to LMR.
-##ifdef 1.18 Increase pruning.
-##ifdef 1.18 Remove alpha TT saves in move loop.
-##ifdef 1.18 Better tempo.
-##ifdef 1.18 Better king safety.
-##ifdef 1.18 Better passed pawn eval.
-##ifdef 1.18 Fix TC.
-##ifdef
-##ifdef 1.17 Min move time of 10ms.
-##ifdef 1.17 Change futility to depth <= 4 (from 5).
-##ifdef 1.17 Use TT at root.
-##ifdef 1.17 Increase LMR a bit.
-##ifdef 1.17 Add eval tempo back in.
-##ifdef 1.17 Remove phase from extend expression.
-##ifdef 1.17 R=3 always in NMP.
-##ifdef
-##ifdef 1.16 Rearrange eval to be based on parts of the Toga User Manual (i.e. Fruit 2.1).
-##ifdef 1.16 Send node count back when PV is updated.
-##ifdef 1.16 Include non capture promotions in QS.
-##ifdef 1.16 Fix unstoppable passer WRT hash (using king squares and turn).
-##ifdef 1.16 Fix unstoppable passer values.
-##ifdef 1.16 Improve pawn eval.
-##ifdef 1.16 Fix bug with futility/LMR.
-##ifdef 1.16 Remove tempo from eval.
-##ifdef 1.16 Only score knight outputs if isolated from enemy pawns.
-##ifdef 1.16 Use fail soft in QS.
-##ifdef 1.16 Don't return from QSearch root if in check.
-##ifdef 1.16 Reduce futility severity.
-##ifdef 1.16 Add king attacks and knight outposts to eval and tidy eval up a bit..
-##ifdef 1.16 Don't prune killers!
-##ifdef 1.16 Use bits for pawn eval.
-##ifdef
-##ifdef 1.15 Fix move rank overflow.
-##ifdef 1.15 add SQ* constants.
-##ifdef 1.15 change futility to 50.
-##ifdef 1.15 increase history range.
-##ifdef 1.15 Add R|Q on 7th bonus.
-##ifdef 1.15 Change futility to 60.
-##ifdef 1.15 Change queen to 1000.
-##ifdef 1.15 Jiggle what is and isn't predicated on mate scores.
-##ifdef 1.15 Add # to PV if mate score.
-##ifdef 1.15 Fix queening SAN format.
-##ifdef 1.15 Dump arbitrary passed bonuses.
-##ifdef 1.15 Dump Connectivity PSTs. They were making passed pawns stop.
-##ifdef 1.15 Use a passed pawn PST based on Fruit curve.
-##ifdef 1.15 Change PVS condition to !bestMove from numLegalMoves == 1.
-##ifdef 1.15 Use Fruit 2.1 piece PSTs.
-##ifdef 1.15 Add && !betaMate to futility condition.
-##ifdef 1.15 Don't do root Q futility.
-##ifdef 1.15 Change double time from 5 to 3 moves after opening.
-##ifdef 1.15 Fix +inc time control.
-##ifdef 1.15 Add some typed arrays to help V8.
-##ifdef 1.15 Tweaks to stop some V8 deoptimising.
-##ifdef 1.15 Don't call eval if in check in alphabeta().
-##ifdef 1.15 Speed up Q move gen.
-##ifdef 1.15 Speed up move gen.
-##ifdef 1.15 Speed up mobility;
-##ifdef 1.15 Speed up isAttacked();
-##ifdef
-##ifdef 1.14 Add massive bonus for pawn-supported pawn on 7th rank.
-##ifdef 1.14 Don't futility away pawn pushes to 6th rank.
-##ifdef 1.14 Fix how PV is displayed WRT hash loops.
-##ifdef 1.14 Send node info with PV for ChessGUI, fix hashUsed info.
-##ifdef 1.14 Redo how host is detected.
-##ifdef 1.14 Add time when fail low at root.
-##ifdef 1.14 Add time for first 5 moves after opening.
-##ifdef 1.14 Be less confident about time left as number of moves increases.
-##ifdef 1.14 Fix time control for increments.
-##ifdef 1.14 Reset the stats on the go command.
-##ifdef 1.14 Get synchronous PV working with node.js on Windows.
-##ifdef 1.14 Check for draws before anything else.
-##ifdef 1.14 Don't assume hash move is legal.
-##ifdef 1.14 Use |0 as needed and don't use Math.floor() or Math.round() in critical places.
-##ifdef 1.14 Remove alphaMate.
-##ifdef 1.14 Don't make beta pruning and null move dependent on betaMate.
-##ifdef 1.13 Add support for node.js allowing Lozza to run on any platform that supports node.js.
-##ifdef 1.13 Send stats back to host early to reset counters.
-##ifdef 1.13 Use O not 0 for castling to avoid potential expression confusion.
-##ifdef
-##ifdef 1.12 Add untuned mobility to eval.
-##ifdef 1.12 Tweak King safety.
-##ifdef 1.12 Enable LMP now we're using history for move ordering.
-##ifdef 1.12 Remove ugly castling running eval in makeMove.
-##ifdef 1.12 Increase LMR because of history based move ordering.
-##ifdef 1.12 Use history (and PSTs if no history) for move ordering.
-##ifdef
-##ifdef 1.11 No null move if lone king.
-##ifdef 1.11 Change to always write TT, no exceptions.
-##ifdef 1.11 Make a micro adjustment to the way Zobrist randoms are generated.
-##ifdef 1.11 Implement UCI info hashfull.
-##ifdef
-##ifdef 1.10 Fix occasional null PVs.
-##ifdef 1.10 Fix promotion not being allowed by the web UI.
-##ifdef 1.10 Add board, stop, start, clear, id, ping & eval to UCI console.
-##ifdef 1.10 Add verbose option to evaluate.
-##ifdef
-##ifdef 1.9 Add late move pruning.
-##ifdef 1.9 Rearrange things a bit.
-##ifdef
-##ifdef 1.8 Untuned isolated pawns.
-##ifdef 1.8 Add pawn hash.
-##ifdef 1.8 Use ply (not whole moves) for UCI mate scores.
-##ifdef 1.8 Fix bug with best move sometimes being the wrong one because of a timeout.
-##ifdef
-##ifdef 1.7 Fix LMR condition in root search.
-##ifdef 1.7 Untuned beta pruning.
-##ifdef 1.7 Untuned passed/doubled pawns.
-##ifdef 1.7 Untuned king safety.
-##ifdef
-##ifdef 1.6 Use end game PSTs for move ordering.
-##ifdef 1.6 Only do futility if depth <= 5.
-##ifdef 1.6 Check for illegal position by detecting 0 moves at root.
-##ifdef 1.6 Fix UCI "mate" score.
-##ifdef 1.6 More traditional extension/reduction arrangement.
-##ifdef
-##ifdef 1.5 Tweak LMR constants.
-##ifdef
-##ifdef 1.4 Better castling rights update.
-##ifdef 1.4 Change futility thresholds.
-##ifdef
-##ifdef 1.3 Never futility away all moves; do at least one.
-##ifdef 1.3 Tweak time controls.
-##ifdef
-##ifdef 1.2 Point nodes at board so global lookup not needed.
-##ifdef 1.2 Add piece lists.
-##ifdef
-##ifdef 1.1 50 move draw rule.
-##ifdef 1.1 Add K+B|N v K+B|N as insufficient material in eval.
-##ifdef
-##ifdef 1.0 Only reset TT on UCINEWGAME command.  Seems to work OK at last.
-##ifdef
-##ifdef 0.9 Encode mate scores for UI.
-##ifdef 0.9 Use separate PSTs for move ordering.
-##ifdef
-##ifdef 0.8 use simple arrays for piece counts and add colour counts.
-##ifdef 0.8 Split runningEval into runningEvalS and runningEval E and combine in evaluate();
-##ifdef 0.8 Inline various functions.
-##ifdef
-##ifdef 0.7 Fix repetition detection at last.
-##ifdef
-##ifdef 0.6 Base LMR on the move base.
-##ifdef 0.6 Just use > alpha for LMR research.
-##ifdef 0.6 Fix hash update bugs.
-##ifdef 0.6 move mate distance and rep check tests to pre horizon.
-##ifdef 0.6 Only extend at root and if depth below horizon.
-##ifdef 0.6 Remove lone king.
-##ifdef
-##ifdef 0.5 Mate distance pruning.
-##ifdef 0.5 No LMR if lone king.
-##ifdef
-##ifdef 0.4 No null move if a lone king on the board.
-##ifdef 0.4 Add detection of insufficient material draws.
-##ifdef 0.4 Add very primitive king safety to eval.
-##ifdef 0.4 Change pCounts into wCount and bCount.
-##ifdef 0.4 Set contempt to 0.
-##ifdef 0.4 Fix fail soft QS bug on beta cut.
-##ifdef
-##ifdef 0.3 Facilitate N messages in one UCI message string.
-##ifdef 0.3 Fix bug where search() and alphabeta() returned -INFINITY instead of oAlpha.
-##ifdef 0.3 Adjust MATE score in TT etc.
-##ifdef
-##ifdef 0.2 Allow futility to filter all moves and return oAlpha in that case.
-##ifdef 0.2 Fix infinite loops when showing PV.
-##ifdef 0.2 Fix mate killer addition condition.
-##ifdef 0.2 Generalise bishop counting using board.pCounts.
-##ifdef 0.2 Don't allow a killer to be the (current) hash.
-##ifdef 0.2 Don't research ALL node LMR fails unless R is set!
-##ifdef 0.2 Arrange things so that QS doesn't use or affect node killers/hashes etc.  In tests it's less nodes.
-##ifdef 0.2 Increase asp window and add time on ID research.
-##ifdef 0.2 Add crude bishop pair bonus imp.  NB: updating a piece count array using a[i]++ and a[i]-- was too slow!!
-##ifdef 0.2 Use tapered PSTs.
-##ifdef
-##ifdef 0.1 Fix bug in QS.  It *must not* fail soft.
-##ifdef
 */
 
 //}}}
@@ -1950,7 +1730,10 @@ lozChess.prototype.go = function() {
   if (lozzaHost == HOST_WEB)
     board.makeMove(this.rootNode,this.stats.bestMove);
 
-  this.uci.send('bestmove',bestMoveStr);
+  if (LICHESS)
+    console.log('bestmove',bestMoveStr);
+  else
+    this.uci.send('bestmove',bestMoveStr);
 }
 
 //}}}
@@ -2021,7 +1804,7 @@ lozChess.prototype.search = function (node, depth, turn, alpha, beta) {
 
     //{{{  send current move to UCI
     
-    if (this.stats.splits > 3)
+    if (!LICHESS && this.stats.splits > 3)
       this.uci.send('info currmove ' + board.formatMove(move,SAN_FMT) + ' currmovenumber ' + numLegalMoves);
     
     //}}}
@@ -2099,11 +1882,13 @@ lozChess.prototype.search = function (node, depth, turn, alpha, beta) {
             uciScore = -uciScore;
         }
         
-        this.uci.send('info',this.stats.nodeStr(),'depth',this.stats.ply,'seldepth',this.stats.selDepth,'score',units,uciScore,'pv',pvStr);
-        //this.stats.update();
+        if (!LICHESS) {
+          this.uci.send('info',this.stats.nodeStr(),'depth',this.stats.ply,'seldepth',this.stats.selDepth,'score',units,uciScore,'pv',pvStr);
+          //this.stats.update();
         
-        if (this.stats.splits > 5)
-          this.uci.send('info hashfull',myround(1000*board.hashUsed/TTSIZE));
+          if (this.stats.splits > 5)
+            this.uci.send('info hashfull',myround(1000*board.hashUsed/TTSIZE));
+        }
         
         //}}}
       }
@@ -7308,7 +7093,8 @@ lozStats.prototype.update = function () {
   var tim = Date.now() - this.startTime;
   var nps = (this.nodes * 1000) / tim | 0;
 
-  lozza.uci.send('info',this.nodeStr());
+  if (!LICHESS)
+    lozza.uci.send('info',this.nodeStr());
 }
 
 //}}}
@@ -7606,9 +7392,16 @@ onmessage = function(e) {
     case 'uci':
       //{{{  uci
       
-      uci.send('id name Lozza',BUILD);
-      uci.send('id author Colin Jenkins');
-      uci.send('uciok');
+      if (LICHESS) {
+        console.log('id name Lozza',BUILD);
+        console.log('id author Colin Jenkins');
+        console.log('uciok');
+      }
+      else {
+        uci.send('id name Lozza',BUILD);
+        uci.send('id author Colin Jenkins');
+        uci.send('uciok');
+      }
       
       break;
       
@@ -7617,7 +7410,10 @@ onmessage = function(e) {
     case 'isready':
       //{{{  isready
       
-      uci.send('readyok');
+      if (LICHESS)
+        console.log('readyok');
+      else
+        uci.send('readyok');
       
       break;
       
@@ -7690,7 +7486,8 @@ onmessage = function(e) {
     default:
       //{{{  ?
       
-      uci.send('info string','unknown command',uci.command);
+      if (!LICHESS)
+        uci.send('info string','unknown command',uci.command);
       
       break;
       
