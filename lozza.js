@@ -16,7 +16,9 @@ var LICHESS     = 0;
 //{{{  history
 /*
 
+2.4 08/07/22 Rejig ID.
 2.4 24/06/22 Retune.
+2.4 24/06/22 Go back to v2.2 code.
 
 */
 
@@ -1668,58 +1670,48 @@ lozChess.prototype.go = function() {
   
   //}}}
 
-  var alpha       = -INFINITY;
-  var beta        = INFINITY;
-  var asp         = ASP_MAX;
+  var alpha       = 0;
+  var beta        = 0;
   var ply         = 1;
   var maxPly      = spec.depth;
   var bestMoveStr = '';
   var score       = 0;
+  var delta       = 0;
 
-  while (ply <= maxPly) {
+  for (ply=1; ply <= maxPly; ply++) {
 
     this.stats.ply = ply;
 
-    score = this.search(this.rootNode, ply, board.turn, alpha, beta);
+    alpha = -INFINITY;
+    beta  = INFINITY;
+    delta = 10;
 
-    if (this.stats.timeOut) {
+    if (ply >= 4) {
+      alpha = Math.max(-INFINITY, score - delta);
+      beta  = Math.min(INFINITY,  score + delta);
+    }
+
+    while (1) {
+
+      score = this.search(this.rootNode, ply, board.turn, alpha, beta);
+
+      if (this.stats.timeOut)
+        break;
+
+      if (score > alpha && score < beta)
+        break;
+
+      if (Math.abs(score) >= MINMATE && Math.abs(score) <= MATE)
+        break;
+
+      delta += delta/2 | 0;
+
+      alpha = Math.max(-INFINITY, score - delta);
+      beta  = Math.min(INFINITY,  score + delta);
+    }
+
+    if (this.stats.timeOut)
       break;
-    }
-
-    if (score <= alpha || score >= beta) {
-      //{{{  research
-      
-      if (score >= beta) {
-        ;
-      }
-      else {
-        if (totTime > 30000) {
-          movTime              = movTime / 2 | 0;
-          this.stats.moveTime += movTime;
-        }
-      }
-      
-      alpha = -INFINITY;
-      beta  = INFINITY;
-      asp   = ASP_MAX * 10;
-      
-      continue;
-      
-      //}}}
-    }
-
-    if (Math.abs(score) >= MINMATE && Math.abs(score) <= MATE) {
-      break;
-    }
-
-    alpha = score - asp;
-    beta  = score + asp;
-
-    asp -= ASP_DELTA;       //  shrink the window.
-    if (asp < ASP_MIN)
-      asp = ASP_MIN;
-
-    ply += 1;
   }
 
   this.stats.update();

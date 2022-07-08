@@ -3,7 +3,7 @@
 rem ******** config start
 
 set e1=coalface
-set e2=released
+set e2=candidate
 
 set elo0=0
 set elo1=5
@@ -18,6 +18,8 @@ set games=20000
 set threads=2
 
 rem ******** config end
+
+del cctry.pgn
 
 iff "%e1" != "coalface" .and. "%e1" != "candidate" .and. "%e1" != "released" .and. "%e1" != "tt" then
   echo no engine e1 = %e1
@@ -60,9 +62,9 @@ else
   quit
 endiff
 
-rem ffind /vt"ifdef" coalface.js
-rem ffind /vt"ifdef" candidate.js
-rem ffind /vt"ifdef" released.js
+ffind /vt"ifdef" coalface.js
+ffind /vt"ifdef" candidate.js
+ffind /vt"ifdef" released.js
 
 fc %e1.js %e2.js
 
@@ -84,7 +86,7 @@ set s=-sprt elo0=%elo0 elo1=%elo1 alpha=0.05 beta=0.05
 set v=-ratinginterval 10
 set m=-recover -concurrency %threads
 
-echo %e1 v %e2 of %g games or [%elo0,%elo1] at %tc
+echo %e1.js v %e2.js of %games games or [%elo0,%elo1] at %tc
 
 "C:\Program Files (x86)\Cute Chess\cutechess-cli" %ee1 %ee2 %t %r %d %o %f %v %m %s
 
