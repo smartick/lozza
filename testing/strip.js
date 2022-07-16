@@ -1,7 +1,10 @@
 //
 // strip all but board, turn, rights, ep from a .epd file and split into
 // multiple files of <max> positions. For example if x.epd contained 2M
-// positions and max was 1M, node strip x would create 2 files: x_min
+// positions and max was 1M, node strip x would create 2 files: x_min_1.epd
+// and x_min_2.epd.
+//
+
 var fs = require('fs');
 
 var max    = 2000000;
@@ -47,7 +50,7 @@ rl.on('line', function (line) {
   
   var fen = parts[0] + ' ' + parts[1] + ' ' + parts[2] + ' ' + parts[3];
   
-  out = out + fen + ' 100\r\n';
+  out = out + fen + '\r\n';
   
   if (count >= max) {
     fs.writeFileSync(epdin + '_min_' + fileno + '.epd', out);
@@ -63,7 +66,8 @@ rl.on('line', function (line) {
 rl.on('close', function(){
   //{{{  done
   
-  fs.writeFileSync(epdin + '_min_' + fileno + '.epd', out);
+  if (out)
+    fs.writeFileSync(epdin + '_min_' + fileno + '.epd', out);
   
   console.log('done');
   

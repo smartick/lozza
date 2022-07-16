@@ -5,7 +5,7 @@
 
 var epdin = process.argv[2];
 if (!epdin) {
-  console.log('use: node strip <infile> (assumed .epd)');
+  console.log('use: node strip <infile> (assumes .epd)');
   process.exit();
 }
 

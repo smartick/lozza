@@ -3,12 +3,12 @@
 rem ******** config start
 
 set e1=coalface
-set e2=candidate
+set e2=released
 
 set elo0=0
 set elo1=5
 
-set tc=60+1
+set tc=180+3
 
 set thisver=2.4
 set lastver=2.2

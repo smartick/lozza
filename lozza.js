@@ -16,8 +16,8 @@ var LICHESS     = 0;
 //{{{  history
 /*
 
-2.4 08/07/22 Rejig ID.
-2.4 24/06/22 Retune.
+2.4 08/07/22 Rejig ID to be Ethereal shaped.
+2.4 24/06/22 Retune against sigmoid(SF hybrid eval) instead of WDL.
 2.4 24/06/22 Go back to v2.2 code.
 
 */
