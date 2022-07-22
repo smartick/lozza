@@ -3,15 +3,15 @@
 rem ******** config start
 
 set e1=coalface
-set e2=released
+set e2=candidate
 
 set elo0=0
 set elo1=5
 
-set tc=180+3
+set tc=10+0.1
 
-set thisver=2.4
-set lastver=2.2
+set thisver=2.5
+set lastver=2.4
 
 set games=20000
 
@@ -19,14 +19,16 @@ set threads=2
 
 rem ******** config end
 
-del cctry.pgn
+iff isfile cctry.pgn then
+  del cctry.pgn
+endiff
 
-iff "%e1" != "coalface" .and. "%e1" != "candidate" .and. "%e1" != "released" .and. "%e1" != "tt" then
+iff "%e1" != "coalface" .and. "%e1" != "candidate" .and. "%e1" != "released" then
   echo no engine e1 = %e1
   quit
 endiff
 
-iff "%e2" != "coalface" .and. "%e2" != "candidate" .and. "%e2" != "released" .and. "%e2" != "tt" then
+iff "%e2" != "coalface" .and. "%e2" != "candidate" .and. "%e2" != "released" then
   echo no engine e2 = %e2
   quit
 endiff
@@ -36,7 +38,6 @@ copy /q ..\..\..\top ..
 set a=%@random[1,9999999]
 
 set x=..\lozza.js
-
 iff isfile %x then
   findstr -V ##ifdef %x > coalface.js
 else
@@ -45,7 +46,6 @@ else
 endiff
 
 set x=..\history\%thisver\lozza.js
-
 iff isfile %x then
   findstr -V ##ifdef %x > candidate.js
 else
@@ -54,7 +54,6 @@ else
 endiff
 
 set x=..\history\%lastver\lozza.js
-
 iff isfile %x then
   findstr -V ##ifdef %x > released.js
 else

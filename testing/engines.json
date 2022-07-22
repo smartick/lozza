@@ -13,11 +13,6 @@
   "name": "released",
   "command": "node c:\\projects\\lozza\\trunk\\testing\\released.js",
   "protocol": "uci"
-},
-{
-  "name": "tt",
-  "command": "node c:\\projects\\lozza\\trunk\\testing\\engines\\tt.js",
-  "protocol": "uci"
 }
 ]
 
