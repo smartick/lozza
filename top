@@ -567,6 +567,7 @@ if (lozzaHost == HOST_NODEJS) {
 'lozza\trunk\history\2.3\release\lozza.bat'
 'lozza\trunk\history\2.3\release\readme.txt'
 
+'lozza\trunk\history\2.5\lozza.js'
 'lozza\trunk\history\2.4\lozza.js'
 'lozza\trunk\history\2.3\lozza.js'
 'lozza\trunk\history\2.2\gdtuner.js'
