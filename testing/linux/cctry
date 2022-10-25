@@ -25,4 +25,5 @@ m="-recover -concurrency 2"
 
 echo $e1 $e2 $t $r $d $o $f $v $m $s
 
-./cutechess $e1 $e2 $t $r $d $o $f $v $m $s 
+./cutechess $e1 $e2 $t $r $d $o $f $v $m $s
+

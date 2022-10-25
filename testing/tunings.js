@@ -8,7 +8,6 @@
 // num positions = 29998176
 // num features = 1033
 // batch size = 100000
-0
 // learning rate = 0.1
 // report rate = 10
 // k = 3.17

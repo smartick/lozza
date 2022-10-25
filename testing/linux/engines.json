@@ -17,10 +17,5 @@
 { "name": "released20",
   "command": "node /home/colinj/lozza/released20.js",
   "protocol": "uci"
-},
-{
-  "name": "tt",
-  "command": "node /home/colinj/lozza/tt.js",
-  "protocol": "uci"
 }
 ]

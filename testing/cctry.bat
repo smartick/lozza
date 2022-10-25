@@ -8,7 +8,7 @@ set e2=candidate
 set elo0=0
 set elo1=5
 
-set tc=20+0.2
+set tc=10+0.1
 
 set thisver=2.5
 set lastver=2.4
@@ -87,7 +87,8 @@ set m=-recover -concurrency %threads
 
 echo %e1.js v %e2.js of %games games or [%elo0,%elo1] at %tc
 
-"C:\Program Files (x86)\Cute Chess\cutechess-cli" %ee1 %ee2 %t %r %d %o %f %v %m %s
+rem "C:\Program Files (x86)\Cute Chess\cutechess-cli" %ee1 %ee2 %t %r %d %o %f %v %m %s
+"C:\Program Files (x86)\Cute Chess\cutechess-cli" %ee1 %ee2 %t %o %f %v %m %s
 
 rem add -debug to show all uci comms
 
