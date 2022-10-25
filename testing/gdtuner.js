@@ -7577,10 +7577,8 @@ onmessage({data: 'u\np s\nb'});                                   // ##ifdef
 //
 // Copy dev lozza.js above here.
 //
-// Tunes Lozza using the files created by split.js.
-// e.g. use: lt ^ node gdtuner cctry
-//
-// cctry* files are expected to be in the data dir.
+// Tunes Lozza using the files created by split.js,
+// which are assumed to be in the data dir.
 //
 
 lozza.newGameInit();
@@ -7594,17 +7592,16 @@ board = lozza.board;
 var epds   = [];
 var params = [];
 
-var gNumFiles      = 4;              // 0 based.
+var gPrefix        = 'quiet-labeled';
+var gNumFiles      = 1;              // 0 based.
 var gBatchSize     = 10000;
-var gErrStep       = 10;             // update results and get loss rate.
-var gK             = 3.17;
-var gPrefix        = process.argv[2];
-var gUseScore      = false;          // train against sigmoid(score) not wdl.
-var gWDLIndex      = 4;              // or the score index if gUseScore is set.
+var gErrStep       = 10;             // report loss every n epochs.
+var gK             = 3.18;
 var gLearningRate  = 0.1;
 var gResetAdagrad  = false;
 var gOutFile       = 'gdtuner.txt';
 var gMaxEpochs     = 2000;
+var gWDLIndex      = 4;
 
 //{{{  functions
 
@@ -7809,8 +7806,6 @@ function saveparams (err, epochs) {
   out1 += '\r\n';
   out1 += '// num files = ' + gNumFiles;
   out1 += '\r\n';
-  out1 += '// use score = ' + gUseScore;
-  out1 += '\r\n';
   out1 += '// wdl index = ' + gWDLIndex;
   out1 += '\r\n';
   out1 += '// num positions = ' + Vtotal;
@@ -7980,8 +7975,8 @@ function grunt () {
 
   lozza.newGameInit();
 
-  //findK();
-  //process.exit();
+  findK();
+  process.exit();
 
   console.log('creating params...');
 
@@ -8242,7 +8237,6 @@ function grunt () {
       
       //}}}
     }
-    process.exit();
   }
   
   console.log('Done',err);
@@ -8280,14 +8274,10 @@ function readfile() {
     if (!parts.length)
       continue;
 
-    if (gUseScore)
-      var train = sigmoid(parseFloat(parts[gWDLIndex]));
-    else {
-      var train = parseFloat(parts[gWDLIndex]);
-      if (train != 0.0 && train != 1.0 && train != 0.5) {
-        console.log('invalid wdl',train);
-        process.exit();
-      }
+    var train = parseFloat(parts[gWDLIndex]);
+    if (train != 0.0 && train != 1.0 && train != 0.5) {
+      console.log('invalid wdl',train);
+      process.exit();
     }
 
     epds.push({board:   parts[0],
