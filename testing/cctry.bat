@@ -37,33 +37,9 @@ copy /q ..\..\..\top ..
 
 set a=%@random[1,9999999]
 
-set x=..\lozza.js
-iff isfile %x then
-  findstr -V ##ifdef %x > coalface.js
-else
-  echo coalface %x missing
-  quit
-endiff
-
-set x=..\history\%thisver\lozza.js
-iff isfile %x then
-  findstr -V ##ifdef %x > candidate.js
-else
-  echo candidate %x missing
-  quit
-endiff
-
-set x=..\history\%lastver\lozza.js
-iff isfile %x then
-  findstr -V ##ifdef %x > released.js
-else
-  echo released %x missing
-  quit
-endiff
-
-ffind /vt"ifdef" coalface.js
-ffind /vt"ifdef" candidate.js
-ffind /vt"ifdef" released.js
+copy lozza.js coalface.js
+copy ..\history\%thisver\lozza.js candidate.js
+copy ..\history\%lastver\lozza.js released.js
 
 fc %e1.js %e2.js
 
@@ -87,8 +63,7 @@ set m=-recover -concurrency %threads
 
 echo %e1.js v %e2.js of %games games or [%elo0,%elo1] at %tc
 
-rem "C:\Program Files (x86)\Cute Chess\cutechess-cli" %ee1 %ee2 %t %r %d %o %f %v %m %s
-"C:\Program Files (x86)\Cute Chess\cutechess-cli" %ee1 %ee2 %t %o %f %v %m %s
+"C:\Program Files (x86)\Cute Chess\cutechess-cli" %ee1 %ee2 %t %r %d %o %f %v %m %s
 
 rem add -debug to show all uci comms
 
