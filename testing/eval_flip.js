@@ -3601,7 +3601,7 @@ lozBoard.prototype.evaluate = function (turn) {
   this.eval.pList  = this.wList;
   this.eval.pCount = this.wCount;
   
-  this.evalLoop()
+  this.evalLoop(WHITE)
   
   materialS += this.eval.matS;
   materialE += this.eval.matE;
@@ -3614,7 +3614,7 @@ lozBoard.prototype.evaluate = function (turn) {
   this.eval.pList  = this.bList;
   this.eval.pCount = this.bCount;
   
-  this.evalLoop()
+  this.evalLoop(BLACK)
   
   materialS -= this.eval.matS;
   materialE -= this.eval.matE;
@@ -3678,7 +3678,7 @@ lozBoard.prototype.evalLoop = function (turn) {
 
     var p = b[fr];
 
-    if (p == PAWN | turn) {
+    if (p == (PAWN | turn)) {
       //{{{  P
       
       phase -= VPHASE[PAWN];
@@ -3689,7 +3689,7 @@ lozBoard.prototype.evalLoop = function (turn) {
       //}}}
     }
 
-    else if (p == KNIGHT | turn) {
+    else if (p == (KNIGHT | turn)) {
       //{{{  N
       
       phase -= VPHASE[KNIGHT];
@@ -3700,7 +3700,7 @@ lozBoard.prototype.evalLoop = function (turn) {
       //}}}
     }
 
-    else if (p == BISHOP | turn) {
+    else if (p == (BISHOP | turn)) {
       //{{{  B
       
       phase -= VPHASE[BISHOP];
@@ -3711,7 +3711,7 @@ lozBoard.prototype.evalLoop = function (turn) {
       //}}}
     }
 
-    else if (p == ROOK | turn) {
+    else if (p == (ROOK | turn)) {
       //{{{  R
       
       phase -= VPHASE[ROOK];
@@ -3722,7 +3722,7 @@ lozBoard.prototype.evalLoop = function (turn) {
       //}}}
     }
 
-    else if (p == QUEEN | turn) {
+    else if (p == (QUEEN | turn)) {
       //{{{  Q
       
       phase -= VPHASE[QUEEN];
@@ -3733,7 +3733,7 @@ lozBoard.prototype.evalLoop = function (turn) {
       //}}}
     }
 
-    else if (p == KING | turn) {
+    else if (p == (KING | turn)) {
       //{{{  K
       
       
@@ -5008,7 +5008,7 @@ if (lozzaHost == HOST_NODEJS) {
 //}}}
 
 //}}}
-//
+        //
 // Copy dev lozza.js above here.
 //
 
