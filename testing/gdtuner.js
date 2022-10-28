@@ -50,77 +50,6 @@ function myround(x) {
 
 //{{{  constants
 
-//{{{  feature weight indexes
-
-var iSPARE0               = 0;
-var iSPARE1               = 1;
-var iSPARE2               = 2;
-var iSPARE3               = 3;
-var iSPARE4               = 4;
-var iSPARE5               = 5;
-var iSPARE6               = 6;
-var iSPARE7               = 7;
-var iATT_N                = 8;
-var iATT_B                = 9;
-var iATT_R                = 10;
-var iATT_Q                = 11;
-var iSPARE12              = 12;
-var iPAWN_DOUBLED_S       = 13;
-var iPAWN_DOUBLED_E       = 14;
-var iPAWN_ISOLATED_S      = 15;
-var iPAWN_ISOLATED_E      = 16;
-var iPAWN_BACKWARD_S      = 17;
-var iPAWN_BACKWARD_E      = 18;
-var iPAWN_PASSED_OFFSET_S = 19;
-var iPAWN_PASSED_OFFSET_E = 20;
-var iPAWN_PASSED_MULT_S   = 21;
-var iPAWN_PASSED_MULT_E   = 22;
-var iTWOBISHOPS_S         = 23;
-var iROOK7TH_S            = 24;
-var iROOK7TH_E            = 25;
-var iROOKOPEN_S           = 26;
-var iROOKOPEN_E           = 27;
-var iQUEEN7TH_S           = 28;
-var iQUEEN7TH_E           = 29;
-var iTRAPPED_S            = 30;
-var iKING_PENALTY         = 31;
-var iPAWN_OFFSET_S        = 32;
-var iPAWN_OFFSET_E        = 33;
-var iPAWN_MULT_S          = 34;
-var iPAWN_MULT_E          = 35;
-var iPAWN_PASS_FREE       = 36;
-var iPAWN_PASS_UNSTOP     = 37;
-var iPAWN_PASS_KING1      = 38;
-var iPAWN_PASS_KING2      = 39;
-var iSPARE40              = 40;
-var iSPARE41              = 41;
-var iSPARE42              = 42;
-var iSPARE43              = 43;
-var iSPARE44              = 44;
-var iSPARE45              = 45;
-var iTWOBISHOPS_E         = 46;
-var iTEMPO_S              = 47;
-var iTEMPO_E              = 48;
-var iTRAPPED_E            = 49;
-var iTIGHT_NS             = 50;
-var iTIGHT_NE             = 51;
-var iTIGHT_BS             = 52;
-var iTIGHT_BE             = 53;
-var iTIGHT_RS             = 54;
-var iTIGHT_RE             = 55;
-var iTIGHT_QS             = 56;
-var iTIGHT_QE             = 57;
-var iTENSE_NS             = 58;
-var iTENSE_NE             = 59;
-var iTENSE_BS             = 60;
-var iTENSE_BE             = 61;
-var iTENSE_RS             = 62;
-var iTENSE_RE             = 63;
-var iTENSE_QS             = 64;
-var iTENSE_QE             = 65;
-
-//}}}
-
 var MAX_PLY         = 100;                // limited by lozza.board.ttDepth bits.
 var MAX_MOVES       = 250;
 var INFINITY        = 30000;              // limited by lozza.board.ttScore bits.
@@ -148,13 +77,8 @@ var M_BLACK = -1;                 // +1/-1 colour multiplier, compute with: (-tu
 var PIECE_MASK = 0x7;
 var COLOR_MASK = 0x8;
 
-var VALUE_PAWN = 100;             // safe - tuning root
-
 const TTSIZE = 1 << 24;
 const TTMASK = TTSIZE - 1;
-
-const PTTSIZE = 1 << 14;
-const PTTMASK = PTTSIZE - 1;
 
 var TT_EMPTY  = 0;
 var TT_EXACT  = 1;
@@ -230,6 +154,9 @@ var B_BISHOP = BISHOP | BLACK;
 var B_ROOK   = ROOK   | BLACK;
 var B_QUEEN  = QUEEN  | BLACK;
 var B_KING   = KING   | BLACK;
+
+var WHITE_PIECES = [W_PAWN,W_KNIGHT,W_BISHOP,W_ROOK,W_QUEEN,W_KING];
+var BLACK_PIECES = [B_PAWN,B_KNIGHT,B_BISHOP,B_ROOK,B_QUEEN,B_KING];
 
 //
 // E == EMPTY, X = OFF BOARD, - == CANNOT HAPPEN
@@ -469,8 +396,6 @@ UMAP[W_QUEEN]  = 'Q';
 UMAP[W_KING]   = 'K';
 
 var STARRAY = Array(144);
-var WKZONES = Array(144);
-var BKZONES = Array(144);
 var DIST    = Array(144);
 
 //}}}
@@ -900,7 +825,7 @@ var randoms = [
 // last update = Fri Oct 28 2022 08:00:31 GMT+0100 (British Summer Time)
 //
 
-const WEIGHTS_MAT_S   = [0,100,325,325,500,900,10000];
+const WEIGHTS_MAT_M   = [0,100,325,325,500,900,10000];
 const WEIGHTS_MAT_E   = [0,100,325,325,500,900,10000];
 
 //}}}
@@ -1023,63 +948,6 @@ function lozChess () {
         continue;
       STARRAY[sq][dest] = -1;
     }
-  }
-  
-  //}}}
-  //{{{  init *KZONES
-  
-  for (var i=0; i < 144; i++) {
-  
-    WKZONES[i] = Array(144);
-    for (var j=0; j < 144; j++)
-      WKZONES[i][j] = 0;
-  
-    BKZONES[i] = Array(144);
-    for (var j=0; j < 144; j++)
-      BKZONES[i][j] = 0;
-  }
-  
-  for (var i=0; i < B88.length; i++) {
-  
-    var sq  = B88[i];
-    var wkz = WKZONES[sq];
-    var bkz = BKZONES[sq];
-  
-  // W
-  
-    if (!this.board.b[sq+13]) wkz[sq+13]=1;
-    if (!this.board.b[sq+12]) wkz[sq+12]=1;
-    if (!this.board.b[sq+11]) wkz[sq+11]=1;
-  
-    if (!this.board.b[sq-1])  wkz[sq-1]=1;
-    if (!this.board.b[sq+0])  wkz[sq+0]=1;
-    if (!this.board.b[sq+1])  wkz[sq+1]=1;
-  
-    if (!this.board.b[sq-11]) wkz[sq-11]=1;
-    if (!this.board.b[sq-12]) wkz[sq-12]=1;
-    if (!this.board.b[sq-13]) wkz[sq-13]=1;
-  
-    if (!this.board.b[sq-23]) wkz[sq-23]=1;
-    if (!this.board.b[sq-24]) wkz[sq-24]=1;
-    if (!this.board.b[sq-25]) wkz[sq-25]=1;
-  
-  // B
-  
-    if (!this.board.b[sq-13]) bkz[sq-13]=1;
-    if (!this.board.b[sq-12]) bkz[sq-12]=1;
-    if (!this.board.b[sq-11]) bkz[sq-11]=1;
-  
-    if (!this.board.b[sq-1])  bkz[sq-1]=1;
-    if (!this.board.b[sq+0])  bkz[sq+0]=1;
-    if (!this.board.b[sq+1])  bkz[sq+1]=1;
-  
-    if (!this.board.b[sq+11]) bkz[sq+11]=1;
-    if (!this.board.b[sq+12]) bkz[sq+12]=1;
-    if (!this.board.b[sq+13]) bkz[sq+13]=1;
-  
-    if (!this.board.b[sq+23]) bkz[sq+23]=1;
-    if (!this.board.b[sq+24]) bkz[sq+24]=1;
-    if (!this.board.b[sq+25]) bkz[sq+25]=1;
   }
   
   //}}}
@@ -1944,6 +1812,8 @@ lozChess.prototype.perftSearch = function (node, depth, turn, inner) {
 //{{{  lozBoard
 
 function lozBoard () {
+
+  this.eval         = {};
 
   this.lozza        = null;
   this.verbose      = false;
@@ -3628,7 +3498,7 @@ lozBoard.prototype.evaluate = function (turn) {
   
   var uci         = this.lozza.uci;
   var b           = this.b;
-  var phase       = TPHASE;
+  
   var numPieces   = this.wCount + this.bCount;
   
   var wNumQueens  = this.wCounts[QUEEN];
@@ -3643,14 +3513,8 @@ lozBoard.prototype.evaluate = function (turn) {
   var bNumKnights = this.bCounts[KNIGHT];
   var bNumPawns   = this.bCounts[PAWN];
   
-  var wKingSq     = this.wList[0];
-  var bKingSq     = this.bList[0];
-  
   var materialS   = 0;
   var materialE   = 0;
-  
-  var matS = 0;
-  var matE = 0;
   
   //}}}
   //{{{  draw?
@@ -3664,208 +3528,27 @@ lozBoard.prototype.evaluate = function (turn) {
   //}}}
   //{{{  iterate
   
-  //{{{  white
+  var phase = TPHASE;
   
-  matS = 0;
-  matE = 0;
+  // white
   
-  var myPawn       = W_PAWN;
-  var myKnight     = W_KNIGHT;
-  var myBishop     = W_BISHOP;
-  var myRook       = W_ROOK;
-  var myQueen      = W_QUEEN;
-  var myKing       = W_KING;
+  this.eval.pList  = this.wList;
+  this.eval.pCount = this.wCount;
   
-  var pList        = this.wList;
-  var pCount       = this.wCount;
+  phase -= this.evalLoop(WHITE)
   
-  //{{{  generic loop
+  materialS += this.eval.matS;
+  materialE += this.eval.matE;
   
-  var mob   = 0;
-  var to    = 0;
-  var next  = 0;
-  var count = 0;
+  // black
   
-  while (count < pCount) {
+  this.eval.pList  = this.bList;
+  this.eval.pCount = this.bCount;
   
-    var fr = pList[next++];
-    if (!fr)
-      continue;
+  phase -= this.evalLoop(BLACK)
   
-    var frObj = b[fr];
-  
-    if (frObj == myPawn) {
-      //{{{  P
-      
-      phase -= VPHASE[PAWN];
-      
-      matS += WEIGHTS_MAT_S[PAWN];
-      matE += WEIGHTS_MAT_E[PAWN];
-      
-      //}}}
-    }
-  
-    else if (frObj == myKnight) {
-      //{{{  N
-      
-      phase -= VPHASE[KNIGHT];
-      
-      matS += WEIGHTS_MAT_S[KNIGHT];
-      matE += WEIGHTS_MAT_E[KNIGHT];
-      
-      //}}}
-    }
-  
-    else if (frObj == myBishop) {
-      //{{{  B
-      
-      phase -= VPHASE[BISHOP];
-      
-      matS += WEIGHTS_MAT_S[BISHOP];
-      matE += WEIGHTS_MAT_E[BISHOP];
-      
-      //}}}
-    }
-  
-    else if (frObj == myRook) {
-      //{{{  R
-      
-      phase -= VPHASE[ROOK];
-      
-      matS += WEIGHTS_MAT_S[ROOK];
-      matE += WEIGHTS_MAT_E[ROOK];
-      
-      //}}}
-    }
-  
-    else if (frObj == myQueen) {
-      //{{{  Q
-      
-      phase -= VPHASE[QUEEN];
-      
-      matS += WEIGHTS_MAT_S[QUEEN];
-      matE += WEIGHTS_MAT_E[QUEEN];
-      
-      //}}}
-    }
-  
-    else if (frObj == myKing) {
-      //{{{  K
-      
-      
-      //}}}
-    }
-  
-    count++;
-  }
-  
-  //}}}
-  
-  materialS += matS;
-  materialE += matE;
-  
-  //}}}
-  //{{{  black
-  
-  matS = 0;
-  matE = 0;
-  
-  var myPawn       = B_PAWN;
-  var myKnight     = B_KNIGHT;
-  var myBishop     = B_BISHOP;
-  var myRook       = B_ROOK;
-  var myQueen      = B_QUEEN;
-  var myKing       = B_KING;
-  
-  var pList        = this.bList;
-  var pCount       = this.bCount;
-  
-  //{{{  generic loop
-  
-  var mob   = 0;
-  var to    = 0;
-  var next  = 0;
-  var count = 0;
-  
-  while (count < pCount) {
-  
-    var fr = pList[next++];
-    if (!fr)
-      continue;
-  
-    var frObj = b[fr];
-  
-    if (frObj == myPawn) {
-      //{{{  P
-      
-      phase -= VPHASE[PAWN];
-      
-      matS += WEIGHTS_MAT_S[PAWN];
-      matE += WEIGHTS_MAT_E[PAWN];
-      
-      //}}}
-    }
-  
-    else if (frObj == myKnight) {
-      //{{{  N
-      
-      phase -= VPHASE[KNIGHT];
-      
-      matS += WEIGHTS_MAT_S[KNIGHT];
-      matE += WEIGHTS_MAT_E[KNIGHT];
-      
-      //}}}
-    }
-  
-    else if (frObj == myBishop) {
-      //{{{  B
-      
-      phase -= VPHASE[BISHOP];
-      
-      matS += WEIGHTS_MAT_S[BISHOP];
-      matE += WEIGHTS_MAT_E[BISHOP];
-      
-      //}}}
-    }
-  
-    else if (frObj == myRook) {
-      //{{{  R
-      
-      phase -= VPHASE[ROOK];
-      
-      matS += WEIGHTS_MAT_S[ROOK];
-      matE += WEIGHTS_MAT_E[ROOK];
-      
-      //}}}
-    }
-  
-    else if (frObj == myQueen) {
-      //{{{  Q
-      
-      phase -= VPHASE[QUEEN];
-      
-      matS += WEIGHTS_MAT_S[QUEEN];
-      matE += WEIGHTS_MAT_E[QUEEN];
-      
-      //}}}
-    }
-  
-    else if (frObj == myKing) {
-      //{{{  K
-      
-      
-      //}}}
-    }
-  
-    count++;
-  }
-  
-  //}}}
-  
-  materialS -= matS;
-  materialE -= matE;
-  
-  //}}}
+  materialS -= this.eval.matS;
+  materialE -= this.eval.matE;
   
   //}}}
   //{{{  combine
@@ -3879,7 +3562,7 @@ lozBoard.prototype.evaluate = function (turn) {
   
   e = myround(e) | 0;
   
-  this.phase = phase; // for the tuner
+  this.phase = phase;
   
   //}}}
   //{{{  verbose
@@ -3899,6 +3582,88 @@ lozBoard.prototype.evaluate = function (turn) {
     return e;
   else
     return -e;
+}
+
+//}}}
+//{{{  .evalLoop
+
+lozBoard.prototype.evalLoop = function (turn) {
+
+  var b = this.b;
+
+  var matS = 0;
+  var matE = 0;
+
+  var next  = 0;
+  var count = 0;
+  var phase = 0;
+
+  var pCount = this.eval.pCount;
+  var pList  = this.eval.pList;
+
+  while (count < pCount) {
+
+    var fr = pList[next++];
+    if (!fr)
+      continue;
+
+    var p = b[fr] & PIECE_MASK;
+
+    phase += VPHASE[p];
+
+    matS += WEIGHTS_MAT_M[p];
+    matE += WEIGHTS_MAT_E[p];
+
+    switch (p) {
+
+      case PAWN:
+        //{{{  P
+        
+        
+        //}}}
+        break;
+
+      case KNIGHT:
+        //{{{  N
+        
+        
+        //}}}
+        break;
+
+      case BISHOP:
+        //{{{  B
+        
+        
+        //}}}
+        break;
+
+      case ROOK:
+        //{{{  R
+        
+        //}}}
+        break;
+
+      case QUEEN:
+        //{{{  Q
+        
+        //}}}
+        break;
+
+      case KING:
+        //{{{  K
+        
+        
+        //}}}
+        break;
+    }
+
+    count++;
+  }
+
+  this.eval.matS = matS;
+  this.eval.matE = matE;
+
+  return phase;
 }
 
 //}}}
@@ -4418,11 +4183,11 @@ lozNode.prototype.slideBase = function (move) {
 
     if (frCol == WHITE) {
       var his = this.board.wHistory[frPiece][to];
-      var pst = Math.random(50) - 100 | 0;
+      var pst = Math.random(100) - 50 | 0;
     }
     else {
       var his = this.board.bHistory[frPiece][to];
-      var pst = Math.random(50) - 100 | 0;
+      var pst = Math.random(100) - 50 | 0;
     }
 
     if (!his)
@@ -5129,7 +4894,7 @@ if (lozzaHost == HOST_NODEJS) {
   
   function unitTest(p) {
     if (p == '10') {
-      onmessage({data: 'ping\nb\nucinewgame\nposition startpos\nb\ngo depth 10\nb\nquit'});
+      onmessage({data: 'ping\nb\nucinewgame\nposition startpos\nb\ngo depth 10\nb\ne\nquit'});
     }
   }
   
@@ -5176,11 +4941,11 @@ board = lozza.board;
 var epds   = [];
 var params = [];
 
-var gPrefix        = 'eth';
+var gPrefix        = 'quiet-labeled';
 var gNumFiles      = 1;             // 0 based.
 var gBatchSize     = 10000;
 var gErrStep       = 10;             // report loss every n epochs.
-var gK             = 1.0;
+var gK             = 3.7;
 var gLearningRate  = 0.1;
 var gResetAdagrad  = false;
 var gOutFile       = 'gdtuner.txt';
@@ -5417,10 +5182,8 @@ function saveparams (err, epochs) {
 
   var out = '';
 
-  out += loga(WEIGHTS_MAT_S, 'WEIGHTS_MAT_S');
+  out += loga(WEIGHTS_MAT_M, 'WEIGHTS_MAT_M');
   out += loga(WEIGHTS_MAT_E, 'WEIGHTS_MAT_E');
-
-  lastOut = out;
 
   out = out + '\r\n//}}}\r\n\r\n';
 
@@ -5437,18 +5200,19 @@ function grunt () {
 
   lozza.newGameInit();
 
-  findK();
-  process.exit();
+  //findK();
+  //process.exit();
 
   console.log('creating params...');
 
   //{{{  create params
   
-  addp('', WEIGHTS_MAT_S, KNIGHT, function (piece,mg,eg) {return ((board.wCounts[KNIGHT] - board.bCounts[KNIGHT]) * mg)});
-  addp('', WEIGHTS_MAT_S, BISHOP, function (piece,mg,eg) {return ((board.wCounts[BISHOP] - board.bCounts[BISHOP]) * mg)});
-  addp('', WEIGHTS_MAT_S, ROOK,   function (piece,mg,eg) {return ((board.wCounts[ROOK]   - board.bCounts[ROOK])   * mg)});
-  addp('', WEIGHTS_MAT_S, QUEEN,  function (piece,mg,eg) {return ((board.wCounts[QUEEN]  - board.bCounts[QUEEN])  * mg)});
+  addp('', WEIGHTS_MAT_M, KNIGHT, function (piece,mg,eg) {return ((board.wCounts[KNIGHT] - board.bCounts[KNIGHT]) * mg)});
+  addp('', WEIGHTS_MAT_M, BISHOP, function (piece,mg,eg) {return ((board.wCounts[BISHOP] - board.bCounts[BISHOP]) * mg)});
+  addp('', WEIGHTS_MAT_M, ROOK,   function (piece,mg,eg) {return ((board.wCounts[ROOK]   - board.bCounts[ROOK])   * mg)});
+  addp('', WEIGHTS_MAT_M, QUEEN,  function (piece,mg,eg) {return ((board.wCounts[QUEEN]  - board.bCounts[QUEEN])  * mg)});
   
+  addp('', WEIGHTS_MAT_E, PAWN,   function (piece,mg,eg) {return ((board.wCounts[PAWN]   - board.bCounts[PAWN])   * eg)});
   addp('', WEIGHTS_MAT_E, KNIGHT, function (piece,mg,eg) {return ((board.wCounts[KNIGHT] - board.bCounts[KNIGHT]) * eg)});
   addp('', WEIGHTS_MAT_E, BISHOP, function (piece,mg,eg) {return ((board.wCounts[BISHOP] - board.bCounts[BISHOP]) * eg)});
   addp('', WEIGHTS_MAT_E, ROOK,   function (piece,mg,eg) {return ((board.wCounts[ROOK]   - board.bCounts[ROOK])   * eg)});
@@ -5570,19 +5334,19 @@ function grunt () {
       //{{{  sync black arrays
       
       for (var i=0; i < 144; i++) {
-        BPAWN_PSTS[wbmap(i)]   = WPAWN_PSTS[i];
-        BPAWN_PSTE[wbmap(i)]   = WPAWN_PSTE[i];
-        BKNIGHT_PSTS[wbmap(i)] = WKNIGHT_PSTS[i];
-        BKNIGHT_PSTE[wbmap(i)] = WKNIGHT_PSTE[i];
-        BBISHOP_PSTS[wbmap(i)] = WBISHOP_PSTS[i];
-        BBISHOP_PSTE[wbmap(i)] = WBISHOP_PSTE[i];
-        BROOK_PSTS[wbmap(i)]   = WROOK_PSTS[i];
-        BROOK_PSTE[wbmap(i)]   = WROOK_PSTE[i];
-        BQUEEN_PSTS[wbmap(i)]  = WQUEEN_PSTS[i];
-        BQUEEN_PSTE[wbmap(i)]  = WQUEEN_PSTE[i];
-        BKING_PSTS[wbmap(i)]   = WKING_PSTS[i];
-        BKING_PSTE[wbmap(i)]   = WKING_PSTE[i];
-        BOUTPOST[wbmap(i)]     = WOUTPOST[i];
+        //BPAWN_PSTS[wbmap(i)]   = WPAWN_PSTS[i];
+        //BPAWN_PSTE[wbmap(i)]   = WPAWN_PSTE[i];
+        //BKNIGHT_PSTS[wbmap(i)] = WKNIGHT_PSTS[i];
+        //BKNIGHT_PSTE[wbmap(i)] = WKNIGHT_PSTE[i];
+        //BBISHOP_PSTS[wbmap(i)] = WBISHOP_PSTS[i];
+        //BBISHOP_PSTE[wbmap(i)] = WBISHOP_PSTE[i];
+        //BROOK_PSTS[wbmap(i)]   = WROOK_PSTS[i];
+        //BROOK_PSTE[wbmap(i)]   = WROOK_PSTE[i];
+        //BQUEEN_PSTS[wbmap(i)]  = WQUEEN_PSTS[i];
+        //BQUEEN_PSTE[wbmap(i)]  = WQUEEN_PSTE[i];
+        //BKING_PSTS[wbmap(i)]   = WKING_PSTS[i];
+        //BKING_PSTE[wbmap(i)]   = WKING_PSTE[i];
+        //BOUTPOST[wbmap(i)]     = WOUTPOST[i];
       }
       
       //}}}

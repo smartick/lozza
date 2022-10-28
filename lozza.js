@@ -3625,6 +3625,8 @@ lozBoard.prototype.evaluate = function (turn) {
   
   e = myround(e) | 0;
   
+  this.phase = phase;
+  
   //}}}
   //{{{  verbose
   
