@@ -1,3 +1,496 @@
+//{{{  simple eval tuner
+//
+// Copy dev lozza.js above here.
+//
+// Tunes Lozza using the files created by split.js,
+// which are assumed to be in the data dir.
+//
+
+lozza.newGameInit();
+
+fs    = lozza.uci.nodefs;
+uci   = lozza.uci;
+board = lozza.board;
+
+var epds   = [];
+var params = [];
+
+var gPrefix        = 'quiet-labeled';
+var gNumFiles      = 1;              // 0 based.
+var gBatchSize     = 10000;
+var gErrStep       = 2;              // report loss every n epochs.
+var gK             = 3.7;
+var gLearningRate  = 0.1;
+var gResetAdagrad  = false;
+var gOutFile       = 'gdtuner.txt';
+var gMaxEpochs     = 2000;
+var gWDLIndex      = 4;
+
+//{{{  functions
+
+//{{{  getprob
+
+function getprob (r) {
+  if (r == '1/2-1/2')
+    return 0.5;
+  else if (r == '1-0')
+    return 1.0;
+  else if (r == '0-1')
+    return 0.0;
+  else
+    console.log('unknown result',r);
+}
+
+//}}}
+//{{{  is
+
+function is (obj,sq) {
+  return (board.b[sq] == obj) | 0;
+}
+
+//}}}
+//{{{  findK
+
+function findK () {
+
+  console.log('computing k');
+
+  var min  = INFINITY;
+  var step = 1.0;
+  var x    = 1.0;
+  var err  = 0;
+  var dp   = 4;
+
+  while (dp) {
+    gK = x;
+    err = calcErr();
+    if (err <  min) {
+      min = err;
+      x += step;
+    }
+    else {
+      console.log(gK-step,err,step);
+      dp--;
+      step = -step / 10.0;
+      x += step;
+      min = INFINITY;
+    }
+  }
+}
+
+//}}}
+//{{{  addp
+
+function addp (s,a,i,p,ksq,sq,coeff) {
+  params.push({s: s, v: a[i], a: a, i: i, p: p, ksq: ksq, sq: sq, coeff: coeff, gr: 0, ag: 0});
+}
+
+//}}}
+//{{{  myround
+
+function myround(x) {
+  return Math.sign(x) * Math.round(Math.abs(x));
+}
+
+//}}}
+//{{{  wbmap
+
+function wbmap (sq) {
+  var m = (143-sq)/12|0;
+  return 12*m + sq%12;
+}
+
+//}}}
+//{{{  sigmoid
+
+function sigmoid (x) {
+  return 1.0 / (1.0 + Math.exp(-gK*x/400.0));
+}
+
+//}}}
+//{{{  calcErr
+//var xxx = 0;
+
+function calcErr () {
+
+  //console.log('calc err in');
+
+  var err = 0;
+  var num = Vtotal;
+
+  for (var i=0; i < num; i++) {
+
+    var vi  = Vindex(i);
+    var epd = epds[vi];
+
+    uci.spec.board    = epd.board;
+    uci.spec.turn     = epd.turn;
+    uci.spec.rights   = epd.rights;
+    uci.spec.ep       = epd.ep;
+    uci.spec.fmc      = 0;
+    uci.spec.hmc      = 0;
+    uci.spec.id       = '';
+    uci.spec.moves    = [];
+
+    //console.log(Vfileno,epd.board,epd.turn,epd.rights,epd.prob)
+
+    lozza.position();
+
+    var pr = epd.prob;
+    var ev = board.evaluate(board.turn);
+
+    if (board.turn == BLACK)
+      ev = -ev;               // undo negamax.
+
+    var sg = sigmoid(ev);
+
+    if (isNaN(ev) || isNaN(pr) || isNaN(sg) || sg > 1.0 || pr > 1.0 || sg < 0.0 || pr < 0.0) {
+      console.log('nan eek',pr,sg,ev);
+      process.exit();
+    }
+
+    err += (pr-sg) * (pr-sg);
+  }
+
+  //console.log('calc err out');
+
+  //console.log('xxxxxxxxx');
+  //xxx++;
+  //if (xxx > 1)
+  //  process.exit();
+
+  return err / num;
+}
+
+//}}}
+//{{{  zeroa
+
+function zeroa (a,s) {
+
+  for (var i=0; i < a.length; i++)
+    a[i] = 0;
+}
+
+//}}}
+//{{{  loga
+
+function loga (p,s) {
+
+  var a = Array(p.length);
+
+  for (var i=0; i < p.length; i++)
+    a[i] = myround(p[i]) | 0;
+
+  return 'const ' + s + ' = [' + a.toString() + '];\r\n';
+}
+
+//}}}
+//{{{  saveparams
+
+var lastOut = '';
+
+function saveparams (err, epochs) {
+
+  var d    = new Date();
+  var out1 = '//{{{  tuned weights\r\n';
+
+  out1 += '//';
+  out1 += '\r\n';
+  out1 += '// prefix = ' + gPrefix;
+  out1 += '\r\n';
+  out1 += '// num files = ' + gNumFiles;
+  out1 += '\r\n';
+  out1 += '// num positions = ' + Vtotal;
+  out1 += '\r\n';
+  out1 += '// num features = ' + params.length;
+  out1 += '\r\n';
+  out1 += '// batch size = ' + gBatchSize;
+  out1 += '\r\n';
+  out1 += '// num batches = ' + (Vtotal/gBatchSize|0);
+  out1 += '\r\n';
+  out1 += '// learning rate = ' + gLearningRate;
+  out1 += '\r\n';
+  out1 += '// report rate = ' + gErrStep;
+  out1 += '\r\n';
+  out1 += '// k = ' + gK;
+  out1 += '\r\n';
+  out1 += '// reset adagrad = ' + gResetAdagrad;
+  out1 += '\r\n';
+  out1 += '// loss = ' + err;
+  out1 += '\r\n';
+  out1 += '// epochs = ' + epochs;
+  out1 += '\r\n';
+  out1 += '// last update = ' + d;
+  out1 += '\r\n';
+  out1 += '//';
+  out1 += '\r\n\r\n';
+
+  var out = '';
+
+  out += loga(WEIGHTS_MAT_M, 'WEIGHTS_MAT_M');
+  out += loga(WEIGHTS_MAT_E, 'WEIGHTS_MAT_E');
+
+  out = out + '\r\n//}}}\r\n\r\n';
+
+  if (epochs == 0)
+    fs.writeFileSync('0'+gOutFile, out1+out);
+  else
+    fs.writeFileSync(gOutFile, out1+out);
+}
+
+//}}}
+//{{{  grunt
+
+function grunt () {
+
+  lozza.newGameInit();
+
+  //findK();
+  //process.exit();
+
+  console.log('creating params...');
+
+  //{{{  create params
+  
+  function callbackMat(p,mg,eg) {
+  
+    var bd = board.b;
+  
+    var w = (bd[p.ksq]        == W_KING) && (bd[p.sq]        == (p.p | WHITE));
+    var b = (bd[wbmap(p.ksq)] == B_KING) && (bd[wbmap(p.sq)] == (p.p | BLACK));
+  
+    w = w | 0;
+    b = b | 0;
+  
+    return w - b;
+  }
+  
+  for (var p = KNIGHT; p <= KNIGHT; p++) {
+    for (var ksq64 = 0; ksq64 < 64; ksq64++) {
+      for (var sq64 = 0; sq64 < 64; sq64++) {
+        addp('', WEIGHTS_MAT_M, W(p-1,ksq64,sq64), p, B88[ksq64], B88[sq64], callbackMat);
+      }
+    }
+  }
+  
+  //for (var p = PAWN; p <= KING; p++) {
+    //for (var ksq64 = 0; ksq64 < 64; ksq64++) {
+      //for (var sq64 = 0; sq64 < 64; sq64++) {
+        //addp('', WEIGHTS_MAT_E, W(p-1,ksq64,sq64), p, B88[ksq64], B88[sq64], callbackMat);
+      //}
+    //}
+  //}
+  
+  
+  //}}}
+
+  console.log('tuning...');
+
+  //{{{  tune params
+  
+  console.log('positions =',Vtotal);
+  console.log('features =', params.length);
+  
+  var epoch      = 0;
+  var numParams  = params.length;
+  var numBatches = Vtotal / gBatchSize | 0;
+  var err        = 0;
+  var lastErr    = 0;
+  
+  console.log('batches =', numBatches);
+  
+  var K2 = gK / 200.0;
+  
+  while (gMaxEpochs--) {
+  
+    if (epoch % gErrStep == 0) {
+      //{{{  report loss
+      
+      err = calcErr();
+      
+      console.log(epoch, err, err-lastErr);
+      
+      lastErr = err;
+      
+      saveparams(err,epoch);
+      
+      //}}}
+      //{{{  check for crazy values
+      /*
+      for (var i=0; i < numParams; i++) {
+        var p = params[i];
+        var delta = Math.abs(p.v - p.a[p.i]);
+        if (delta > 5 && p.s)
+          console.log(p.s,p.v,p.a[p.i],delta);
+      }
+      */
+      //}}}
+      //{{{  reset adagrad
+      
+      if (gResetAdagrad) {
+        for (var i=0; i < numParams; i++)
+          params[i].ag = 0;
+      }
+      
+      //}}}
+    }
+    else {
+      process.stdout.write(epoch+'\r');
+      saveparams(lastErr,epoch);
+    }
+  
+    epoch++;
+  
+    //console.log('epoch',epoch,'num batches',numBatches);
+  
+    for (var batch=0; batch < numBatches; batch++) {
+      //console.log('batch',batch);
+      //{{{  reset gradient sums
+      
+      for (var i=0; i < numParams; i++)
+        params[i].gr = 0;
+      
+      //}}}
+      //{{{  accumulate gradients
+      
+      for (var i=batch*gBatchSize; i < (batch+1)*gBatchSize; i++) {
+      
+        var vi  = Vindex(i);
+        var epd = epds[vi];
+      
+        uci.spec.board    = epd.board;
+        uci.spec.turn     = epd.turn;
+        uci.spec.rights   = epd.rights;
+        uci.spec.ep       = epd.ep;
+        uci.spec.fmc      = 0;
+        uci.spec.hmc      = 0;
+        uci.spec.id       = 'id' + j;
+        uci.spec.moves    = [];
+      
+        //console.log(Vfileno,epd.board,epd.turn,epd.rights,epd.prob)
+      
+        lozza.position();
+      
+        var pr = epd.prob;
+      
+        var ev = board.evaluate(board.turn);
+        if (board.turn == BLACK)
+          ev = -ev;  // undo negamax.
+      
+        var sg    = sigmoid(ev);
+        var phase = board.cleanPhase(board.phase);
+        var mg    = (TPHASE - phase) / TPHASE;
+        var eg    = phase / TPHASE;
+      
+        for (var j=0; j < numParams; j++) {
+          var p = params[j];
+          p.gr += p.coeff(p,mg,eg) * (sg * (1 - sg)) * (sg - pr);  // chain rule
+        }
+      }
+      
+      //}}}
+      //{{{  apply mean gradient
+      
+      for (var i=0; i < numParams; i++) {
+        var p    = params[i];
+        var gr   = K2 * p.gr / gBatchSize;
+        p.ag     += gr * gr;
+        p.a[p.i] -= (gLearningRate / Math.sqrt(p.ag + 1e-8)) * gr;  // adagrad
+      }
+      
+      //}}}
+    }
+  }
+  
+  console.log('Done',err);
+  
+  //}}}
+
+  process.exit();
+}
+
+//}}}
+//{{{  readfile
+
+function readfile() {
+
+  //process.stdout.write(Vfileno+'\r');
+
+  var data  = fs.readFileSync('data/' + gPrefix + Vfileno + '.epd', 'utf8');
+  var lines = data.split('\n');
+
+  data = '';
+  epds = [];
+
+  for (var i=0; i < lines.length; i++) {
+
+    var line = lines[i];
+
+    line = line.replace(/(\r\n|\n|\r)/gm,'');
+    line = line.trim();
+
+    if (!line.length)
+      continue;
+
+    var parts = line.split(' ');
+
+    if (!parts.length)
+      continue;
+
+    var train = parseFloat(parts[gWDLIndex]);
+    if (train != 0.0 && train != 1.0 && train != 0.5) {
+      console.log('invalid wdl',train);
+      process.exit();
+    }
+
+    epds.push({board:   parts[0],
+               turn:    parts[1],
+               rights:  parts[2],
+               ep:      parts[3],
+               prob:    train});
+  }
+}
+
+//}}}
+//{{{  Vindex
+
+function Vindex(n) {
+
+  var f = Vf[n];
+  var i = Vi[n];
+
+  if (Vfileno != f) {
+    Vfileno = f;
+    readfile();
+  }
+
+  return i;
+}
+
+//}}}
+
+//}}}
+
+var Vf      = [];
+var Vi      = [];
+var Vtotal  = 0;
+var Vfileno = 0;
+
+console.log('indexing files...');
+
+for (var i=0; i < gNumFiles; i++) {
+  Vfileno = i;
+  readfile();
+  for (var j=0; j < epds.length; j++) {
+    Vf[Vtotal] = i;
+    Vi[Vtotal] = j;
+    Vtotal++;
+  }
+}
+
+grunt();
+
+//}}}
 //{{{  // Adds sf hybrid eval to <infile>.epd.
 //
 // Adds sf hybrid eval to <infile>.epd.

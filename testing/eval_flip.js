@@ -45,6 +45,13 @@ function myround(x) {
 }
 
 //}}}
+//{{{  W
+
+function W(p,ksq,sq) {
+  return sq + ksq*64 + (p-1)*64*64;
+}
+
+//}}}
 
 //}}}
 
@@ -288,6 +295,34 @@ var  B88 =  [26, 27, 28, 29, 30, 31, 32, 33,
              86, 87, 88, 89, 90, 91, 92, 93,
              98, 99, 100,101,102,103,104,105,
              110,111,112,113,114,115,116,117];
+
+var  B64W =  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+              0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+              0,0,0,1,2,3,4,5,6,7,0,0,
+              0,0,8,9,10,11,12,13,14,15,0,0,
+              0,0,16,17,18,19,20,21,22,23,0,0,
+              0,0,24,25,26,27,28,29,30,31,0,0,
+              0,0,32,33,34,35,36,37,38,39,0,0,
+              0,0,40,41,42,43,44,45,46,47,0,0,
+              0,0,48,49,50,51,52,53,54,55,0,0,
+              0,0,56,57,58,59,60,61,62,63,0,0,
+              0,0,0,0,0,0,0,0,0,0,0,0,
+              0,0,0,0,0,0,0,0,0,0,0,0];
+
+var  B64B =  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+              0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+              0,0,56,57,58,59,60,61,62,63,0,0,
+              0,0,48,49,50,51,52,53,54,55,0,0,
+              0,0,40,41,42,43,44,45,46,47,0,0,
+              0,0,32,33,34,35,36,37,38,39,0,0,
+              0,0,24,25,26,27,28,29,30,31,0,0,
+              0,0,16,17,18,19,20,21,22,23,0,0,
+              0,0,8,9,10,11,12,13,14,15,0,0,
+              0,0,0,1,2,3,4,5,6,7,0,0,
+              0,0,0,0,0,0,0,0,0,0,0,0,
+              0,0,0,0,0,0,0,0,0,0,0,0];
+
+var B64 = [B64W,B64B];
 
 var COORDS =   ['??', '??', '??', '??', '??', '??', '??', '??', '??', '??', '??', '??',
                 '??', '??', '??', '??', '??', '??', '??', '??', '??', '??', '??', '??',
@@ -832,8 +867,25 @@ var randoms = [
 // last update = Fri Oct 28 2022 08:00:31 GMT+0100 (British Summer Time)
 //
 
-const WEIGHTS_MAT_M   = [0,100,325,325,500,900,10000];
-const WEIGHTS_MAT_E   = [0,100,325,325,500,900,10000];
+const WEIGHTS_MAT_M = Array(6*64*64);
+const WEIGHTS_MAT_E = Array(6*64*64);
+
+for (var KKK=0; KKK<64; KKK++) {
+  for (var SSS=0; SSS<64; SSS++) {
+    WEIGHTS_MAT_M[W(PAWN,KKK,SSS)] = 100;
+    WEIGHTS_MAT_M[W(KNIGHT,KKK,SSS)] = Math.random()*100|0;
+    WEIGHTS_MAT_M[W(BISHOP,KKK,SSS)] = Math.random()*100|0;
+    WEIGHTS_MAT_M[W(ROOK,KKK,SSS)] = Math.random()*100|0;
+    WEIGHTS_MAT_M[W(QUEEN,KKK,SSS)] = Math.random()*100|0;
+    WEIGHTS_MAT_M[W(KING,KKK,SSS)] = 10000;
+    WEIGHTS_MAT_E[W(PAWN,KKK,SSS)] = Math.random()*100|0;
+    WEIGHTS_MAT_E[W(KNIGHT,KKK,SSS)] = Math.random()*100|0;
+    WEIGHTS_MAT_E[W(BISHOP,KKK,SSS)] = Math.random()*100|0;
+    WEIGHTS_MAT_E[W(ROOK,KKK,SSS)] = Math.random()*100|0;
+    WEIGHTS_MAT_E[W(QUEEN,KKK,SSS)] = Math.random()*100|0;
+    WEIGHTS_MAT_E[W(KING,KKK,SSS)] = 10000;
+  }
+}
 
 //}}}
 
@@ -3592,39 +3644,26 @@ lozBoard.prototype.evaluate = function (turn) {
   //}}}
   //{{{  iterate
   
-  this.eval.phase = TPHASE;
+  var phase = TPHASE;
   
-  //{{{  white
+  // white
   
-  this.eval.pieces = WHITE_PIECES;
-  
-  this.eval.pList  = this.wList;
-  this.eval.pCount = this.wCount;
-  
-  this.evalLoop(WHITE)
+  phase -= this.evalLoop(WHITE)
   
   materialS += this.eval.matS;
   materialE += this.eval.matE;
   
-  //}}}
-  //{{{  black
+  // black
   
-  this.eval.pieces = BLACK_PIECES;
-  
-  this.eval.pList  = this.bList;
-  this.eval.pCount = this.bCount;
-  
-  this.evalLoop(BLACK)
+  phase -= this.evalLoop(BLACK)
   
   materialS -= this.eval.matS;
   materialE -= this.eval.matE;
   
   //}}}
-  
-  //}}}
   //{{{  combine
   
-  phase = this.cleanPhase(this.phase);
+  phase = this.cleanPhase(phase);
   
   var evalS = materialS;
   var evalE = materialE;
@@ -3633,12 +3672,14 @@ lozBoard.prototype.evaluate = function (turn) {
   
   e = myround(e) | 0;
   
+  this.phase = phase;
+  
   //}}}
   //{{{  verbose
   
   if (this.verbose) {
     uci.send('info string','phased eval =',        e);
-    uci.send('info string','phase =',              this.phase);
+    uci.send('info string','phase =',              phase);
     uci.send('info string','evaluation =',         evalS,      evalE);
     uci.send('info string','material =',           materialS,  materialE);
     uci.send('info string','num white (p to q) =', wNumPawns,wNumKnights,wNumBishops,wNumRooks,wNumQueens);
@@ -3660,93 +3701,52 @@ lozBoard.prototype.evalLoop = function (turn) {
 
   var b = this.b;
 
+  if (turn == WHITE) {
+    var pList  = this.wList;
+    var pCount = this.wCount;
+    var ksq    = pList[0];
+    var B64    = B64W;
+    var ksq64  = B64[ksq];
+  }
+  else {
+    var pList  = this.bList;
+    var pCount = this.bCount;
+    var ksq    = pList[0];
+    var B64    = B64B;
+    var ksq64  = B64[ksq];
+  }
+
+  if ((b[ksq] & PIECE_MASK) != KING)
+    console.log('king');
+
   var matS = 0;
   var matE = 0;
 
-  var next  = 0;
-  var count = 0;
-  var phase = 0;
-
-  var pCount = this.eval.pCount;
-  var pList  = this.eval.pList;
+  var next   = 0;
+  var count  = 0;
+  var phase  = 0;
 
   while (count < pCount) {
 
-    var fr = pList[next++];
-    if (!fr)
+    var sq = pList[next++];
+    if (!sq)
       continue;
 
-    var p = b[fr];
+    var sq64 = B64[sq];
+    var p    = b[sq] & PIECE_MASK;
 
-    if (p == (PAWN | turn)) {
-      //{{{  P
-      
-      phase -= VPHASE[PAWN];
-      
-      matS += WEIGHTS_MAT_M[PAWN];
-      matE += WEIGHTS_MAT_E[PAWN];
-      
-      //}}}
-    }
+    phase += VPHASE[p];
 
-    else if (p == (KNIGHT | turn)) {
-      //{{{  N
-      
-      phase -= VPHASE[KNIGHT];
-      
-      matS += WEIGHTS_MAT_M[KNIGHT];
-      matE += WEIGHTS_MAT_E[KNIGHT];
-      
-      //}}}
-    }
-
-    else if (p == (BISHOP | turn)) {
-      //{{{  B
-      
-      phase -= VPHASE[BISHOP];
-      
-      matS += WEIGHTS_MAT_M[BISHOP];
-      matE += WEIGHTS_MAT_E[BISHOP];
-      
-      //}}}
-    }
-
-    else if (p == (ROOK | turn)) {
-      //{{{  R
-      
-      phase -= VPHASE[ROOK];
-      
-      matS += WEIGHTS_MAT_M[ROOK];
-      matE += WEIGHTS_MAT_E[ROOK];
-      
-      //}}}
-    }
-
-    else if (p == (QUEEN | turn)) {
-      //{{{  Q
-      
-      phase -= VPHASE[QUEEN];
-      
-      matS += WEIGHTS_MAT_M[QUEEN];
-      matE += WEIGHTS_MAT_E[QUEEN];
-      
-      //}}}
-    }
-
-    else if (p == (KING | turn)) {
-      //{{{  K
-      
-      
-      //}}}
-    }
+    matS += WEIGHTS_MAT_M[W(p,ksq64,sq64)];
+    matE += WEIGHTS_MAT_E[W(p,ksq64,sq64)];
 
     count++;
   }
 
-  this.eval.phase -= phase;
-
   this.eval.matS = matS;
   this.eval.matE = matE;
+
+  return phase;
 }
 
 //}}}
@@ -4977,7 +4977,7 @@ if (lozzaHost == HOST_NODEJS) {
   
   function unitTest(p) {
     if (p == '10') {
-      onmessage({data: 'ping\nb\nucinewgame\nposition startpos\nb\ngo depth 10\nb\nquit'});
+      onmessage({data: 'ping\nb\nucinewgame\nposition startpos\nb\ngo depth 10\nb\ne\nquit'});
     }
   }
   
@@ -5008,7 +5008,7 @@ if (lozzaHost == HOST_NODEJS) {
 //}}}
 
 //}}}
-        //
+//
 // Copy dev lozza.js above here.
 //
 

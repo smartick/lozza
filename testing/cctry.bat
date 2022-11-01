@@ -3,12 +3,12 @@
 rem ******** config start
 
 set e1=coalface
-set e2=candidate
+set e2=released
 
 set elo0=0
 set elo1=5
 
-set tc=10+0.1
+set tc=20+0.2
 
 set thisver=2.5
 set lastver=2.4
@@ -37,9 +37,9 @@ copy /q ..\..\..\top ..
 
 set a=%@random[1,9999999]
 
-copy lozza.js coalface.js
-copy ..\history\%thisver\lozza.js candidate.js
-copy ..\history\%lastver\lozza.js released.js
+findstr -V ##ifdef ..\lozza.js > coalface.js
+findstr -V ##ifdef ..\history\%thisver\lozza.js > candidate.js
+findstr -V ##ifdef ..\history\%lastver\lozza.js > released.js
 
 fc %e1.js %e2.js
 
