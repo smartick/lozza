@@ -1,0 +1,19 @@
+{
+  "name": "lozza",
+  "version": "2.5.0",
+  "description": "A Javascript chess engine inspired by Fabien Letouzey's Fruit 2.1",
+  "main": "lozza.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/smartick/lozza.git"
+  },
+  "author": "Colin Jenkins (op12no2)",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/smartick/lozza/issues"
+  },
+  "homepage": "https://github.com/smartick/lozza#readme"
+}
